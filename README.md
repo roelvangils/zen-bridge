@@ -130,6 +130,24 @@ zen> exit
 Goodbye!
 ```
 
+### Highlight elements on page
+
+Visually highlight elements matching a CSS selector:
+
+```bash
+# Highlight headings
+zen highlight "h1, h2"
+
+# Highlight with custom color
+zen highlight "a" --color blue
+
+# Highlight form fields
+zen highlight "input, textarea" --color orange
+
+# Clear all highlights
+zen highlight "h1" --clear
+```
+
 ### Download files from page
 
 Find and download files from the current page interactively:

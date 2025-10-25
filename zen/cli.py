@@ -283,6 +283,78 @@ def repl():
 
 
 @cli.command()
+@click.argument("selector")
+@click.option("-c", "--color", default="red", help="Outline color (default: red)")
+@click.option("--clear", is_flag=True, help="Clear all highlights")
+def highlight(selector, color, clear):
+    """
+    Highlight elements matching a CSS selector on the page.
+
+    Adds a 2px dashed outline around matching elements.
+
+    Examples:
+
+        zen highlight "h1, h2"
+
+        zen highlight ".error" --color orange
+
+        zen highlight "a" --clear
+    """
+    client = BridgeClient()
+
+    if not client.is_alive():
+        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        sys.exit(1)
+
+    if clear:
+        # Clear all highlights
+        code = """
+        document.querySelectorAll('[data-zen-highlight]').forEach(el => {
+            el.style.outline = '';
+            el.removeAttribute('data-zen-highlight');
+        });
+        'Highlights cleared'
+        """
+    else:
+        # Add highlights
+        code = f"""
+        (function(selector, color) {{
+            const elements = document.querySelectorAll(selector);
+
+            if (elements.length === 0) {{
+                return `No elements found matching: ${{selector}}`;
+            }}
+
+            // Clear previous highlights
+            document.querySelectorAll('[data-zen-highlight]').forEach(el => {{
+                el.style.outline = '';
+                el.removeAttribute('data-zen-highlight');
+            }});
+
+            // Add new highlights
+            elements.forEach((el, index) => {{
+                el.style.outline = `2px dashed ${{color}}`;
+                el.setAttribute('data-zen-highlight', index);
+            }});
+
+            return `Highlighted ${{elements.length}} element(s) matching: ${{selector}}`;
+        }})('{selector}', '{color}')
+        """
+
+    try:
+        result = client.execute(code, timeout=10.0)
+        output = format_output(result, "auto")
+        click.echo(output)
+
+        if not result.get("ok"):
+            sys.exit(1)
+
+    except (ConnectionError, TimeoutError, RuntimeError) as e:
+        click.echo(f"Error: {e}", err=True)
+        sys.exit(1)
+
+
+@cli.command()
 def userscript():
     """Display the userscript that needs to be installed in your browser."""
     script_path = Path(__file__).parent.parent / "userscript.js"
