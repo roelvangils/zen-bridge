@@ -7,6 +7,7 @@ Execute JavaScript in your browser from the command line. A powerful CLI tool fo
 - Execute JavaScript code in your active browser tab from the terminal
 - Interactive REPL for live experimentation
 - AI-powered article summarization with Mozilla Readability
+- Page outline visualization (heading hierarchy)
 - Link extraction with filtering (internal/external) and sorting
 - Keyboard-driven browser control with auto-refocus and verbose mode
 - Synchronous request/response handling
@@ -152,6 +153,45 @@ zen highlight "input, textarea" --color orange
 # Clear all highlights
 zen highlight "h1" --clear
 ```
+
+### View page outline
+
+Display the page's heading structure as a nested, hierarchical outline:
+
+```bash
+zen outline
+```
+
+**Output:**
+
+Shows all headings (H1-H6 and ARIA headings) with proper indentation:
+
+```
+H1 Getting Started
+   H2 Installation
+      H3 Prerequisites
+      H3 Setup
+   H2 Configuration
+      H3 Basic Settings
+      H3 Advanced Options
+         H4 Environment Variables
+   H2 Usage Examples
+
+Total: 8 headings
+```
+
+**Features:**
+- Includes native HTML headings (H1-H6)
+- Includes ARIA headings (`role="heading"` with `aria-level`)
+- Proper nesting with 3-space indentation per level
+- Heading levels displayed in gray, text in white
+- Shows heading hierarchy at a glance
+
+**Use cases:**
+- Check document outline accessibility
+- Verify proper heading hierarchy
+- Understand page structure quickly
+- Identify missing or misplaced headings
 
 ### Extract links from page
 
@@ -838,6 +878,30 @@ Added `zen links` command for comprehensive link extraction and filtering:
 - Generate sitemap of internal pages
 - Quick link counting for analysis
 - Pipe to other tools for further processing
+
+**Page Outline Visualization:**
+
+Added `zen outline` command to display heading hierarchy:
+
+- ✅ **Native heading support** - Extracts H1-H6 elements
+- ✅ **ARIA heading support** - Includes elements with `role="heading"` and `aria-level`
+- ✅ **Hierarchical display** - Proper nesting with 3-space indentation per level
+- ✅ **Colored output** - Heading levels in gray, text in white
+- ✅ **Document order** - Headings displayed in page order
+- ✅ **Summary statistics** - Total heading count
+
+**Implementation:**
+- `zen/scripts/extract_outline.js` - Extracts native and ARIA headings
+- Detects heading level from tag name (H1-H6) or aria-level attribute
+- CLI formats with indentation and terminal colors using click.style()
+- Validates ARIA levels (1-6 only)
+
+**Use cases:**
+- Accessibility audits (verify heading hierarchy)
+- Content structure analysis
+- Quick navigation understanding
+- SEO heading structure review
+- Identify heading hierarchy issues (skipped levels, multiple H1s, etc.)
 
 **Keyboard Control Mode Enhancements:**
 

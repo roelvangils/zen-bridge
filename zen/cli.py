@@ -1941,6 +1941,74 @@ def all():
 
 
 @cli.command()
+def outline():
+    """
+    Display the page's heading structure as a nested outline.
+
+    Shows all headings (H1-H6 and ARIA headings) in a hierarchical view.
+    Heading levels are shown in gray, text in white.
+
+    Examples:
+        zen outline
+    """
+    client = BridgeClient()
+
+    if not client.is_alive():
+        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        sys.exit(1)
+
+    # Load and execute the extract_outline script
+    script_path = Path(__file__).parent / "scripts" / "extract_outline.js"
+
+    if not script_path.exists():
+        click.echo(f"Error: Script not found: {script_path}", err=True)
+        sys.exit(1)
+
+    try:
+        with open(script_path) as f:
+            script = f.read()
+
+        result = client.execute(script, timeout=30.0)
+
+        if not result.get("ok"):
+            click.echo(f"Error: {result.get('error')}", err=True)
+            sys.exit(1)
+
+        data = result.get("result", {})
+        headings = data.get("headings", [])
+
+        if not headings:
+            click.echo("No headings found on this page.", err=True)
+            sys.exit(0)
+
+        # Display the outline with proper indentation
+        for heading in headings:
+            level = heading["level"]
+            text = heading["text"]
+
+            # Calculate indentation (3 spaces per level, starting at level 1)
+            indent = "   " * (level - 1)
+
+            # Format: H{level} in gray, text in white
+            level_label = click.style(f"H{level}", fg="bright_black")
+            heading_text = text
+
+            # Truncate very long headings
+            if len(heading_text) > 100:
+                heading_text = heading_text[:97] + "..."
+
+            click.echo(f"{indent}{level_label} {heading_text}")
+
+        # Show summary
+        click.echo("", err=True)
+        click.echo(f"Total: {len(headings)} headings", err=True)
+
+    except (ConnectionError, TimeoutError, RuntimeError) as e:
+        click.echo(f"Error: {e}", err=True)
+        sys.exit(1)
+
+
+@cli.command()
 @click.option("--only-internal", is_flag=True, help="Show only internal links (same domain)")
 @click.option("--only-external", is_flag=True, help="Show only external links (different domain)")
 @click.option("--alphabetically", is_flag=True, help="Sort links alphabetically")
