@@ -226,5 +226,171 @@
     };
   })();
 
+  // 9. Network Summary (from Performance API)
+  extended.network = (() => {
+    if (!performance || !performance.getEntriesByType) return null;
+
+    try {
+      const resources = performance.getEntriesByType('resource');
+      let totalSize = 0;
+      let largestResource = null;
+      let largestSize = 0;
+
+      resources.forEach(resource => {
+        const size = resource.transferSize || resource.encodedBodySize || 0;
+        totalSize += size;
+
+        if (size > largestSize) {
+          largestSize = size;
+          largestResource = {
+            name: resource.name.split('/').pop() || resource.name,
+            url: resource.name,
+            size: size
+          };
+        }
+      });
+
+      return {
+        totalRequests: resources.length,
+        totalSize: totalSize,
+        largestResource: largestResource
+      };
+    } catch (e) {
+      return null;
+    }
+  })();
+
+  // 10. Font Details
+  extended.fonts = (() => {
+    const fonts = {
+      googleFonts: [],
+      customFonts: 0,
+      totalFontFiles: 0
+    };
+
+    // Check for Google Fonts
+    const googleFontLinks = document.querySelectorAll('link[href*="fonts.googleapis.com"]');
+    googleFontLinks.forEach(link => {
+      const href = link.href;
+      const match = href.match(/family=([^&:]+)/);
+      if (match) {
+        const families = match[1].split('|');
+        families.forEach(family => {
+          const decoded = decodeURIComponent(family.replace(/\+/g, ' '));
+          if (!fonts.googleFonts.includes(decoded)) {
+            fonts.googleFonts.push(decoded);
+          }
+        });
+      }
+    });
+
+    // Check for @font-face in stylesheets
+    try {
+      Array.from(document.styleSheets).forEach(sheet => {
+        try {
+          Array.from(sheet.cssRules || []).forEach(rule => {
+            if (rule instanceof CSSFontFaceRule) {
+              fonts.customFonts++;
+            }
+          });
+        } catch (e) {
+          // Cross-origin stylesheet, can't access
+        }
+      });
+    } catch (e) {}
+
+    // Count font files from performance entries
+    if (performance && performance.getEntriesByType) {
+      const resources = performance.getEntriesByType('resource');
+      fonts.totalFontFiles = resources.filter(r =>
+        r.name.match(/\.(woff2?|ttf|otf|eot)$/i)
+      ).length;
+    }
+
+    return fonts;
+  })();
+
+  // 11. Form Details
+  extended.forms = (() => {
+    const forms = [];
+
+    document.querySelectorAll('form').forEach((form, index) => {
+      const formData = {
+        id: form.id || form.name || `Form ${index + 1}`,
+        action: form.action || 'JavaScript',
+        method: form.method.toUpperCase() || 'GET',
+        fields: [],
+        issues: []
+      };
+
+      // Get all input fields
+      const inputs = form.querySelectorAll('input:not([type="hidden"]):not([type="submit"]):not([type="button"]), select, textarea');
+      inputs.forEach(input => {
+        const field = {
+          type: input.type || input.tagName.toLowerCase(),
+          name: input.name,
+          id: input.id
+        };
+
+        // Check for label
+        const hasLabel = input.labels && input.labels.length > 0;
+        const hasAriaLabel = input.hasAttribute('aria-label') || input.hasAttribute('aria-labelledby');
+
+        if (!hasLabel && !hasAriaLabel) {
+          field.missingLabel = true;
+          formData.issues.push(`${field.type} field without label`);
+        }
+
+        formData.fields.push(field);
+      });
+
+      forms.push(formData);
+    });
+
+    return forms;
+  })();
+
+  // 12. More Core Web Vitals
+  extended.coreWebVitals = (() => {
+    const vitals = {};
+
+    // Try to get CLS (Cumulative Layout Shift)
+    try {
+      if (performance.getEntriesByType) {
+        const layoutShifts = performance.getEntriesByType('layout-shift');
+        if (layoutShifts.length > 0) {
+          const cls = layoutShifts.reduce((sum, entry) => {
+            if (!entry.hadRecentInput) {
+              return sum + entry.value;
+            }
+            return sum;
+          }, 0);
+          vitals.cls = cls.toFixed(3);
+        }
+      }
+    } catch (e) {}
+
+    // Try to get FID/INP (First Input Delay / Interaction to Next Paint)
+    try {
+      if (performance.getEntriesByType) {
+        const firstInput = performance.getEntriesByType('first-input');
+        if (firstInput.length > 0) {
+          vitals.fid = Math.round(firstInput[0].processingStart - firstInput[0].startTime);
+        }
+
+        // INP is newer and may not be available
+        const interactions = performance.getEntriesByType('event');
+        if (interactions.length > 0) {
+          const durations = interactions.map(e => e.duration).filter(d => d > 0);
+          if (durations.length > 0) {
+            vitals.inp = Math.round(Math.max(...durations));
+          }
+        }
+      }
+    } catch (e) {}
+
+    return Object.keys(vitals).length > 0 ? vitals : null;
+  })();
+
   return extended;
 })();

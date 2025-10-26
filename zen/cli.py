@@ -224,6 +224,35 @@ def _get_domain_metrics(domain):
     return metrics if metrics else None
 
 
+def _get_response_headers(url):
+    """Fetch HTTP response headers from the given URL."""
+    try:
+        import requests
+
+        response = requests.head(url, timeout=3, allow_redirects=True)
+        headers = dict(response.headers)
+
+        # Extract key headers
+        return {
+            'server': headers.get('Server'),
+            'cacheControl': headers.get('Cache-Control'),
+            'contentEncoding': headers.get('Content-Encoding'),
+            'etag': headers.get('ETag'),
+            'lastModified': headers.get('Last-Modified'),
+            'contentType': headers.get('Content-Type'),
+            # Security headers
+            'xFrameOptions': headers.get('X-Frame-Options'),
+            'xContentTypeOptions': headers.get('X-Content-Type-Options'),
+            'strictTransportSecurity': headers.get('Strict-Transport-Security'),
+            'contentSecurityPolicy': headers.get('Content-Security-Policy'),
+            'permissionsPolicy': headers.get('Permissions-Policy'),
+            'referrerPolicy': headers.get('Referrer-Policy'),
+            'xXssProtection': headers.get('X-XSS-Protection')
+        }
+    except Exception:
+        return None
+
+
 def _get_robots_txt(url):
     """Fetch and parse robots.txt for the given URL."""
     try:
@@ -277,7 +306,8 @@ def _get_robots_txt(url):
 
 @cli.command()
 @click.option("--extended", is_flag=True, help="Show extended information (language, meta tags, cookies)")
-def info(extended):
+@click.option("--json", "output_json", is_flag=True, help="Output as JSON")
+def info(extended, output_json):
     """Get information about the current browser tab."""
     client = BridgeClient()
 
@@ -587,6 +617,46 @@ def info(extended):
                             data['_extended'] = extended_data
                 except Exception:
                     pass  # Extended info is optional
+
+                # Add server-side data for JSON output
+                if output_json:
+                    # Add response headers
+                    headers = _get_response_headers(data.get('url'))
+                    if headers:
+                        data['responseHeaders'] = headers
+
+                    # Add robots.txt
+                    robots_data = _get_robots_txt(data.get('url'))
+                    if robots_data:
+                        data['robotsTxt'] = robots_data
+
+                    # Add domain metrics
+                    domain_metrics = _get_domain_metrics(data.get('domain'))
+                    if domain_metrics:
+                        data['domainMetrics'] = domain_metrics
+
+                    # Add detected language
+                    try:
+                        from langdetect import detect, LangDetectException
+                        para_code = "Array.from(document.querySelectorAll('p')).map(p => p.textContent).join(' ').substring(0, 5000)"
+                        para_result = client.execute(para_code, timeout=5.0)
+                        if para_result.get("ok"):
+                            para_text = para_result.get("result", "")
+                            if para_text and len(para_text.strip()) > 50:
+                                try:
+                                    detected = detect(para_text)
+                                    data['detectedLanguage'] = detected
+                                except LangDetectException:
+                                    pass
+                    except ImportError:
+                        pass
+
+            # If JSON output is requested, output JSON and exit
+            if output_json:
+                import json
+                data['userscriptVersion'] = userscript_version
+                click.echo(json.dumps(data, indent=2))
+                return
 
             # Basic info
             click.echo(f"URL:      {data.get('url', 'N/A')}")
@@ -1002,6 +1072,123 @@ def info(extended):
                                 click.echo(f"  SSL Status:       ⚠️  Expires in {days} days")
                             else:
                                 click.echo(f"  SSL Status:       Valid ({days} days remaining)")
+
+                # Network Summary (from extended data)
+                network = extended_data.get('network', {})
+                if network:
+                    click.echo(f"")
+                    click.echo("Network:")
+                    if network.get('totalRequests'):
+                        click.echo(f"  Total Requests:    {network['totalRequests']}")
+                    if network.get('totalSize'):
+                        size_mb = network['totalSize'] / (1024 * 1024)
+                        click.echo(f"  Total Size:        {size_mb:.2f} MB")
+                    largest = network.get('largestResource')
+                    if largest:
+                        size_kb = largest['size'] / 1024
+                        click.echo(f"  Largest Resource:  {largest['name']} ({size_kb:.2f} KB)")
+
+                # Fonts (from extended data)
+                fonts = extended_data.get('fonts', {})
+                if fonts and (fonts.get('googleFonts') or fonts.get('customFonts', 0) > 0 or fonts.get('totalFontFiles', 0) > 0):
+                    click.echo(f"")
+                    click.echo("Fonts:")
+                    google_fonts = fonts.get('googleFonts', [])
+                    if google_fonts:
+                        click.echo(f"  Google Fonts:      {len(google_fonts)}")
+                        for font in google_fonts[:5]:
+                            click.echo(f"    - {font}")
+                        if len(google_fonts) > 5:
+                            click.echo(f"    ... and {len(google_fonts) - 5} more")
+                    if fonts.get('customFonts', 0) > 0:
+                        click.echo(f"  Custom @font-face: {fonts['customFonts']}")
+                    if fonts.get('totalFontFiles', 0) > 0:
+                        click.echo(f"  Font Files:        {fonts['totalFontFiles']}")
+
+                # Form Details (from extended data)
+                forms = extended_data.get('forms', [])
+                if forms:
+                    click.echo(f"")
+                    click.echo(f"Forms ({len(forms)}):")
+                    for form in forms:
+                        click.echo(f"  {form['id']}:")
+                        click.echo(f"    Method:          {form['method']}")
+                        if form['action'] and form['action'] != 'JavaScript':
+                            action = form['action']
+                            if len(action) > 50:
+                                action = action[:47] + '...'
+                            click.echo(f"    Action:          {action}")
+                        click.echo(f"    Fields:          {len(form['fields'])}")
+                        if form['issues']:
+                            click.echo(f"    ⚠️  Issues:       {len(form['issues'])}")
+                            for issue in form['issues'][:3]:
+                                click.echo(f"      - {issue}")
+                            if len(form['issues']) > 3:
+                                click.echo(f"      ... and {len(form['issues']) - 3} more")
+
+                # Core Web Vitals (from extended data)
+                cwv = extended_data.get('coreWebVitals', {})
+                if cwv:
+                    click.echo(f"")
+                    click.echo("Core Web Vitals:")
+                    if 'cls' in cwv:
+                        cls_val = float(cwv['cls'])
+                        cls_status = '✓ Good' if cls_val < 0.1 else '⚠️  Needs Improvement' if cls_val < 0.25 else '❌ Poor'
+                        click.echo(f"  CLS:               {cwv['cls']} ({cls_status})")
+                    if 'fid' in cwv:
+                        fid_val = int(cwv['fid'])
+                        fid_status = '✓ Good' if fid_val < 100 else '⚠️  Needs Improvement' if fid_val < 300 else '❌ Poor'
+                        click.echo(f"  FID:               {cwv['fid']}ms ({fid_status})")
+                    if 'inp' in cwv:
+                        inp_val = int(cwv['inp'])
+                        inp_status = '✓ Good' if inp_val < 200 else '⚠️  Needs Improvement' if inp_val < 500 else '❌ Poor'
+                        click.echo(f"  INP:               {cwv['inp']}ms ({inp_status})")
+
+                # Security Headers and Response Headers
+                headers = _get_response_headers(data.get('url'))
+                if headers:
+                    # Security Headers
+                    security_headers = {
+                        'xFrameOptions': 'X-Frame-Options',
+                        'xContentTypeOptions': 'X-Content-Type-Options',
+                        'strictTransportSecurity': 'Strict-Transport-Security',
+                        'contentSecurityPolicy': 'Content-Security-Policy',
+                        'permissionsPolicy': 'Permissions-Policy',
+                        'referrerPolicy': 'Referrer-Policy',
+                        'xXssProtection': 'X-XSS-Protection'
+                    }
+
+                    has_security_headers = any(headers.get(k) for k in security_headers.keys())
+                    if has_security_headers:
+                        click.echo(f"")
+                        click.echo("Security Headers:")
+                        for key, label in security_headers.items():
+                            value = headers.get(key)
+                            if value:
+                                if len(value) > 60:
+                                    value = value[:57] + '...'
+                                click.echo(f"  {label}: {value}")
+
+                    # Response Headers
+                    response_headers = {
+                        'server': 'Server',
+                        'cacheControl': 'Cache-Control',
+                        'contentEncoding': 'Content-Encoding',
+                        'etag': 'ETag',
+                        'lastModified': 'Last-Modified',
+                        'contentType': 'Content-Type'
+                    }
+
+                    has_response_headers = any(headers.get(k) for k in response_headers.keys())
+                    if has_response_headers:
+                        click.echo(f"")
+                        click.echo("Response Headers:")
+                        for key, label in response_headers.items():
+                            value = headers.get(key)
+                            if value:
+                                if len(value) > 60:
+                                    value = value[:57] + '...'
+                                click.echo(f"  {label}: {value}")
 
                 # Meta tags
                 meta_tags = data.get('metaTags', [])
