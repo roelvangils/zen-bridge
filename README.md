@@ -7,6 +7,7 @@ Execute JavaScript in your browser from the command line. A powerful CLI tool fo
 - Execute JavaScript code in your active browser tab from the terminal
 - Interactive REPL for live experimentation
 - AI-powered article summarization with Mozilla Readability
+- Link extraction with filtering (internal/external) and sorting
 - Keyboard-driven browser control with auto-refocus and verbose mode
 - Synchronous request/response handling
 - Execute code from files or stdin
@@ -150,6 +151,63 @@ zen highlight "input, textarea" --color orange
 
 # Clear all highlights
 zen highlight "h1" --clear
+```
+
+### Extract links from page
+
+Extract and filter all links from the current page:
+
+```bash
+# Show all links with anchor text
+zen links
+
+# Show only URLs (one per line)
+zen links --only-urls
+
+# Filter to internal links only (same domain)
+zen links --only-internal
+
+# Filter to external links only (different domains)
+zen links --only-external
+
+# Sort links alphabetically
+zen links --alphabetically
+
+# Combine filters
+zen links --only-external --only-urls
+zen links --only-internal --only-urls --alphabetically
+```
+
+**Output formats:**
+
+Default output shows anchor text with link type indicator:
+```
+→ Home Page
+  https://example.com/
+
+↗ External Resource
+  https://other-site.com/page
+
+Total: 15 links
+```
+
+With `--only-urls`, shows clean list of URLs:
+```
+https://example.com/
+https://example.com/about
+https://example.com/contact
+```
+
+**Use cases:**
+```bash
+# Get all external links for analysis
+zen links --only-external --only-urls > external-links.txt
+
+# Find all internal pages
+zen links --only-internal --only-urls --alphabetically
+
+# Quick link count
+zen links --only-urls | wc -l
 ```
 
 ### Download files from page
@@ -757,6 +815,29 @@ Added `zen summarize` command for intelligent article extraction and summarizati
 - `prompts/summary.prompt` - Customizable summarization prompt for AI
 - CLI pipes extracted content to `mods` command with prompt
 - Returns article title, author, and AI-generated summary
+
+**Link Extraction:**
+
+Added `zen links` command for comprehensive link extraction and filtering:
+
+- ✅ **Internal/external filtering** - `--only-internal` or `--only-external` flags
+- ✅ **Alphabetical sorting** - `--alphabetically` flag for organized output
+- ✅ **URL-only mode** - `--only-urls` for clean list output (perfect for piping)
+- ✅ **Smart filtering** - Skips javascript:, mailto:, tel: links
+- ✅ **Type indicators** - Visual arrows (→ internal, ↗ external) in default mode
+- ✅ **Summary statistics** - Shows filtered count vs total links
+
+**Implementation:**
+- `zen/scripts/extract_links.js` - Extracts all anchor tags with href attributes
+- Determines link type by comparing hostname with current domain
+- CLI provides flexible filtering and formatting options
+- Perfect for SEO analysis, link checking, and content discovery
+
+**Use cases:**
+- Export all external links for link audit
+- Generate sitemap of internal pages
+- Quick link counting for analysis
+- Pipe to other tools for further processing
 
 **Keyboard Control Mode Enhancements:**
 

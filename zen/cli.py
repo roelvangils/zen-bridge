@@ -1941,6 +1941,116 @@ def all():
 
 
 @cli.command()
+@click.option("--only-internal", is_flag=True, help="Show only internal links (same domain)")
+@click.option("--only-external", is_flag=True, help="Show only external links (different domain)")
+@click.option("--alphabetically", is_flag=True, help="Sort links alphabetically")
+@click.option("--only-urls", is_flag=True, help="Show only URLs without anchor text")
+def links(only_internal, only_external, alphabetically, only_urls):
+    """
+    Extract all links from the current page.
+
+    By default, shows all links with their anchor text.
+    Use filters to show only internal or external links.
+
+    Examples:
+        zen links                           # All links with anchor text
+        zen links --only-internal           # Only links on same domain
+        zen links --only-external           # Only links to other domains
+        zen links --alphabetically          # Sort alphabetically
+        zen links --only-urls               # Show only URLs
+        zen links --only-external --only-urls  # External URLs only
+    """
+    client = BridgeClient()
+
+    if not client.is_alive():
+        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        sys.exit(1)
+
+    # Check for conflicting flags
+    if only_internal and only_external:
+        click.echo("Error: Cannot use --only-internal and --only-external together", err=True)
+        sys.exit(1)
+
+    # Load and execute the extract_links script
+    script_path = Path(__file__).parent / "scripts" / "extract_links.js"
+
+    if not script_path.exists():
+        click.echo(f"Error: Script not found: {script_path}", err=True)
+        sys.exit(1)
+
+    try:
+        with open(script_path) as f:
+            script = f.read()
+
+        result = client.execute(script, timeout=30.0)
+
+        if not result.get("ok"):
+            click.echo(f"Error: {result.get('error')}", err=True)
+            sys.exit(1)
+
+        data = result.get("result", {})
+        all_links = data.get("links", [])
+        domain = data.get("domain", "")
+
+        if not all_links:
+            click.echo("No links found on this page.", err=True)
+            sys.exit(0)
+
+        # Filter links
+        filtered_links = all_links
+        if only_internal:
+            filtered_links = [link for link in all_links if link["type"] == "internal"]
+        elif only_external:
+            filtered_links = [link for link in all_links if link["type"] == "external"]
+
+        if not filtered_links:
+            filter_type = "internal" if only_internal else "external" if only_external else "total"
+            click.echo(f"No {filter_type} links found.", err=True)
+            sys.exit(0)
+
+        # Sort if requested
+        if alphabetically:
+            if only_urls:
+                # Sort by URL
+                filtered_links.sort(key=lambda x: x["href"].lower())
+            else:
+                # Sort by anchor text
+                filtered_links.sort(key=lambda x: x["text"].lower())
+
+        # Output links
+        if only_urls:
+            # Just print URLs, one per line
+            for link in filtered_links:
+                click.echo(link["href"])
+        else:
+            # Print with anchor text
+            for link in filtered_links:
+                text = link["text"]
+                href = link["href"]
+                # Truncate long text
+                if len(text) > 60:
+                    text = text[:57] + "..."
+                # Show type indicator
+                type_indicator = "↗" if link["type"] == "external" else "→"
+                click.echo(f"{type_indicator} {text}")
+                click.echo(f"  {href}")
+                click.echo("")
+
+        # Show summary
+        total = len(all_links)
+        shown = len(filtered_links)
+        if only_internal or only_external:
+            filter_type = "internal" if only_internal else "external"
+            click.echo(f"Showing {shown} {filter_type} links (of {total} total)", err=True)
+        else:
+            click.echo(f"Total: {shown} links", err=True)
+
+    except (ConnectionError, TimeoutError, RuntimeError) as e:
+        click.echo(f"Error: {e}", err=True)
+        sys.exit(1)
+
+
+@cli.command()
 @click.option("--format", type=click.Choice(["summary", "full"]), default="summary", help="Output format (summary or full article)")
 def summarize(format):
     """
