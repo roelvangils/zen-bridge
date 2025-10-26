@@ -2035,11 +2035,9 @@ def summarize(format):
                 check=True
             )
 
-            click.echo("")
-            click.echo(f"=== Summary: {title} ===")
             if byline:
                 click.echo(f"By: {byline}")
-            click.echo("")
+                click.echo("")
             click.echo(result.stdout)
 
         except subprocess.CalledProcessError as e:
