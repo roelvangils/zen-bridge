@@ -6,6 +6,8 @@ Execute JavaScript in your browser from the command line. A powerful CLI tool fo
 
 - Execute JavaScript code in your active browser tab from the terminal
 - Interactive REPL for live experimentation
+- AI-powered article summarization with Mozilla Readability
+- Keyboard-driven browser control with auto-refocus and verbose mode
 - Synchronous request/response handling
 - Execute code from files or stdin
 - Get page information (URL, title, dimensions, etc.)
@@ -189,6 +191,53 @@ zen send "This will be typed character by character"
 ```
 
 **Note**: Click on an input field first, or use `--selector` to target a specific element.
+
+### Summarize articles with AI
+
+Extract and summarize article content from any webpage using Mozilla Readability and AI:
+
+```bash
+# Generate a concise AI summary
+zen summarize
+
+# Show the full extracted article text
+zen summarize --format full
+```
+
+**How it works:**
+1. Injects Mozilla Readability library into the page
+2. Extracts clean article content (title, author, text)
+3. Sends to `mods` command for AI summarization
+4. Returns a 3-5 sentence summary
+
+**Requirements:**
+- [mods](https://github.com/charmbracelet/mods) must be installed
+- Works best on article pages (blogs, news, documentation)
+
+**Example output:**
+```
+Extracting article content...
+Generating summary for: Getting Started with Rust
+
+=== Summary: Getting Started with Rust ===
+
+This guide introduces Rust, a systems programming language focusing on safety
+and performance. It covers installation via rustup, creating your first project
+with Cargo, and understanding Rust's ownership model. The article walks through
+a simple "Hello, World!" example and explains Rust's compile-time guarantees.
+```
+
+**Customization:**
+
+The summarization prompt can be customized by editing `prompts/summary.prompt`:
+
+```bash
+# Edit the prompt
+nano prompts/summary.prompt
+
+# Example custom prompt:
+# "Summarize this article in 3 bullet points, focusing on actionable takeaways."
+```
 
 ### Control browser with keyboard
 
@@ -692,6 +741,23 @@ zen repl
 
 ### Recent Updates (October 2025)
 
+**AI Article Summarization:**
+
+Added `zen summarize` command for intelligent article extraction and summarization:
+
+- ✅ **Mozilla Readability integration** - Extracts clean article content from any webpage
+- ✅ **AI summarization** - Pipes content to `mods` for concise summaries
+- ✅ **Customizable prompts** - Stored in `prompts/summary.prompt` for easy editing
+- ✅ **Full extraction mode** - `--format full` shows complete extracted article
+- ✅ **Script injection** - Dynamically loads Readability library when needed
+- ✅ **Error handling** - Graceful failures for non-article pages
+
+**Implementation:**
+- `zen/scripts/extract_article.js` - Injects Readability and extracts article data
+- `prompts/summary.prompt` - Customizable summarization prompt for AI
+- CLI pipes extracted content to `mods` command with prompt
+- Returns article title, author, and AI-generated summary
+
 **Keyboard Control Mode Enhancements:**
 
 Added comprehensive verbose mode with real-time terminal feedback and speech output:
@@ -720,6 +786,16 @@ Added comprehensive verbose mode with real-time terminal feedback and speech out
 - CLI uses `select.select([sys.stdin], [], [], 0.1)` for non-blocking polling
 
 ### Future Work Ideas
+
+**Article Summarization Enhancements:**
+- **Multiple summary styles** - Options for bullet points, executive summary, ELI5, etc.
+- **Language detection** - Automatically detect article language and summarize accordingly
+- **Save summaries** - Option to save summaries to file or database
+- **Compare summaries** - Side-by-side comparison of article vs summary
+- **Extract key quotes** - Highlight the most important quotes from the article
+- **Topic extraction** - Automatically identify main topics/themes
+- **Reading time estimate** - Show estimated reading time for article vs summary
+- **Batch processing** - Summarize multiple articles from a list of URLs
 
 **Control Mode Enhancements:**
 - **Customizable key bindings** - Allow users to remap keys in config.json

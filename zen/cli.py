@@ -1940,6 +1940,119 @@ def all():
         sys.exit(1)
 
 
+@cli.command()
+@click.option("--format", type=click.Choice(["summary", "full"]), default="summary", help="Output format (summary or full article)")
+def summarize(format):
+    """
+    Summarize the current article using AI.
+
+    Extracts article content using Mozilla Readability and generates
+    a concise summary using the mods command.
+
+    Examples:
+        zen summarize                    # Get AI summary
+        zen summarize --format full      # Show full extracted article
+    """
+    client = BridgeClient()
+
+    if not client.is_alive():
+        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        sys.exit(1)
+
+    # Check if mods is available
+    if format == "summary":
+        try:
+            subprocess.run(["mods", "--version"], capture_output=True, check=True)
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            click.echo("Error: 'mods' command not found. Please install mods first.", err=True)
+            click.echo("Visit: https://github.com/charmbracelet/mods", err=True)
+            sys.exit(1)
+
+    # Load and execute the extract_article script
+    script_path = Path(__file__).parent / "scripts" / "extract_article.js"
+
+    if not script_path.exists():
+        click.echo(f"Error: Script not found: {script_path}", err=True)
+        sys.exit(1)
+
+    try:
+        with open(script_path) as f:
+            script = f.read()
+
+        click.echo("Extracting article content...", err=True)
+        result = client.execute(script, timeout=30.0)
+
+        if not result.get("ok"):
+            click.echo(f"Error: {result.get('error')}", err=True)
+            sys.exit(1)
+
+        article = result.get("result", {})
+
+        if article.get("error"):
+            click.echo(f"Error: {article['error']}", err=True)
+            sys.exit(1)
+
+        title = article.get("title", "Untitled")
+        content = article.get("content", "")
+        byline = article.get("byline", "")
+
+        if not content:
+            click.echo("Error: No content extracted. This page may not be an article.", err=True)
+            sys.exit(1)
+
+        # If full format, just show the extracted article
+        if format == "full":
+            click.echo(f"Title: {title}")
+            if byline:
+                click.echo(f"By: {byline}")
+            click.echo("")
+            click.echo(content)
+            return
+
+        # Generate summary using mods
+        click.echo(f"Generating summary for: {title}", err=True)
+
+        # Read the prompt file
+        prompt_path = Path(__file__).parent.parent / "prompts" / "summary.prompt"
+
+        if not prompt_path.exists():
+            click.echo(f"Error: Prompt file not found: {prompt_path}", err=True)
+            sys.exit(1)
+
+        with open(prompt_path) as f:
+            prompt = f.read().strip()
+
+        # Prepare the input for mods
+        full_input = f"{prompt}\n\nTitle: {title}\n\n{content}"
+
+        # Call mods
+        try:
+            result = subprocess.run(
+                ["mods"],
+                input=full_input,
+                text=True,
+                capture_output=True,
+                check=True
+            )
+
+            click.echo("")
+            click.echo(f"=== Summary: {title} ===")
+            if byline:
+                click.echo(f"By: {byline}")
+            click.echo("")
+            click.echo(result.stdout)
+
+        except subprocess.CalledProcessError as e:
+            click.echo(f"Error calling mods: {e}", err=True)
+            if e.stderr:
+                click.echo(e.stderr, err=True)
+            sys.exit(1)
+
+    except (ConnectionError, TimeoutError, RuntimeError) as e:
+        click.echo(f"Error: {e}", err=True)
+        sys.exit(1)
+
+
 def main():
     """Entry point for the CLI."""
     cli()
