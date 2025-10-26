@@ -127,22 +127,442 @@ def exec(filepath, timeout, format):
         sys.exit(1)
 
 
+def _get_domain_metrics(domain):
+    """Fetch domain metrics including IP, geolocation, WHOIS, and SSL info."""
+    if not domain or domain == 'N/A':
+        return None
+
+    metrics = {}
+
+    try:
+        import socket
+        import ssl
+        import datetime
+        import requests
+
+        # Get IP address
+        try:
+            ip = socket.gethostbyname(domain)
+            metrics['ip'] = ip
+
+            # Get geolocation from ip-api.com (free, no auth required)
+            try:
+                geo_response = requests.get(f'http://ip-api.com/json/{ip}', timeout=3)
+                if geo_response.status_code == 200:
+                    geo_data = geo_response.json()
+                    if geo_data.get('status') == 'success':
+                        metrics['geolocation'] = {
+                            'country': geo_data.get('country'),
+                            'region': geo_data.get('regionName'),
+                            'city': geo_data.get('city'),
+                            'isp': geo_data.get('isp'),
+                            'org': geo_data.get('org')
+                        }
+            except Exception:
+                pass  # Geolocation is optional
+
+        except socket.gaierror:
+            pass  # Can't resolve domain
+
+        # Get SSL certificate info
+        try:
+            context = ssl.create_default_context()
+            with socket.create_connection((domain, 443), timeout=3) as sock:
+                with context.wrap_socket(sock, server_hostname=domain) as ssock:
+                    cert = ssock.getpeercert()
+
+                    # Extract issuer
+                    issuer = dict(x[0] for x in cert.get('issuer', []))
+                    issuer_name = issuer.get('organizationName', issuer.get('commonName', 'Unknown'))
+
+                    # Extract expiry date
+                    not_after = cert.get('notAfter')
+                    if not_after:
+                        expiry_date = datetime.datetime.strptime(not_after, '%b %d %H:%M:%S %Y %Z')
+                        days_remaining = (expiry_date - datetime.datetime.now()).days
+
+                        metrics['ssl'] = {
+                            'issuer': issuer_name,
+                            'expiry': expiry_date.strftime('%Y-%m-%d'),
+                            'days_remaining': days_remaining
+                        }
+        except Exception:
+            pass  # SSL info is optional
+
+        # Get WHOIS info (try python-whois if available)
+        try:
+            import whois
+            w = whois.whois(domain)
+            whois_data = {}
+
+            # Handle dates (can be lists or single values)
+            creation_date = w.creation_date
+            if isinstance(creation_date, list):
+                creation_date = creation_date[0]
+            if creation_date:
+                whois_data['creation_date'] = creation_date.strftime('%Y-%m-%d') if hasattr(creation_date, 'strftime') else str(creation_date)
+
+            expiration_date = w.expiration_date
+            if isinstance(expiration_date, list):
+                expiration_date = expiration_date[0]
+            if expiration_date:
+                whois_data['expiration_date'] = expiration_date.strftime('%Y-%m-%d') if hasattr(expiration_date, 'strftime') else str(expiration_date)
+
+            if w.registrar:
+                whois_data['registrar'] = w.registrar if isinstance(w.registrar, str) else w.registrar[0] if isinstance(w.registrar, list) else str(w.registrar)
+
+            if whois_data:
+                metrics['whois'] = whois_data
+        except ImportError:
+            pass  # python-whois not installed
+        except Exception:
+            pass  # WHOIS lookup failed
+
+    except Exception:
+        pass  # Return whatever metrics we managed to collect
+
+    return metrics if metrics else None
+
+
+def _get_robots_txt(url):
+    """Fetch and parse robots.txt for the given URL."""
+    try:
+        from urllib.parse import urlparse
+        import requests
+
+        parsed = urlparse(url)
+        robots_url = f"{parsed.scheme}://{parsed.netloc}/robots.txt"
+
+        response = requests.get(robots_url, timeout=3)
+        if response.status_code == 200:
+            content = response.text
+            lines = content.split('\n')
+
+            # Parse key directives
+            result = {
+                'exists': True,
+                'url': robots_url,
+                'size': len(content),
+                'lines': len(lines),
+                'userAgents': [],
+                'sitemaps': [],
+                'disallowRules': 0,
+                'allowRules': 0
+            }
+
+            current_agent = None
+            for line in lines:
+                line = line.strip()
+                if line.startswith('User-agent:'):
+                    agent = line.split(':', 1)[1].strip()
+                    if agent and agent not in result['userAgents']:
+                        result['userAgents'].append(agent)
+                    current_agent = agent
+                elif line.startswith('Disallow:'):
+                    result['disallowRules'] += 1
+                elif line.startswith('Allow:'):
+                    result['allowRules'] += 1
+                elif line.startswith('Sitemap:'):
+                    sitemap = line.split(':', 1)[1].strip()
+                    if sitemap:
+                        result['sitemaps'].append(sitemap)
+
+            return result
+        else:
+            return {'exists': False, 'status': response.status_code}
+
+    except Exception as e:
+        return {'exists': False, 'error': str(e)}
+
+
 @cli.command()
-def info():
+@click.option("--extended", is_flag=True, help="Show extended information (language, meta tags, cookies)")
+def info(extended):
     """Get information about the current browser tab."""
     client = BridgeClient()
 
-    code = """
-    ({
-        url: location.href,
-        title: document.title,
-        domain: location.hostname,
-        protocol: location.protocol,
-        readyState: document.readyState,
-        width: window.innerWidth,
-        height: window.innerHeight
-    })
-    """
+    if extended:
+        code = """
+        ({
+            url: location.href,
+            title: document.title,
+            domain: location.hostname,
+            protocol: location.protocol,
+            readyState: document.readyState,
+            width: window.innerWidth,
+            height: window.innerHeight,
+            // Extended info
+            language: document.documentElement.lang || 'N/A',
+            charset: document.characterSet || 'N/A',
+            metaTags: Array.from(document.querySelectorAll('head meta')).map(meta => {
+                const attrs = {};
+                for (let attr of meta.attributes) {
+                    attrs[attr.name] = attr.value;
+                }
+                return attrs;
+            }),
+            cookieCount: document.cookie.split(';').filter(c => c.trim()).length,
+            // Additional useful info
+            scriptCount: document.scripts.length,
+            stylesheetCount: document.styleSheets.length,
+            imageCount: document.images.length,
+            linkCount: document.links.length,
+            formCount: document.forms.length,
+            iframeCount: document.querySelectorAll('iframe').length,
+            scrollHeight: document.documentElement.scrollHeight,
+            scrollWidth: document.documentElement.scrollWidth,
+            hasServiceWorker: 'serviceWorker' in navigator,
+            localStorageSize: (() => {
+                try {
+                    return Object.keys(localStorage).reduce((acc, key) =>
+                        acc + key.length + localStorage[key].length, 0);
+                } catch (e) {
+                    return 0;
+                }
+            })(),
+            sessionStorageSize: (() => {
+                try {
+                    return Object.keys(sessionStorage).reduce((acc, key) =>
+                        acc + key.length + sessionStorage[key].length, 0);
+                } catch (e) {
+                    return 0;
+                }
+            })(),
+            // Security Info
+            security: {
+                isSecure: location.protocol === 'https:',
+                hasMixedContent: (() => {
+                    const insecureResources = Array.from(document.querySelectorAll('script, img, link, iframe')).some(el => {
+                        const src = el.src || el.href;
+                        return src && src.startsWith('http:');
+                    });
+                    return location.protocol === 'https:' && insecureResources;
+                })(),
+                cspMeta: (() => {
+                    const cspMeta = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+                    return cspMeta ? cspMeta.getAttribute('content') : null;
+                })(),
+                robotsMeta: (() => {
+                    const robots = document.querySelector('meta[name="robots"]');
+                    return robots ? robots.getAttribute('content') : null;
+                })(),
+                referrerPolicy: (() => {
+                    const referrer = document.querySelector('meta[name="referrer"]');
+                    return referrer ? referrer.getAttribute('content') : null;
+                })()
+            },
+            // Accessibility
+            accessibility: {
+                landmarkCount: document.querySelectorAll('[role="banner"], [role="navigation"], [role="main"], [role="complementary"], [role="contentinfo"], [role="search"], [role="region"], header, nav, main, aside, footer').length,
+                landmarks: (() => {
+                    const landmarks = {};
+                    document.querySelectorAll('[role="banner"], [role="navigation"], [role="main"], [role="complementary"], [role="contentinfo"], [role="search"], [role="region"], header:not([role]), nav:not([role]), main:not([role]), aside:not([role]), footer:not([role])').forEach(el => {
+                        const role = el.getAttribute('role') || el.tagName.toLowerCase();
+                        landmarks[role] = (landmarks[role] || 0) + 1;
+                    });
+                    return landmarks;
+                })(),
+                headingStructure: (() => {
+                    const structure = {h1: 0, h2: 0, h3: 0, h4: 0, h5: 0, h6: 0};
+                    document.querySelectorAll('h1, h2, h3, h4, h5, h6, [role="heading"]').forEach(h => {
+                        if (h.hasAttribute('role')) {
+                            const level = parseInt(h.getAttribute('aria-level') || '1');
+                            const key = 'h' + level;
+                            if (structure[key] !== undefined) structure[key]++;
+                        } else {
+                            structure[h.tagName.toLowerCase()]++;
+                        }
+                    });
+                    return structure;
+                })(),
+                imagesWithoutAlt: Array.from(document.images).filter(img => !img.hasAttribute('alt')).length,
+                formLabelsIssues: (() => {
+                    const inputs = document.querySelectorAll('input:not([type="hidden"]):not([type="submit"]):not([type="button"]), select, textarea');
+                    let missingLabels = 0;
+                    inputs.forEach(input => {
+                        const hasLabel = input.labels && input.labels.length > 0;
+                        const hasAriaLabel = input.hasAttribute('aria-label') || input.hasAttribute('aria-labelledby');
+                        if (!hasLabel && !hasAriaLabel) missingLabels++;
+                    });
+                    return {total: inputs.length, missingLabels};
+                })(),
+                tabIndexIssues: document.querySelectorAll('[tabindex]').length
+            },
+            // SEO Metrics
+            seo: {
+                canonical: (() => {
+                    const canonical = document.querySelector('link[rel="canonical"]');
+                    return canonical ? canonical.href : null;
+                })(),
+                openGraph: (() => {
+                    const og = {};
+                    document.querySelectorAll('meta[property^="og:"]').forEach(meta => {
+                        const prop = meta.getAttribute('property').replace('og:', '');
+                        og[prop] = meta.getAttribute('content');
+                    });
+                    return og;
+                })(),
+                twitterCard: (() => {
+                    const twitter = {};
+                    document.querySelectorAll('meta[name^="twitter:"]').forEach(meta => {
+                        const prop = meta.getAttribute('name').replace('twitter:', '');
+                        twitter[prop] = meta.getAttribute('content');
+                    });
+                    return twitter;
+                })(),
+                robots: (() => {
+                    const robots = document.querySelector('meta[name="robots"]');
+                    return robots ? robots.getAttribute('content') : null;
+                })(),
+                description: (() => {
+                    const desc = document.querySelector('meta[name="description"]');
+                    return desc ? desc.getAttribute('content') : null;
+                })(),
+                keywords: (() => {
+                    const kw = document.querySelector('meta[name="keywords"]');
+                    return kw ? kw.getAttribute('content') : null;
+                })()
+            },
+            // Browser/Device Info
+            device: {
+                userAgent: navigator.userAgent,
+                screenResolution: screen.width + 'x' + screen.height,
+                viewportSize: window.innerWidth + 'x' + window.innerHeight,
+                devicePixelRatio: window.devicePixelRatio,
+                touchSupport: 'ontouchstart' in window || navigator.maxTouchPoints > 0,
+                platform: navigator.platform,
+                language: navigator.language,
+                languages: navigator.languages.join(', '),
+                cookiesEnabled: navigator.cookieEnabled,
+                onlineStatus: navigator.onLine
+            },
+            // Technologies Detection
+            technologies: (() => {
+                const detected = {};
+
+                // Helper to add detected tech
+                const addTech = (category, name, version = null) => {
+                    if (!detected[category]) detected[category] = [];
+                    const tech = version ? `${name} ${version}` : name;
+                    if (!detected[category].includes(tech)) {
+                        detected[category].push(tech);
+                    }
+                };
+
+                // JavaScript Frameworks & Libraries
+                if (window.React || document.querySelector('[data-reactroot], [data-reactid]')) {
+                    const version = window.React?.version;
+                    addTech('JavaScript Framework', 'React', version);
+                }
+                if (window.Vue) {
+                    const version = window.Vue?.version;
+                    addTech('JavaScript Framework', 'Vue.js', version);
+                }
+                if (window.angular || document.querySelector('[ng-app], [ng-version]')) {
+                    const ngVersion = document.querySelector('[ng-version]')?.getAttribute('ng-version');
+                    addTech('JavaScript Framework', 'Angular', ngVersion);
+                }
+                if (window.Svelte) addTech('JavaScript Framework', 'Svelte');
+                if (window.jQuery) {
+                    const version = window.jQuery?.fn?.jquery;
+                    addTech('JavaScript Library', 'jQuery', version);
+                }
+                if (window._) addTech('JavaScript Library', 'Lodash/Underscore');
+                if (window.moment) addTech('JavaScript Library', 'Moment.js');
+                if (window.THREE) addTech('JavaScript Library', 'Three.js');
+                if (window.d3) addTech('JavaScript Library', 'D3.js');
+                if (window.Chart) addTech('JavaScript Library', 'Chart.js');
+                if (window.Alpine) addTech('JavaScript Framework', 'Alpine.js');
+                if (window.htmx) addTech('JavaScript Library', 'htmx');
+
+                // Next.js / Nuxt detection
+                if (document.querySelector('#__next')) addTech('JavaScript Framework', 'Next.js');
+                if (document.querySelector('#__nuxt')) addTech('JavaScript Framework', 'Nuxt.js');
+
+                // CMS Detection
+                const generator = document.querySelector('meta[name="generator"]')?.content;
+                if (generator) {
+                    if (generator.includes('WordPress')) addTech('CMS', 'WordPress', generator.match(/WordPress ([\\d.]+)/)?.[1]);
+                    if (generator.includes('Drupal')) addTech('CMS', 'Drupal', generator.match(/Drupal ([\\d.]+)/)?.[1]);
+                    if (generator.includes('Joomla')) addTech('CMS', 'Joomla');
+                    if (generator.includes('Ghost')) addTech('CMS', 'Ghost');
+                }
+                if (window.Shopify) addTech('CMS', 'Shopify');
+                if (document.querySelector('link[href*="shopify"]')) addTech('CMS', 'Shopify');
+                if (document.querySelector('meta[content*="Wix.com"]')) addTech('CMS', 'Wix');
+                if (document.querySelector('script[src*="squarespace"]')) addTech('CMS', 'Squarespace');
+                if (document.querySelector('meta[name="notion-site"]')) addTech('CMS', 'Notion');
+
+                // Analytics & Tracking
+                if (window.ga || window.gtag || window.google_tag_manager) {
+                    addTech('Analytics', 'Google Analytics');
+                }
+                if (window.dataLayer) addTech('Tag Manager', 'Google Tag Manager');
+                if (window.fbq) addTech('Analytics', 'Facebook Pixel');
+                if (window.hj) addTech('Analytics', 'Hotjar');
+                if (window.mixpanel) addTech('Analytics', 'Mixpanel');
+                if (window.analytics && window.analytics.initialize) addTech('Analytics', 'Segment');
+                if (window._paq) addTech('Analytics', 'Matomo/Piwik');
+                if (window.plausible) addTech('Analytics', 'Plausible');
+                if (window.fathom) addTech('Analytics', 'Fathom');
+
+                // UI Frameworks (check classes in body)
+                const bodyClasses = document.body?.className || '';
+                const allClasses = Array.from(document.querySelectorAll('[class]')).map(el => el.className).join(' ');
+
+                if (document.querySelector('link[href*="bootstrap"]') || /\\bbs-|\\bbtn-|\\bcol-/.test(allClasses)) {
+                    addTech('CSS Framework', 'Bootstrap');
+                }
+                if (/\\btw-|\\bflex|\\bgrid|\\bbg-|\\btext-/.test(allClasses) && document.querySelector('script[src*="tailwind"]')) {
+                    addTech('CSS Framework', 'Tailwind CSS');
+                }
+                if (window.MaterialUI || document.querySelector('[class*="MuiButton"]')) {
+                    addTech('CSS Framework', 'Material-UI');
+                }
+                if (document.querySelector('link[href*="bulma"]')) addTech('CSS Framework', 'Bulma');
+                if (document.querySelector('link[href*="foundation"]')) addTech('CSS Framework', 'Foundation');
+
+                // Font Services
+                if (document.querySelector('link[href*="fonts.googleapis.com"]')) {
+                    addTech('Font Service', 'Google Fonts');
+                }
+                if (document.querySelector('link[href*="typekit"], script[src*="typekit"]')) {
+                    addTech('Font Service', 'Adobe Fonts (Typekit)');
+                }
+
+                // CDN Detection
+                const scripts = Array.from(document.scripts).map(s => s.src);
+                if (scripts.some(s => s.includes('cloudflare'))) addTech('CDN', 'Cloudflare');
+                if (scripts.some(s => s.includes('fastly'))) addTech('CDN', 'Fastly');
+                if (scripts.some(s => s.includes('jsdelivr'))) addTech('CDN', 'jsDelivr');
+                if (scripts.some(s => s.includes('unpkg'))) addTech('CDN', 'unpkg');
+                if (scripts.some(s => s.includes('cdnjs'))) addTech('CDN', 'cdnjs');
+
+                // Payment Processors
+                if (window.Stripe) addTech('Payment', 'Stripe');
+                if (window.paypal) addTech('Payment', 'PayPal');
+                if (window.Square) addTech('Payment', 'Square');
+
+                // Server/Hosting hints from headers (limited in browser)
+                const poweredBy = document.querySelector('meta[name="powered-by"]')?.content;
+                if (poweredBy) addTech('Server', poweredBy);
+
+                return detected;
+            })()
+        })
+        """
+    else:
+        code = """
+        ({
+            url: location.href,
+            title: document.title,
+            domain: location.hostname,
+            protocol: location.protocol,
+            readyState: document.readyState,
+            width: window.innerWidth,
+            height: window.innerHeight
+        })
+        """
 
     try:
         result = client.execute(code)
@@ -153,12 +573,465 @@ def info():
             # Get userscript version
             userscript_version = client.get_userscript_version() or 'unknown'
 
+            # If extended, also run the extended_info.js script
+            if extended:
+                try:
+                    script_path = Path(__file__).parent / "scripts" / "extended_info.js"
+                    if script_path.exists():
+                        with open(script_path) as f:
+                            extended_script = f.read()
+                        extended_result = client.execute(extended_script, timeout=10.0)
+                        if extended_result.get("ok"):
+                            extended_data = extended_result.get("result", {})
+                            # Merge extended data into main data
+                            data['_extended'] = extended_data
+                except Exception:
+                    pass  # Extended info is optional
+
+            # Basic info
             click.echo(f"URL:      {data.get('url', 'N/A')}")
             click.echo(f"Title:    {data.get('title', 'N/A')}")
             click.echo(f"Domain:   {data.get('domain', 'N/A')}")
             click.echo(f"Protocol: {data.get('protocol', 'N/A')}")
             click.echo(f"State:    {data.get('readyState', 'N/A')}")
             click.echo(f"Size:     {data.get('width', 'N/A')}x{data.get('height', 'N/A')}")
+
+            if extended:
+                click.echo(f"")
+                click.echo("=== Extended Information ===")
+                click.echo(f"")
+
+                # Language and encoding (with natural language detection)
+                declared_lang = data.get('language', 'N/A')
+                click.echo(f"Language:           {declared_lang}")
+
+                # Detect actual language using franc
+                try:
+                    from franc import franc
+                    # Extract paragraph text for language detection
+                    para_code = "Array.from(document.querySelectorAll('p')).map(p => p.textContent).join(' ').substring(0, 5000)"
+                    para_result = client.execute(para_code, timeout=5.0)
+                    if para_result.get("ok"):
+                        para_text = para_result.get("result", "")
+                        if para_text and len(para_text.strip()) > 50:
+                            detected = franc(para_text)
+                            if detected and detected != 'und':  # 'und' = undetermined
+                                detected_display = detected
+                                # Map ISO 639-3 to ISO 639-1 for comparison
+                                lang_map = {
+                                    'eng': 'en', 'fra': 'fr', 'deu': 'de', 'spa': 'es', 'ita': 'it',
+                                    'nld': 'nl', 'por': 'pt', 'rus': 'ru', 'jpn': 'ja', 'kor': 'ko',
+                                    'zho': 'zh', 'ara': 'ar', 'hin': 'hi', 'pol': 'pl', 'tur': 'tr',
+                                    'swe': 'sv', 'dan': 'da', 'fin': 'fi', 'nor': 'no', 'ces': 'cs'
+                                }
+                                detected_short = lang_map.get(detected, detected)
+
+                                # Compare with declared language
+                                if declared_lang != 'N/A' and declared_lang.lower() != detected_short.lower():
+                                    click.echo(f"  Detected:         {detected_short} (ISO 639-3: {detected})")
+                                    click.echo(f"  ⚠️  Language mismatch! Content appears to be {detected_short} but lang=\"{declared_lang}\"")
+                                else:
+                                    click.echo(f"  Detected:         {detected_short} ✓ matches")
+                except ImportError:
+                    pass  # franc not installed
+                except Exception:
+                    pass  # Language detection failed
+
+                click.echo(f"Character Set:      {data.get('charset', 'N/A')}")
+
+                # Resources
+                click.echo(f"")
+                click.echo("Resources:")
+                click.echo(f"  Scripts:          {data.get('scriptCount', 0)}")
+                click.echo(f"  Stylesheets:      {data.get('stylesheetCount', 0)}")
+                click.echo(f"  Images:           {data.get('imageCount', 0)}")
+                click.echo(f"  Links:            {data.get('linkCount', 0)}")
+                click.echo(f"  Forms:            {data.get('formCount', 0)}")
+                click.echo(f"  Iframes:          {data.get('iframeCount', 0)}")
+
+                # Performance Metrics (from extended data)
+                extended_data = data.get('_extended', {})
+                perf = extended_data.get('performance', {})
+                if perf:
+                    click.echo(f"")
+                    click.echo("Performance:")
+                    if perf.get('pageLoadTime'):
+                        click.echo(f"  Page Load Time:    {perf['pageLoadTime']}s")
+                    if perf.get('domContentLoaded'):
+                        click.echo(f"  DOM Content Loaded: {perf['domContentLoaded']}s")
+                    if perf.get('timeToFirstByte'):
+                        click.echo(f"  Time to First Byte: {perf['timeToFirstByte']}ms")
+                    if perf.get('firstPaint'):
+                        click.echo(f"  First Paint:       {perf['firstPaint']}s")
+                    if perf.get('firstContentfulPaint'):
+                        click.echo(f"  First Contentful Paint: {perf['firstContentfulPaint']}s")
+                    if perf.get('largestContentfulPaint'):
+                        click.echo(f"  Largest Contentful Paint: {perf['largestContentfulPaint']}s")
+
+                # Media Content (from extended data)
+                media = extended_data.get('media', {})
+                if media and (media.get('videos', 0) > 0 or media.get('audio', 0) > 0 or media.get('svgImages', 0) > 0):
+                    click.echo(f"")
+                    click.echo("Media:")
+                    if media.get('videos', 0) > 0:
+                        click.echo(f"  Videos:            {media['videos']}")
+                    if media.get('audio', 0) > 0:
+                        click.echo(f"  Audio:             {media['audio']}")
+                    if media.get('svgImages', 0) > 0:
+                        click.echo(f"  SVG Images:        {media['svgImages']}")
+
+                # Content Stats (from extended data)
+                content = extended_data.get('content', {})
+                if content:
+                    click.echo(f"")
+                    click.echo("Content:")
+                    if content.get('wordCount'):
+                        click.echo(f"  Word Count:        ~{content['wordCount']:,} words")
+                    if content.get('estimatedReadingTime'):
+                        click.echo(f"  Reading Time:      ~{content['estimatedReadingTime']} minutes")
+                    if content.get('paragraphs'):
+                        click.echo(f"  Paragraphs:        {content['paragraphs']}")
+                    if content.get('lists'):
+                        click.echo(f"  Lists:             {content['lists']}")
+                    if content.get('languageSwitchers', 0) > 0:
+                        click.echo(f"  Language Switchers: {content['languageSwitchers']}")
+
+                # Document dimensions
+                click.echo(f"")
+                click.echo("Document Dimensions:")
+                click.echo(f"  Total Height:     {data.get('scrollHeight', 'N/A')}px")
+                click.echo(f"  Total Width:      {data.get('scrollWidth', 'N/A')}px")
+
+                # Storage
+                click.echo(f"")
+                click.echo("Storage:")
+                cookie_count = data.get('cookieCount', 0)
+                click.echo(f"  Cookies:          {cookie_count}")
+
+                # Get actual cookie names
+                if cookie_count > 0:
+                    try:
+                        cookie_code = "document.cookie.split(';').map(c => c.trim().split('=')[0]).filter(Boolean)"
+                        cookie_result = client.execute(cookie_code, timeout=2.0)
+                        if cookie_result.get("ok"):
+                            cookie_names = cookie_result.get("result", [])
+                            if cookie_names:
+                                for i, name in enumerate(cookie_names[:8], 1):
+                                    click.echo(f"    {i}. {name}")
+                                if len(cookie_names) > 8:
+                                    click.echo(f"    ... and {len(cookie_names) - 8} more")
+                    except Exception:
+                        pass
+
+                local_kb = data.get('localStorageSize', 0) / 1024
+                click.echo(f"  LocalStorage:     {local_kb:.2f} KB")
+
+                # Get localStorage keys
+                if local_kb > 0:
+                    try:
+                        ls_code = "Object.keys(localStorage)"
+                        ls_result = client.execute(ls_code, timeout=2.0)
+                        if ls_result.get("ok"):
+                            ls_keys = ls_result.get("result", [])
+                            if ls_keys:
+                                for i, key in enumerate(ls_keys[:8], 1):
+                                    click.echo(f"    {i}. {key}")
+                                if len(ls_keys) > 8:
+                                    click.echo(f"    ... and {len(ls_keys) - 8} more")
+                    except Exception:
+                        pass
+
+                session_kb = data.get('sessionStorageSize', 0) / 1024
+                click.echo(f"  SessionStorage:   {session_kb:.2f} KB")
+
+                # Get sessionStorage keys
+                if session_kb > 0:
+                    try:
+                        ss_code = "Object.keys(sessionStorage)"
+                        ss_result = client.execute(ss_code, timeout=2.0)
+                        if ss_result.get("ok"):
+                            ss_keys = ss_result.get("result", [])
+                            if ss_keys:
+                                for i, key in enumerate(ss_keys[:8], 1):
+                                    click.echo(f"    {i}. {key}")
+                                if len(ss_keys) > 8:
+                                    click.echo(f"    ... and {len(ss_keys) - 8} more")
+                    except Exception:
+                        pass
+
+                click.echo(f"  Service Worker:   {'Yes' if data.get('hasServiceWorker') else 'No'}")
+
+                # Security Info
+                security = data.get('security', {})
+                if security:
+                    click.echo(f"")
+                    click.echo("Security:")
+                    click.echo(f"  HTTPS:            {'Yes' if security.get('isSecure') else 'No'}")
+                    if security.get('isSecure') and security.get('hasMixedContent'):
+                        click.echo(f"  Mixed Content:    ⚠️  Warning - Insecure resources detected")
+                    if security.get('cspMeta'):
+                        csp = security.get('cspMeta', '')
+                        if len(csp) > 50:
+                            csp = csp[:47] + '...'
+                        click.echo(f"  CSP Meta:         {csp}")
+                    if security.get('referrerPolicy'):
+                        click.echo(f"  Referrer Policy:  {security.get('referrerPolicy')}")
+
+                # Accessibility
+                a11y = data.get('accessibility', {})
+                if a11y:
+                    click.echo(f"")
+                    click.echo("Accessibility:")
+                    click.echo(f"  Landmarks:        {a11y.get('landmarkCount', 0)} total")
+                    landmarks = a11y.get('landmarks', {})
+                    if landmarks:
+                        for role, count in landmarks.items():
+                            click.echo(f"    {role}: {count}")
+
+                    # Heading structure
+                    heading_structure = a11y.get('headingStructure', {})
+                    total_headings = sum(heading_structure.values())
+                    if total_headings > 0:
+                        click.echo(f"  Headings:         {total_headings} total")
+                        for level in ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']:
+                            count = heading_structure.get(level, 0)
+                            if count > 0:
+                                click.echo(f"    {level.upper()}: {count}")
+
+                    # A11y issues
+                    img_no_alt = a11y.get('imagesWithoutAlt', 0)
+                    if img_no_alt > 0:
+                        click.echo(f"  ⚠️  Images w/o alt: {img_no_alt}")
+
+                    form_issues = a11y.get('formLabelsIssues', {})
+                    if form_issues.get('missingLabels', 0) > 0:
+                        click.echo(f"  ⚠️  Form inputs w/o labels: {form_issues['missingLabels']}/{form_issues['total']}")
+
+                    # Extended accessibility info
+                    a11y_ext = extended_data.get('accessibility', {})
+                    if a11y_ext:
+                        if a11y_ext.get('linksWithoutText', 0) > 0:
+                            click.echo(f"  ⚠️  Links w/o text: {a11y_ext['linksWithoutText']}")
+                        if a11y_ext.get('buttonsWithoutLabels', 0) > 0:
+                            click.echo(f"  ⚠️  Buttons w/o labels: {a11y_ext['buttonsWithoutLabels']}")
+                        if a11y_ext.get('hasSkipLink'):
+                            click.echo(f"  ✓  Page has skip link")
+                        if not a11y_ext.get('langAttribute'):
+                            click.echo(f"  ⚠️  Missing lang attribute")
+                        if a11y_ext.get('ariaAttributeCount'):
+                            click.echo(f"  ARIA Usage:        {a11y_ext['ariaAttributeCount']} attributes")
+
+                # Structured Data (from extended data)
+                structured = extended_data.get('structuredData', {})
+                if structured and (structured.get('jsonLdCount', 0) > 0 or structured.get('microdataCount', 0) > 0):
+                    click.echo(f"")
+                    click.echo("Structured Data:")
+                    if structured.get('jsonLdCount', 0) > 0:
+                        click.echo(f"  JSON-LD:           {structured['jsonLdCount']} blocks")
+                        types = structured.get('jsonLdTypes', [])
+                        if types:
+                            click.echo(f"    Types: {', '.join(types[:5])}")
+                    if structured.get('microdataCount', 0) > 0:
+                        click.echo(f"  Microdata:         {structured['microdataCount']} items")
+
+                # SEO Metrics
+                seo = data.get('seo', {})
+                if seo:
+                    click.echo(f"")
+                    click.echo("SEO:")
+                    if seo.get('canonical'):
+                        canonical = seo['canonical']
+                        if len(canonical) > 60:
+                            canonical = canonical[:57] + '...'
+                        click.echo(f"  Canonical:        {canonical}")
+                    if seo.get('description'):
+                        desc = seo['description']
+                        if len(desc) > 60:
+                            desc = desc[:57] + '...'
+                        click.echo(f"  Description:      {desc}")
+                    if seo.get('keywords'):
+                        kw = seo['keywords']
+                        if len(kw) > 60:
+                            kw = kw[:57] + '...'
+                        click.echo(f"  Keywords:         {kw}")
+                    if seo.get('robots'):
+                        click.echo(f"  Robots:           {seo['robots']}")
+
+                    # Open Graph
+                    og = seo.get('openGraph', {})
+                    if og:
+                        click.echo(f"  Open Graph:       {len(og)} tags")
+                        for key in ['title', 'type', 'image', 'url']:
+                            if key in og:
+                                value = og[key]
+                                if len(value) > 50:
+                                    value = value[:47] + '...'
+                                click.echo(f"    og:{key}: {value}")
+
+                    # Twitter Card
+                    twitter = seo.get('twitterCard', {})
+                    if twitter:
+                        click.echo(f"  Twitter Card:     {len(twitter)} tags")
+                        for key in ['card', 'title', 'description', 'image']:
+                            if key in twitter:
+                                value = twitter[key]
+                                if len(value) > 50:
+                                    value = value[:47] + '...'
+                                click.echo(f"    twitter:{key}: {value}")
+
+                    # SEO Extras (from extended data)
+                    seo_extra = extended_data.get('seoExtra', {})
+                    if seo_extra:
+                        if seo_extra.get('favicon'):
+                            click.echo(f"  Favicon:           {seo_extra['favicon']}")
+                        if seo_extra.get('sitemap'):
+                            sitemap = seo_extra['sitemap']
+                            if len(sitemap) > 50:
+                                sitemap = sitemap[:47] + '...'
+                            click.echo(f"  Sitemap:           {sitemap}")
+                        alt_langs = seo_extra.get('alternateLanguages', [])
+                        if alt_langs:
+                            click.echo(f"  Alternate Languages: {len(alt_langs)}")
+                            for lang in alt_langs[:3]:
+                                click.echo(f"    {lang['lang']}")
+
+                # Robots.txt
+                robots_data = _get_robots_txt(data.get('url'))
+                if robots_data and robots_data.get('exists'):
+                    click.echo(f"")
+                    click.echo("Robots.txt:")
+                    click.echo(f"  Status:            Found")
+                    click.echo(f"  Size:              {robots_data['size']:,} bytes ({robots_data['lines']} lines)")
+                    if robots_data.get('userAgents'):
+                        agents = robots_data['userAgents']
+                        if len(agents) <= 3:
+                            click.echo(f"  User-agents:       {', '.join(agents)}")
+                        else:
+                            click.echo(f"  User-agents:       {len(agents)} defined")
+                    if robots_data.get('disallowRules', 0) > 0:
+                        click.echo(f"  Disallow rules:    {robots_data['disallowRules']}")
+                    if robots_data.get('allowRules', 0) > 0:
+                        click.echo(f"  Allow rules:       {robots_data['allowRules']}")
+                    if robots_data.get('sitemaps'):
+                        sitemaps = robots_data['sitemaps']
+                        click.echo(f"  Sitemaps:          {len(sitemaps)} declared")
+                        for sitemap in sitemaps[:2]:
+                            if len(sitemap) > 50:
+                                sitemap = sitemap[:47] + '...'
+                            click.echo(f"    {sitemap}")
+
+                # Third-Party Resources (from extended data)
+                third_party = extended_data.get('thirdParty', {})
+                if third_party and third_party.get('externalDomainCount', 0) > 0:
+                    click.echo(f"")
+                    click.echo("Third-Party:")
+                    click.echo(f"  External Domains:  {third_party['externalDomainCount']}")
+                    domains = third_party.get('externalDomains', [])
+                    if domains:
+                        for domain in domains[:8]:
+                            click.echo(f"    - {domain}")
+
+                # Browser/Device Info
+                device = data.get('device', {})
+                if device:
+                    click.echo(f"")
+                    click.echo("Browser/Device:")
+                    click.echo(f"  Platform:         {device.get('platform', 'N/A')}")
+                    click.echo(f"  Language:         {device.get('language', 'N/A')}")
+                    click.echo(f"  Screen:           {device.get('screenResolution', 'N/A')}")
+                    click.echo(f"  Viewport:         {device.get('viewportSize', 'N/A')}")
+                    click.echo(f"  Pixel Ratio:      {device.get('devicePixelRatio', 'N/A')}")
+                    click.echo(f"  Touch Support:    {'Yes' if device.get('touchSupport') else 'No'}")
+                    click.echo(f"  Cookies Enabled:  {'Yes' if device.get('cookiesEnabled') else 'No'}")
+                    click.echo(f"  Online:           {'Yes' if device.get('onlineStatus') else 'No'}")
+
+                    ua = device.get('userAgent', '')
+                    if ua:
+                        if len(ua) > 80:
+                            # Show first 80 chars on first line, rest on second line
+                            click.echo(f"  User Agent:       {ua[:80]}")
+                            remaining = ua[80:]
+                            if len(remaining) > 60:
+                                remaining = remaining[:57] + '...'
+                            click.echo(f"                    {remaining}")
+                        else:
+                            click.echo(f"  User Agent:       {ua}")
+
+                # Technologies Detected
+                technologies = data.get('technologies', {})
+                if technologies:
+                    click.echo(f"")
+                    click.echo("Technologies Detected:")
+                    for category, techs in sorted(technologies.items()):
+                        if techs:
+                            click.echo(f"  {category}:")
+                            for tech in techs:
+                                click.echo(f"    - {tech}")
+
+                # Domain Metrics (fetched from server-side)
+                domain_metrics = _get_domain_metrics(data.get('domain'))
+                if domain_metrics:
+                    click.echo(f"")
+                    click.echo("Domain Metrics:")
+
+                    if domain_metrics.get('ip'):
+                        click.echo(f"  IP Address:       {domain_metrics['ip']}")
+
+                    geo = domain_metrics.get('geolocation', {})
+                    if geo:
+                        location_parts = [geo.get('city'), geo.get('region'), geo.get('country')]
+                        location = ', '.join([p for p in location_parts if p])
+                        if location:
+                            click.echo(f"  Location:         {location}")
+                        if geo.get('isp'):
+                            click.echo(f"  ISP:              {geo['isp']}")
+                        if geo.get('org'):
+                            click.echo(f"  Organization:     {geo['org']}")
+
+                    whois = domain_metrics.get('whois', {})
+                    if whois:
+                        if whois.get('creation_date'):
+                            click.echo(f"  Registered:       {whois['creation_date']}")
+                        if whois.get('expiration_date'):
+                            click.echo(f"  Expires:          {whois['expiration_date']}")
+                        if whois.get('registrar'):
+                            click.echo(f"  Registrar:        {whois['registrar']}")
+
+                    ssl_info = domain_metrics.get('ssl', {})
+                    if ssl_info:
+                        if ssl_info.get('issuer'):
+                            click.echo(f"  SSL Issuer:       {ssl_info['issuer']}")
+                        if ssl_info.get('expiry'):
+                            click.echo(f"  SSL Expires:      {ssl_info['expiry']}")
+                        if ssl_info.get('days_remaining'):
+                            days = ssl_info['days_remaining']
+                            if days < 30:
+                                click.echo(f"  SSL Status:       ⚠️  Expires in {days} days")
+                            else:
+                                click.echo(f"  SSL Status:       Valid ({days} days remaining)")
+
+                # Meta tags
+                meta_tags = data.get('metaTags', [])
+                if meta_tags:
+                    click.echo(f"")
+                    click.echo(f"Meta Tags ({len(meta_tags)}):")
+                    for meta in meta_tags:
+                        # Format meta tag nicely
+                        if 'name' in meta and 'content' in meta:
+                            content = meta['content']
+                            if len(content) > 60:
+                                content = content[:57] + '...'
+                            click.echo(f"  {meta['name']}: {content}")
+                        elif 'property' in meta and 'content' in meta:
+                            content = meta['content']
+                            if len(content) > 60:
+                                content = content[:57] + '...'
+                            click.echo(f"  {meta['property']}: {content}")
+                        elif 'charset' in meta:
+                            click.echo(f"  charset: {meta['charset']}")
+                        elif 'http-equiv' in meta:
+                            click.echo(f"  {meta['http-equiv']}: {meta.get('content', '')}")
+
             click.echo(f"")
             click.echo(f"Userscript version: {userscript_version}")
         else:
