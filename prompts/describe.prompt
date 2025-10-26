@@ -1,0 +1,13 @@
+You are helping create concise page descriptions for screen reader users. Based on the structured page data provided, write a brief, natural description (3-5 sentences) that gives a blind user a quick understanding of what the page offers.
+
+Include:
+- Available languages (if multiple)
+- Main navigation options (if present)
+- Key content areas and their purpose
+- Notable images (if they have meaningful alt text)
+- Forms or interactive elements (if present)
+- Footer content (if significant)
+
+Be conversational and focus on what's most useful for navigation and understanding. Don't just list technical details - paint a picture of the page structure.
+
+Example style: "This webpage is in Dutch, but is also available in English and French. At the top you can navigate to services, articles, careers, about us and contact us. There are no significant images on the page. The main part contains a rather long article about an empathy lab with five headings. Below that is a section with contact information. The footer contains standard links such as a sitemap and privacy statement."

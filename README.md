@@ -7,6 +7,7 @@ Execute JavaScript in your browser from the command line. A powerful CLI tool fo
 - Execute JavaScript code in your active browser tab from the terminal
 - Interactive REPL for live experimentation
 - AI-powered article summarization with Mozilla Readability
+- AI-generated page descriptions for screen reader users
 - Page outline visualization (heading hierarchy)
 - Link extraction with filtering (internal/external) and sorting
 - Keyboard-driven browser control with auto-refocus and verbose mode
@@ -249,6 +250,63 @@ zen links --only-internal --only-urls --alphabetically
 # Quick link count
 zen links --only-urls | wc -l
 ```
+
+### AI-powered page descriptions for screen readers
+
+Generate natural-language descriptions of web pages perfect for blind users:
+
+```bash
+zen describe
+```
+
+**Purpose:**
+
+Creates concise, conversational descriptions that help screen reader users quickly understand a page's structure and content without having to navigate through it first.
+
+**What it analyzes:**
+- Available languages and language switchers
+- Navigation menus and their options
+- Landmarks (header, main, footer, aside, etc.)
+- Heading structure and count
+- Main content length and type
+- Significant images with alt text
+- Forms and interactive elements
+- Footer links and utilities
+
+**Example output:**
+
+```
+This webpage is in Dutch, but is also available in English and French. At the top you
+can navigate to services, articles, careers, about us and contact us. There are no
+significant images on the page. The main part contains a rather long article about an
+empathy lab with five headings. Below that is a section with contact information. The
+footer contains standard links such as a sitemap and privacy statement.
+```
+
+**How it works:**
+
+1. Extracts comprehensive page structure data
+2. Formats it as structured information for AI
+3. Sends to `mods` with a specialized prompt
+4. Returns a natural, conversational description
+
+**Requirements:**
+- [mods](https://github.com/charmbracelet/mods) must be installed
+- Works best on well-structured, semantic HTML
+
+**Customization:**
+
+Edit `prompts/describe.prompt` to adjust the description style:
+
+```bash
+nano prompts/describe.prompt
+```
+
+**Use cases:**
+- Quick page overviews for screen reader users
+- Accessibility testing and documentation
+- Understanding unfamiliar page structures
+- Pre-navigation decision making
 
 ### Download files from page
 
@@ -902,6 +960,43 @@ Added `zen outline` command to display heading hierarchy:
 - Quick navigation understanding
 - SEO heading structure review
 - Identify heading hierarchy issues (skipped levels, multiple H1s, etc.)
+
+**AI-Powered Page Descriptions:**
+
+Added `zen describe` command for screen reader users:
+
+- ✅ **Comprehensive extraction** - Gathers landmarks, headings, links, images, forms
+- ✅ **Language detection** - Primary language and alternates (hreflang)
+- ✅ **Navigation analysis** - Extracts nav menus with top link items
+- ✅ **Content metrics** - Word count, reading time, paragraph/list counts
+- ✅ **Image analysis** - Significant images (>100x100px) with alt text
+- ✅ **Form detection** - Identifies forms with field counts and types
+- ✅ **Natural language output** - Conversational descriptions via AI
+- ✅ **Performance optimized** - Limits to first 20 headings, top 5 images
+
+**Implementation:**
+- `zen/scripts/extract_page_structure.js` - Comprehensive page analysis
+- `prompts/describe.prompt` - Specialized prompt for screen reader descriptions
+- Extracts: languages, landmarks, navigation, headings, main content, images, forms, footer
+- CLI formats structured data and sends to `mods` for natural language generation
+
+**Data extracted:**
+- HTML lang attribute and alternate language links
+- ARIA landmarks and HTML5 semantic elements (header, nav, main, aside, footer)
+- Native and ARIA headings with levels
+- Navigation menus with link counts
+- Main content statistics (words, reading time, paragraphs, lists)
+- Significant images with dimensions and alt text status
+- Form fields with types and labels
+- Footer links
+- Internal vs external link counts
+
+**Use cases:**
+- Blind users getting quick page overview before navigation
+- Accessibility audits and testing
+- Screen reader user onboarding for new sites
+- Understanding complex page structures
+- Pre-navigation decision making
 
 **Keyboard Control Mode Enhancements:**
 
