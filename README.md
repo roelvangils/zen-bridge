@@ -33,7 +33,7 @@ The browser needs a userscript to receive and execute commands from the CLI.
    - [Tampermonkey](https://www.tampermonkey.net/)
    - [Greasemonkey](https://www.greasespot.net/) (Firefox only)
 
-2. Create a new userscript and copy the contents of `userscript.js`
+2. Create a new userscript and copy the contents of **`userscript_ws.js`** (WebSocket version)
 
 3. Save and enable the script
 
@@ -41,6 +41,8 @@ To view the userscript location:
 ```bash
 zen userscript
 ```
+
+**Note:** The WebSocket version (`userscript_ws.js`) is recommended for better performance and features like auto-refocus in control mode.
 
 ### 3. Start the bridge server
 
@@ -170,6 +172,235 @@ Supported file types:
 - Audio files (mp3, wav, ogg, etc.)
 - Documents (docx, xlsx, pptx, txt, csv, etc.)
 - Archives (zip, rar, tar.gz, 7z, etc.)
+
+### Send text to browser
+
+Type text character by character into the browser, simulating keyboard input:
+
+```bash
+# Type into the currently focused input field
+zen send "Hello World"
+
+# Type into a specific element
+zen send "test@example.com" --selector "input[type=email]"
+
+# Type a longer text
+zen send "This will be typed character by character"
+```
+
+**Note**: Click on an input field first, or use `--selector` to target a specific element.
+
+### Control browser with keyboard
+
+Navigate and interact with web pages using keyboard controls from your terminal:
+
+```bash
+zen control
+```
+
+**Features:**
+- **Keyboard Navigation**: Tab through focusable elements, use arrow keys, press Enter to click
+- **Auto-refocus**: After clicking links, automatically refocuses the element that triggered navigation
+- **Visual Feedback**: Elements are highlighted with a blue outline as you navigate
+- **Accessible Names**: Hear element names spoken via screen reader (if enabled)
+- **Persistent Across Navigation**: Control mode survives page reloads and navigations
+
+**Controls:**
+- `Tab` / `Shift+Tab`: Navigate forward/backward through elements
+- `Arrow Keys`: Move focus in specified direction
+- `Enter` / `Space`: Click/activate focused element
+- `Escape`: Return to body element
+- `q`: Quit control mode
+
+**Example workflow:**
+```bash
+# Start control mode
+zen control
+
+# Tab through links on a page
+# Press Enter on a link → Page navigates
+# Element automatically refocuses after page loads
+# Continue tabbing from where you left off
+```
+
+The auto-refocus feature uses intelligent element matching (combining CSS selectors with text content) to ensure the correct element is refocused even when multiple elements share the same class.
+
+### Watch keyboard input
+
+Monitor all keyboard input in the browser in real-time:
+
+```bash
+zen watch input
+```
+
+Example output:
+```
+Watching keyboard input... (Press Ctrl+C to stop)
+
+H e l l o [SPACE] w o r l d [BACKSPACE] [BACKSPACE] [BACKSPACE] [BACKSPACE] [BACKSPACE] W o r l d [ENTER]
+```
+
+Shows:
+- Regular characters as-is
+- Special keys in brackets: `[ENTER]`, `[TAB]`, `[BACKSPACE]`, `[SPACE]`, etc.
+- Arrow keys: `[UP]`, `[DOWN]`, `[LEFT]`, `[RIGHT]`
+- Modifiers: `[CTRL+C]`, `[ALT+F4]`, `[SHIFT+A]`
+
+Press `Ctrl+C` to stop watching.
+
+### Inspect elements
+
+Get detailed information about DOM elements using two methods:
+
+**Method 1: Select programmatically (fastest)**
+
+```bash
+# Select an element by CSS selector
+zen inspect "h1"
+
+# View detailed information
+zen inspected
+```
+
+**Method 2: Capture from DevTools (useful when you can't easily write a selector)**
+
+When you want to inspect a specific element you're looking at in the browser:
+
+1. **Right-click** on any element → **Inspect** (opens DevTools with element selected)
+2. Switch to the **Console** tab in DevTools
+3. Run: **`zenStore($0)`** (stores the currently inspected element)
+4. In your terminal: **`zen inspected`**
+
+> **Why `zenStore($0)`?** The `$0` variable in DevTools Console always refers to the currently inspected element. By calling `zenStore($0)`, you're explicitly passing that element reference to the Zen Bridge, which stores it for CLI access.
+
+Example output:
+```
+Tag:      <div>
+Selector: div#main-content
+ID:       main-content
+Classes:  container, active
+Text:     Welcome to our website...
+Position: x=20, y=100
+Size:     1200×800px
+Visible:  Yes
+Children: 5
+
+Styles:
+  display: block
+  position: relative
+  backgroundColor: rgb(255, 255, 255)
+  color: rgb(33, 33, 33)
+  fontSize: 16px
+
+Attributes:
+  id: main-content
+  class: container active
+  data-page: home
+```
+
+**Alternative ways to use zenStore:**
+
+```javascript
+// Store the inspected element
+zenStore($0)
+
+// Store a specific element by selector
+zenStore(document.querySelector('.my-class'))
+
+// Store any element reference
+const btn = document.getElementById('submit-btn');
+zenStore(btn)
+```
+
+### Get text selection
+
+Get the currently selected text in the browser:
+
+```bash
+# Get selection with metadata
+zen selected
+
+# Get just the raw text (no formatting)
+zen selected --raw
+
+# Use in scripts
+zen selected --raw | pbcopy
+zen selected --raw > selection.txt
+```
+
+Example output:
+```
+Selected Text (42 characters):
+
+"Execute JavaScript in your browser from"
+
+Position:
+  x=120, y=340
+  Size: 450×24px
+
+Container:
+  Tag:   <p>
+  Class: description
+```
+
+### Click elements
+
+Click, double-click, or right-click on elements:
+
+```bash
+# Click on element
+zen click "button#submit"
+
+# Use with inspect
+zen inspect "button.primary"
+zen click
+
+# Double-click
+zen double-click "div.editable"
+zen doubleclick "div.item"  # alias
+
+# Right-click (context menu)
+zen right-click "a.download"
+zen rightclick "img"  # alias
+```
+
+### Wait for elements
+
+Wait for elements to appear, be visible, hidden, or contain text:
+
+```bash
+# Wait for element to exist (default timeout: 30s)
+zen wait "button#submit"
+
+# Wait for element to be visible
+zen wait ".modal-dialog" --visible
+
+# Wait for element to be hidden (useful for loading spinners)
+zen wait ".loading-spinner" --hidden
+
+# Wait for element to contain specific text
+zen wait "div.result" --text "Success"
+
+# Custom timeout (in seconds)
+zen wait "div.notification" --timeout 10
+```
+
+Example output:
+```
+Waiting for element to be visible: .modal-dialog
+✓ Element is visible
+  Element: <div#confirmDialog.modal-dialog>
+  Waited: 1.23s
+```
+
+**Automation example:**
+```bash
+#!/bin/bash
+# Click a button and wait for results
+zen click "button.load-more"
+zen wait ".new-content" --visible
+zen selected --raw > results.txt
+```
 
 ### Server management
 
@@ -303,18 +534,28 @@ See [EXAMPLES.md](EXAMPLES.md) for 50+ real-world use cases including:
 
 ## How it works
 
-1. **Bridge Server**: A local HTTP server (port 8765) that manages communication
-2. **Userscript**: Runs in your browser, polls the server for code to execute
-3. **CLI**: Sends JavaScript code to the server and waits for results
+The bridge uses a **WebSocket-based architecture** for fast, bidirectional communication:
+
+1. **Bridge Server**: Runs on `127.0.0.1:8765` (HTTP) and `:8766` (WebSocket)
+2. **Userscript**: Maintains a persistent WebSocket connection to the server
+3. **CLI**: Sends commands via HTTP, server forwards to browser via WebSocket
 
 ```
 ┌─────────┐         ┌────────────┐         ┌─────────────┐
-│   CLI   │────────>│   Bridge   │<────────│   Browser   │
-│         │  HTTP   │   Server   │  Poll   │ (Userscript)│
+│   CLI   │────────>│   Bridge   │<───────>│   Browser   │
+│         │  HTTP   │   Server   │WebSocket│ (Userscript)│
 └─────────┘         └────────────┘         └─────────────┘
+                          ↓
+                    • HTTP: :8765 (CLI ⟷ Server)
+                    • WebSocket: :8766 (Server ⟷ Browser)
+                    • Scripts cached in memory for speed
 ```
 
-The system uses request IDs to match commands with their results, allowing for reliable synchronous execution.
+**Key features:**
+- **Fast**: WebSocket provides ~12x faster responses than HTTP polling
+- **Reliable**: Request IDs match commands with results
+- **Persistent**: Connection survives page navigation with auto-reconnect
+- **Optimized**: Scripts cached in memory, minimal delays (~150ms refocus time)
 
 ## Configuration
 

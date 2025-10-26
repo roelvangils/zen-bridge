@@ -15,13 +15,15 @@ The new WebSocket implementation offers significant advantages:
 ### 1. Install New Dependencies
 
 ```bash
-pip install websockets aiohttp
+pip install aiohttp
 ```
 
 Or from requirements.txt:
 ```bash
 pip install -r requirements.txt
 ```
+
+**Note**: We use aiohttp's built-in WebSocket support instead of the `websockets` library for better browser compatibility.
 
 ### 2. Use the New Server
 
@@ -40,7 +42,7 @@ python zen/bridge_ws.py
 
 The WebSocket server uses:
 - Port 8765: HTTP API (CLI communication)
-- Port 8766: WebSocket (browser communication)
+- Port 8766: WebSocket (browser communication at `/ws` endpoint)
 
 ```bash
 # Start WebSocket server

@@ -94,7 +94,9 @@
                 url,
                 filename: getFileName(url),
                 category: 'images',
-                source: 'img'
+                source: 'img',
+                width: img.naturalWidth || img.width || 0,
+                height: img.naturalHeight || img.height || 0
             });
         }
     });

@@ -1,0 +1,20 @@
+{
+  "control": {
+    "auto-refocus": "always",
+    "focus-outline": "custom",
+    "speak-name": true,
+    "announce-role": true,
+    "announce-on-page-load": true,
+    "navigation-wrap": true,
+    "scroll-on-focus": true,
+    "click-delay": 0,
+    "focus-color": "#0066ff",
+    "focus-size": 3,
+    "focus-animation": true,
+    "focus-glow": true,
+    "sound-on-focus": "none",
+    "selector-strategy": "id-first",
+    "refocus-timeout": 2000,
+    "verbose-logging": true
+  }
+}
