@@ -605,35 +605,28 @@ def info(extended):
                 declared_lang = data.get('language', 'N/A')
                 click.echo(f"Language:           {declared_lang}")
 
-                # Detect actual language using franc
+                # Detect actual language using langdetect
                 try:
-                    from franc import franc
+                    from langdetect import detect, LangDetectException
                     # Extract paragraph text for language detection
                     para_code = "Array.from(document.querySelectorAll('p')).map(p => p.textContent).join(' ').substring(0, 5000)"
                     para_result = client.execute(para_code, timeout=5.0)
                     if para_result.get("ok"):
                         para_text = para_result.get("result", "")
                         if para_text and len(para_text.strip()) > 50:
-                            detected = franc(para_text)
-                            if detected and detected != 'und':  # 'und' = undetermined
-                                detected_display = detected
-                                # Map ISO 639-3 to ISO 639-1 for comparison
-                                lang_map = {
-                                    'eng': 'en', 'fra': 'fr', 'deu': 'de', 'spa': 'es', 'ita': 'it',
-                                    'nld': 'nl', 'por': 'pt', 'rus': 'ru', 'jpn': 'ja', 'kor': 'ko',
-                                    'zho': 'zh', 'ara': 'ar', 'hin': 'hi', 'pol': 'pl', 'tur': 'tr',
-                                    'swe': 'sv', 'dan': 'da', 'fin': 'fi', 'nor': 'no', 'ces': 'cs'
-                                }
-                                detected_short = lang_map.get(detected, detected)
-
-                                # Compare with declared language
-                                if declared_lang != 'N/A' and declared_lang.lower() != detected_short.lower():
-                                    click.echo(f"  Detected:         {detected_short} (ISO 639-3: {detected})")
-                                    click.echo(f"  ⚠️  Language mismatch! Content appears to be {detected_short} but lang=\"{declared_lang}\"")
-                                else:
-                                    click.echo(f"  Detected:         {detected_short} ✓ matches")
+                            try:
+                                detected = detect(para_text)  # Returns ISO 639-1 code (e.g., 'en', 'fr')
+                                if detected:
+                                    # Compare with declared language
+                                    if declared_lang != 'N/A' and declared_lang.lower() != detected.lower():
+                                        click.echo(f"  Detected:         {detected}")
+                                        click.echo(f"  ⚠️  Language mismatch! Content appears to be \"{detected}\" but lang=\"{declared_lang}\"")
+                                    else:
+                                        click.echo(f"  Detected:         {detected} ✓ matches")
+                            except LangDetectException:
+                                pass  # Could not detect language
                 except ImportError:
-                    pass  # franc not installed
+                    pass  # langdetect not installed
                 except Exception:
                     pass  # Language detection failed
 
