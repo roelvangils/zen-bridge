@@ -28,6 +28,9 @@ pending_requests: Dict[str, Dict[str, Any]] = {}
 # Completed requests
 completed_requests: Dict[str, Dict[str, Any]] = {}
 
+# Pending notifications (for control mode messages)
+pending_notifications: list = []
+
 # Cleanup old requests after 5 minutes
 MAX_REQUEST_AGE = 300
 
@@ -134,6 +137,17 @@ async def websocket_handler(request):
                             print(f"[Server] ERROR: control.js not found")
                         except Exception as e:
                             print(f"[Server] Error in auto-reinit: {e}")
+
+                    elif message_type == 'refocus_notification':
+                        # Browser sending refocus result notification
+                        notification = {
+                            'type': 'refocus',
+                            'success': data.get('success', False),
+                            'message': data.get('message', ''),
+                            'timestamp': time.time()
+                        }
+                        pending_notifications.append(notification)
+                        print(f"[Server] Refocus notification: {notification['message']}")
 
                     elif message_type == 'ping':
                         # Browser keepalive
@@ -290,6 +304,21 @@ async def handle_http_reinit_control(request):
         )
 
 
+async def handle_http_notifications(request):
+    """HTTP endpoint: Get pending notifications."""
+    global pending_notifications
+
+    # Get all pending notifications
+    notifications = pending_notifications.copy()
+    # Clear the list
+    pending_notifications = []
+
+    return web.json_response({
+        'ok': True,
+        'notifications': notifications
+    })
+
+
 async def handle_http_health(request):
     """HTTP endpoint: Health check."""
     cleanup_old_requests()
@@ -333,6 +362,7 @@ async def main():
     # HTTP endpoints for CLI
     app.router.add_post('/run', handle_http_run)
     app.router.add_get('/result', handle_http_result)
+    app.router.add_get('/notifications', handle_http_notifications)
     app.router.add_get('/health', handle_http_health)
     app.router.add_post('/reinit-control', handle_http_reinit_control)
 

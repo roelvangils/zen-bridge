@@ -349,6 +349,8 @@
 
                     // Try to find the element
                     const element = window.__ZEN_CONTROL_FIND_ELEMENT__(storedSelectors);
+                    const verbose = config['verbose'] !== false;
+
                     if (element) {
                         console.log('[Zen Bridge] ✓ Element found, refocusing:', element);
                         // Refocus the element
@@ -356,6 +358,15 @@
                         window.__ZEN_CONTROL_CURRENT_ELEMENT__ = element;
                         if (window.__ZEN_CONTROL_UPDATE_HIGHLIGHT__) {
                             window.__ZEN_CONTROL_UPDATE_HIGHLIGHT__(element);
+                        }
+
+                        // Send immediate notification via WebSocket
+                        if (verbose && window.__zen_ws__ && window.__zen_ws__.readyState === WebSocket.OPEN) {
+                            window.__zen_ws__.send(JSON.stringify({
+                                type: 'refocus_notification',
+                                success: true,
+                                message: 'Focus restored'
+                            }));
                         }
 
                         // Clear stored selectors
@@ -370,6 +381,18 @@
                         }
                     } else {
                         console.log('[Zen Bridge] ✗ Could not find element to refocus');
+
+                        // Send immediate notification via WebSocket
+                        if (verbose && window.__zen_ws__ && window.__zen_ws__.readyState === WebSocket.OPEN) {
+                            window.__zen_ws__.send(JSON.stringify({
+                                type: 'refocus_notification',
+                                success: false,
+                                message: 'Focus lost. Starting from top.'
+                            }));
+                        }
+
+                        // Clear stored selectors
+                        delete window.__ZEN_CONTROL_REFOCUS_SELECTORS__;
                     }
                 }, refocusTimeout);
             };
@@ -569,6 +592,13 @@
             // Handle Enter - activate the virtually focused element
             const currentElement = window.__ZEN_CONTROL_CURRENT_ELEMENT__ || target;
             const clickDelay = config['click-delay'] || 0;
+            const verbose = config['verbose'] !== false;
+
+            // Store element name for verbose messages
+            let elementName = '';
+            if (verbose && window.__ZEN_CONTROL_GET_ACCESSIBLE_NAME__) {
+                elementName = window.__ZEN_CONTROL_GET_ACCESSIBLE_NAME__(currentElement);
+            }
 
             if (!keydownPrevented) {
                 // Before clicking, store selectors for auto-refocus
@@ -589,22 +619,38 @@
                     }
                 }
 
+                // Store opening message for verbose output
+                if (verbose && elementName) {
+                    window.__ZEN_CONTROL_OPENING_MESSAGE__ = `Opening '${elementName}'...`;
+                }
+
                 const performClick = () => {
                     if (currentElement.tagName === 'A') {
                         // For links, click them (supports SPAs)
                         currentElement.click();
                         // Keep virtual focus on the link
                         window.__ZEN_CONTROL_CURRENT_ELEMENT__ = currentElement;
+                        // Store "opened" message
+                        if (verbose && elementName) {
+                            window.__ZEN_CONTROL_OPENED_MESSAGE__ = `'${elementName}' Opened`;
+                        }
                     } else if (currentElement.tagName === 'BUTTON') {
                         // For buttons, click them
                         currentElement.click();
                         // Keep virtual focus on the button
                         window.__ZEN_CONTROL_CURRENT_ELEMENT__ = currentElement;
+                        // Store "opened" message
+                        if (verbose && elementName) {
+                            window.__ZEN_CONTROL_OPENED_MESSAGE__ = `'${elementName}' Opened`;
+                        }
                     } else if (currentElement.tagName === 'INPUT') {
                         if (currentElement.type === 'submit' || currentElement.type === 'button') {
                             // Click submit/button inputs
                             currentElement.click();
                             window.__ZEN_CONTROL_CURRENT_ELEMENT__ = currentElement;
+                            if (verbose && elementName) {
+                                window.__ZEN_CONTROL_OPENED_MESSAGE__ = `'${elementName}' Opened`;
+                            }
                         } else if (currentElement.type === 'checkbox' || currentElement.type === 'radio') {
                             // Toggle checkbox/radio
                             currentElement.click();
@@ -623,10 +669,16 @@
                         // For elements with button/link roles, click them
                         currentElement.click();
                         window.__ZEN_CONTROL_CURRENT_ELEMENT__ = currentElement;
+                        if (verbose && elementName) {
+                            window.__ZEN_CONTROL_OPENED_MESSAGE__ = `'${elementName}' Opened`;
+                        }
                     } else if (currentElement.onclick || currentElement.getAttribute('onclick')) {
                         // If it has a click handler, trigger it
                         currentElement.click();
                         window.__ZEN_CONTROL_CURRENT_ELEMENT__ = currentElement;
+                        if (verbose && elementName) {
+                            window.__ZEN_CONTROL_OPENED_MESSAGE__ = `'${elementName}' Opened`;
+                        }
                     }
                 };
 
@@ -712,6 +764,24 @@
             target: target.tagName.toLowerCase(),
             key: key
         };
+
+        // Include verbose message if set (for Enter key on links/buttons)
+        if (window.__ZEN_CONTROL_OPENING_MESSAGE__) {
+            returnValue.message = window.__ZEN_CONTROL_OPENING_MESSAGE__;
+            delete window.__ZEN_CONTROL_OPENING_MESSAGE__;
+        }
+
+        // Include "opened" message if set (after click)
+        if (window.__ZEN_CONTROL_OPENED_MESSAGE__) {
+            returnValue.openedMessage = window.__ZEN_CONTROL_OPENED_MESSAGE__;
+            delete window.__ZEN_CONTROL_OPENED_MESSAGE__;
+        }
+
+        // Include refocus message if set (from refocusHandler)
+        if (window.__ZEN_CONTROL_REFOCUS_MESSAGE__) {
+            returnValue.refocusMessage = window.__ZEN_CONTROL_REFOCUS_MESSAGE__;
+            delete window.__ZEN_CONTROL_REFOCUS_MESSAGE__;
+        }
 
         // Include accessible name and role if they were set (from Tab navigation)
         if (window.__ZEN_CONTROL_LAST_FOCUSED_NAME__) {

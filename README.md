@@ -203,6 +203,8 @@ zen control
 - **Auto-refocus**: After clicking links, automatically refocuses the element that triggered navigation
 - **Visual Feedback**: Elements are highlighted with a blue outline as you navigate
 - **Accessible Names**: Hear element names spoken via screen reader (if enabled)
+- **Verbose Mode**: Real-time terminal announcements for navigation actions
+- **Speech Output**: Optional text-to-speech for all verbose messages
 - **Persistent Across Navigation**: Control mode survives page reloads and navigations
 
 **Controls:**
@@ -223,7 +225,46 @@ zen control
 # Continue tabbing from where you left off
 ```
 
+**Verbose Mode:**
+
+When verbose mode is enabled (default), control mode provides real-time feedback:
+
+```
+Opening 'Blog'...
+'Blog' Opened
+Focus restored
+```
+
+Messages appear instantly in the terminal and optionally via speech (macOS). Four types of announcements:
+
+1. **"Opening '{name}'..."** - When you press Enter on a link/button
+2. **"'{name}' Opened"** - Immediately after the click completes
+3. **"Focus restored"** - Element successfully refocused after navigation (~150ms)
+4. **"Focus lost. Starting from top."** - If refocus fails, restarts from page top
+
+**Configuration:**
+
+Control mode behavior is configured in `config.json`:
+
+```json
+{
+  "control": {
+    "verbose": true,           // Show terminal announcements
+    "speak-all": true,         // Speak all verbose messages (macOS)
+    "verbose-logging": false   // Browser console logging (debugging)
+  }
+}
+```
+
+- **verbose**: Enable/disable terminal announcements (default: true)
+- **speak-all**: Use macOS `say` command to speak all messages (default: true)
+- **verbose-logging**: Log debug info to browser console (default: false)
+
+**Technical Details:**
+
 The auto-refocus feature uses intelligent element matching (combining CSS selectors with text content) to ensure the correct element is refocused even when multiple elements share the same class.
+
+Verbose notifications use WebSocket push notifications combined with HTTP polling (100ms intervals) to display messages immediately without waiting for keypresses. This provides instant feedback when pages load and focus is restored.
 
 ### Watch keyboard input
 
@@ -646,6 +687,70 @@ zen eval "document.title"
 zen info
 zen repl
 ```
+
+## Development Notes
+
+### Recent Updates (October 2025)
+
+**Keyboard Control Mode Enhancements:**
+
+Added comprehensive verbose mode with real-time terminal feedback and speech output:
+
+- ✅ **Verbose configuration** - `"verbose": true/false` in config.json
+- ✅ **Speech output** - `"speak-all": true/false` to speak all messages via macOS `say`
+- ✅ **Four announcement types**:
+  - Opening announcement before click
+  - Opened announcement after click
+  - Refocus success/failure immediately when page loads
+- ✅ **Immediate notifications** - WebSocket push + HTTP polling architecture
+- ✅ **Intelligent element matching** - CSS selectors combined with text content
+- ✅ **Non-blocking I/O** - `select.select()` with 100ms timeout for instant display
+- ✅ **Terminal raw mode support** - Proper `\r\n` formatting and stderr output
+
+**Architecture:**
+- Browser sends WebSocket notifications for async events (page load, refocus)
+- Server stores notifications in queue (`pending_notifications`)
+- CLI polls `/notifications` endpoint every 100ms without blocking keyboard input
+- Messages display within ~100ms of event occurrence
+
+**Key implementation details:**
+- Global browser variables for message passing: `window.__ZEN_CONTROL_*__`
+- WebSocket message type: `{type: 'refocus_notification', success: bool, message: string}`
+- Server-side HTTP endpoint: `GET /notifications` returns and clears queue
+- CLI uses `select.select([sys.stdin], [], [], 0.1)` for non-blocking polling
+
+### Future Work Ideas
+
+**Control Mode Enhancements:**
+- **Customizable key bindings** - Allow users to remap keys in config.json
+- **Multiple navigation modes** - Add "links-only", "buttons-only", "inputs-only" modes
+- **Search within page** - Press `/` to search, `n` for next match
+- **History navigation** - Remember visited elements, allow quick return
+- **Element filtering** - Type to filter visible elements by text
+- **Visual improvements** - Highlight all focusable elements, show count
+
+**Speech & Accessibility:**
+- **Speak element context** - Announce parent containers ("Link in navigation", "Button in form")
+- **Custom voice selection** - Choose different macOS voices
+- **Speech rate control** - Configurable speaking speed
+- **Selective speech** - Choose which message types to speak
+- **Screen reader integration** - Better integration with existing screen readers
+
+**Performance & UX:**
+- **Faster element detection** - Cache element tree, update on mutations
+- **Smooth scrolling** - Auto-scroll focused element into view
+- **Focus indicator customization** - Custom colors, styles for outline
+- **Persistent preferences** - Remember last navigation position per domain
+
+**Cross-platform:**
+- **Linux speech support** - Use `espeak` or `festival` on Linux
+- **Windows speech support** - Use Windows Speech API
+- **Cross-browser testing** - Test with Chrome, Safari, Edge
+
+**WebSocket Improvements:**
+- **Reconnection backoff** - Exponential backoff for WebSocket reconnections
+- **Health checks** - Periodic ping/pong to detect stale connections
+- **Multiple browser tabs** - Support controlling specific tabs by ID
 
 ## License
 

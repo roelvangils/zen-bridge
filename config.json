@@ -3,7 +3,8 @@
     "auto-refocus": "always",
     "focus-outline": "custom",
     "speak-name": true,
-    "announce-role": true,
+    "speak-all": true,
+    "announce-role": false,
     "announce-on-page-load": true,
     "navigation-wrap": true,
     "scroll-on-focus": true,
@@ -15,6 +16,7 @@
     "sound-on-focus": "none",
     "selector-strategy": "id-first",
     "refocus-timeout": 2000,
+    "verbose": true,
     "verbose-logging": true
   }
 }

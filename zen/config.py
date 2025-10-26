@@ -12,6 +12,7 @@ DEFAULT_CONFIG = {
         "auto-refocus": "only-spa",
         "focus-outline": "custom",
         "speak-name": False,
+        "speak-all": True,
         "announce-role": False,
         "announce-on-page-load": False,
         "navigation-wrap": True,
@@ -24,6 +25,7 @@ DEFAULT_CONFIG = {
         "sound-on-focus": "none",
         "selector-strategy": "id-first",
         "refocus-timeout": 2000,
+        "verbose": True,
         "verbose-logging": False
     }
 }
@@ -109,6 +111,9 @@ def validate_control_config(config: Dict[str, Any]) -> Dict[str, Any]:
     # speak-name: boolean
     validated["speak-name"] = bool(control.get("speak-name", False))
 
+    # speak-all: boolean (speak all terminal output)
+    validated["speak-all"] = bool(control.get("speak-all", True))
+
     # announce-role: boolean
     validated["announce-role"] = bool(control.get("announce-role", False))
 
@@ -166,7 +171,10 @@ def validate_control_config(config: Dict[str, Any]) -> Dict[str, Any]:
         refocus_timeout = 2000
     validated["refocus-timeout"] = refocus_timeout
 
-    # verbose-logging: boolean
+    # verbose: boolean (terminal announcements)
+    validated["verbose"] = bool(control.get("verbose", True))
+
+    # verbose-logging: boolean (browser console logging)
     validated["verbose-logging"] = bool(control.get("verbose-logging", False))
 
     return validated

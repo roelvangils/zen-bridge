@@ -1610,6 +1610,7 @@ def control():
     import sys
     import tty
     import termios
+    import select
 
     client = BridgeClient()
 
@@ -1658,6 +1659,34 @@ def control():
             tty.setraw(fd)
 
             while True:
+                # Check for notifications before reading input
+                # Use select with timeout to allow polling
+                readable, _, _ = select.select([sys.stdin], [], [], 0.1)  # 100ms timeout
+
+                if not readable:
+                    # No input available, check for notifications
+                    try:
+                        import requests
+                        resp = requests.get(f'http://{client.host}:{client.port}/notifications', timeout=0.5)
+                        if resp.status_code == 200:
+                            data = resp.json()
+                            if data.get('ok') and data.get('notifications'):
+                                for notification in data['notifications']:
+                                    if notification['type'] == 'refocus':
+                                        message = notification['message']
+                                        sys.stderr.write(f"\r\n{message}\r\n")
+                                        sys.stderr.flush()
+                                        # Speak if speak-all is enabled
+                                        if control_config.get('speak-all'):
+                                            try:
+                                                subprocess.run(['say', message], check=False, timeout=5)
+                                            except Exception:
+                                                pass
+                    except Exception:
+                        # Silently ignore notification check errors
+                        pass
+                    continue
+
                 # Read one character
                 char = sys.stdin.read(1)
 
@@ -1755,6 +1784,41 @@ def control():
                             except Exception:
                                 # Silently ignore if say command fails
                                 pass
+
+                    # Display verbose messages if enabled
+                    if control_config.get('verbose'):
+                        # Check for opening message (when pressing Enter on links/buttons)
+                        if 'message' in response:
+                            message = response['message']
+                            sys.stderr.write(f"\r\n{message}\r\n")
+                            sys.stderr.flush()
+                            if control_config.get('speak-all'):
+                                try:
+                                    subprocess.run(['say', message], check=False, timeout=5)
+                                except Exception:
+                                    pass
+
+                        # Check for "opened" message (right after click)
+                        if 'openedMessage' in response:
+                            message = response['openedMessage']
+                            sys.stderr.write(f"{message}\r\n")
+                            sys.stderr.flush()
+                            if control_config.get('speak-all'):
+                                try:
+                                    subprocess.run(['say', message], check=False, timeout=5)
+                                except Exception:
+                                    pass
+
+                        # Check for refocus message (after page navigation)
+                        if 'refocusMessage' in response:
+                            message = response['refocusMessage']
+                            sys.stderr.write(f"{message}\r\n")
+                            sys.stderr.flush()
+                            if control_config.get('speak-all'):
+                                try:
+                                    subprocess.run(['say', message], check=False, timeout=5)
+                                except Exception:
+                                    pass
                 else:
                     # Silently ignore errors, keep going
                     pass
