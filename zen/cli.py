@@ -646,6 +646,11 @@ def info(extended, output_json):
                                 try:
                                     detected = detect(para_text)
                                     data['detectedLanguage'] = detected
+
+                                    # Check if detected language matches declared language
+                                    declared_lang = data.get('language', '').lower()
+                                    if declared_lang and declared_lang != 'n/a':
+                                        data['languageMatch'] = declared_lang == detected.lower()
                                 except LangDetectException:
                                     pass
                     except ImportError:
