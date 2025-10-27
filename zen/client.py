@@ -1,14 +1,16 @@
 """
 Client library for communicating with the Zen Bridge server.
 """
-import requests
-import time
+
 import re
+import time
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Any
+
+import requests
 
 
-def get_expected_userscript_version() -> Optional[str]:
+def get_expected_userscript_version() -> str | None:
     """
     Read the expected userscript version from userscript_ws.js file.
 
@@ -28,16 +30,18 @@ def get_expected_userscript_version() -> Optional[str]:
         return None
 
     try:
-        with open(userscript_path, 'r') as f:
+        with open(userscript_path) as f:
             content = f.read()
             # Look for @version or window.__ZEN_BRIDGE_VERSION__
             # Try @version first (from userscript header)
-            version_match = re.search(r'@version\s+(\S+)', content)
+            version_match = re.search(r"@version\s+(\S+)", content)
             if version_match:
                 return version_match.group(1)
 
             # Try window.__ZEN_BRIDGE_VERSION__ as fallback
-            version_match = re.search(r'window\.__ZEN_BRIDGE_VERSION__\s*=\s*[\'"]([^\'"]+)[\'"]', content)
+            version_match = re.search(
+                r'window\.__ZEN_BRIDGE_VERSION__\s*=\s*[\'"]([^\'"]+)[\'"]', content
+            )
             if version_match:
                 return version_match.group(1)
     except Exception:
@@ -62,7 +66,7 @@ class BridgeClient:
         except requests.RequestException:
             return False
 
-    def get_status(self) -> Optional[Dict[str, Any]]:
+    def get_status(self) -> dict[str, Any] | None:
         """Get bridge server status."""
         try:
             response = requests.get(f"{self.base_url}/health", timeout=self.timeout)
@@ -72,7 +76,7 @@ class BridgeClient:
             pass
         return None
 
-    def get_userscript_version(self) -> Optional[str]:
+    def get_userscript_version(self) -> str | None:
         """Get installed userscript version from browser."""
         try:
             result = self.execute("window.__ZEN_BRIDGE_VERSION__ || 'unknown'", timeout=2.0)
@@ -82,7 +86,7 @@ class BridgeClient:
             pass
         return None
 
-    def check_userscript_version(self, show_warning: bool = True) -> Optional[str]:
+    def check_userscript_version(self, show_warning: bool = True) -> str | None:
         """
         Check if browser userscript version matches expected version.
 
@@ -107,7 +111,7 @@ class BridgeClient:
                 response = requests.post(
                     f"{self.base_url}/run",
                     json={"code": "window.__ZEN_BRIDGE_VERSION__ || 'unknown'"},
-                    timeout=self.timeout
+                    timeout=self.timeout,
                 )
                 response.raise_for_status()
                 data = response.json()
@@ -118,7 +122,7 @@ class BridgeClient:
                     result_response = requests.get(
                         f"{self.base_url}/result",
                         params={"request_id": request_id},
-                        timeout=self.timeout
+                        timeout=self.timeout,
                     )
                     if result_response.status_code == 200:
                         result = result_response.json()
@@ -131,7 +135,7 @@ class BridgeClient:
             except Exception:
                 return None  # Failed to get version
 
-            if not installed_version or installed_version == 'unknown':
+            if not installed_version or installed_version == "unknown":
                 # Userscript not installed or old version without version variable
                 warning = (
                     f"\n⚠️  WARNING: Could not detect userscript version in browser.\n"
@@ -140,6 +144,7 @@ class BridgeClient:
                 )
                 if show_warning:
                     import sys
+
                     print(warning, file=sys.stderr)
                 return warning
 
@@ -152,6 +157,7 @@ class BridgeClient:
                 )
                 if show_warning:
                     import sys
+
                     print(warning, file=sys.stderr)
                 return warning
 
@@ -160,7 +166,7 @@ class BridgeClient:
 
         return None  # Versions match or check failed
 
-    def execute(self, code: str, timeout: float = 10.0) -> Dict[str, Any]:
+    def execute(self, code: str, timeout: float = 10.0) -> dict[str, Any]:
         """
         Execute JavaScript code in the browser and wait for result.
 
@@ -177,9 +183,7 @@ class BridgeClient:
             RuntimeError: If code execution fails in browser
         """
         if not self.is_alive():
-            raise ConnectionError(
-                "Bridge server is not running. Start it with: zen server start"
-            )
+            raise ConnectionError("Bridge server is not running. Start it with: zen server start")
 
         # Check userscript version on first execute (only once per client instance)
         if not self._version_checked:
@@ -188,9 +192,7 @@ class BridgeClient:
         # Submit code
         try:
             response = requests.post(
-                f"{self.base_url}/run",
-                json={"code": code},
-                timeout=self.timeout
+                f"{self.base_url}/run", json={"code": code}, timeout=self.timeout
             )
             response.raise_for_status()
             data = response.json()
@@ -211,7 +213,7 @@ class BridgeClient:
                 response = requests.get(
                     f"{self.base_url}/result",
                     params={"request_id": request_id},
-                    timeout=self.timeout
+                    timeout=self.timeout,
                 )
 
                 if response.status_code == 200:
@@ -233,7 +235,7 @@ class BridgeClient:
             "Make sure a browser tab is open with the userscript active."
         )
 
-    def execute_file(self, filepath: str, timeout: float = 10.0) -> Dict[str, Any]:
+    def execute_file(self, filepath: str, timeout: float = 10.0) -> dict[str, Any]:
         """
         Execute JavaScript from a file.
 
@@ -244,6 +246,6 @@ class BridgeClient:
         Returns:
             Dictionary with execution result
         """
-        with open(filepath, 'r', encoding='utf-8') as f:
+        with open(filepath, encoding="utf-8") as f:
             code = f.read()
         return self.execute(code, timeout)
