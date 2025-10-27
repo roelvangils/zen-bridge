@@ -10,12 +10,24 @@ import uuid
 from pathlib import Path
 from typing import Any
 
+from pydantic import ValidationError
+
 try:
     from aiohttp import web
 except ImportError:
     print("Error: aiohttp library not installed")
     print("Install with: pip install aiohttp")
     exit(1)
+
+from zen.domain.models import (
+    ExecuteRequest,
+    HealthResponse,
+    Notification,
+    NotificationsResponse,
+    RunRequest,
+    RunResponse,
+    parse_incoming_message,
+)
 
 HOST = "127.0.0.1"
 PORT = 8765
@@ -87,7 +99,15 @@ async def websocket_handler(request):
             if msg.type == web.WSMsgType.TEXT:
                 try:
                     data = json.loads(msg.data)
-                    message_type = data.get("type")
+
+                    # Validate incoming message with Pydantic
+                    try:
+                        validated_msg = parse_incoming_message(data)
+                    except (ValidationError, ValueError) as e:
+                        print(f"Invalid message from browser: {e}")
+                        continue
+
+                    message_type = validated_msg.type
 
                     if message_type == "result":
                         # Browser sending back result of executed code

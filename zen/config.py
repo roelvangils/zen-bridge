@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any
 
 # Default configuration
-DEFAULT_CONFIG = {
+DEFAULT_CONFIG: dict[str, Any] = {
     "ai-language": "auto",
     "control": {
         "auto-refocus": "only-spa",
@@ -75,9 +75,10 @@ def load_config() -> dict[str, Any]:
 
         # Merge root-level properties
         for key in user_config:
-            if key == "control":
+            if key == "control" and isinstance(user_config["control"], dict):
                 # Nested control config - merge deeply
-                config["control"].update(user_config["control"])
+                if isinstance(config["control"], dict):
+                    config["control"].update(user_config["control"])
             else:
                 # Root-level properties like ai-language - overwrite
                 config[key] = user_config[key]
