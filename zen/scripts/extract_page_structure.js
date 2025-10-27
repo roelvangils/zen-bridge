@@ -3,7 +3,6 @@
 
 (function() {
   const output = [];
-  const processedElements = new WeakSet();
 
   // Helper: Get computed font size
   function getFontSize(el) {
@@ -102,100 +101,111 @@
     };
   }
 
+  // Helper: Check if element is visible
+  function isVisible(el) {
+    const style = window.getComputedStyle(el);
+    return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
+  }
+
   // Find the largest text element
   const largestInfo = findLargestText();
 
-  // Process content within a container
+  // Process content within a container - now finds ALL elements, not just direct children
   function processContent(container, indent = '') {
-    const children = Array.from(container.children);
+    if (!container) return;
 
-    children.forEach(child => {
-      if (processedElements.has(child)) return;
+    // Find all headings within this container
+    const headings = container.querySelectorAll('h1, h2, h3, h4, h5, h6');
+    const processedHeadings = new Set();
 
-      const tagName = child.tagName.toLowerCase();
+    headings.forEach(heading => {
+      if (!isVisible(heading)) return;
+      if (processedHeadings.has(heading)) return;
+      processedHeadings.add(heading);
 
-      // Headings
-      if (/^h[1-6]$/.test(tagName)) {
-        processedElements.add(child);
+      const level = heading.tagName.substring(1);
+      const text = heading.textContent.trim();
+      const fontSize = getFontSize(heading);
+      const markers = getImportanceMarkers(text);
 
-        const level = tagName.substring(1);
-        const text = child.textContent.trim();
-        const fontSize = getFontSize(child);
-        const markers = getImportanceMarkers(text);
+      let headingLine = `${indent}${'#'.repeat(parseInt(level))} ${text}`;
 
-        let heading = `${indent}${'#'.repeat(parseInt(level))} ${text}`;
+      // Add font size
+      headingLine += ` (${Math.round(fontSize)}px)`;
 
-        // Add font size
-        heading += ` (${Math.round(fontSize)}px)`;
+      // Mark if largest
+      if (heading === largestInfo.element) {
+        headingLine += ' **[LARGEST TEXT]**';
+      }
 
-        // Mark if largest
-        if (child === largestInfo.element) {
-          heading += ' **[LARGEST TEXT]**';
-        }
+      // Add importance markers
+      if (markers.length > 0) {
+        headingLine += ` **[${markers.join(', ')}]**`;
+      }
 
-        // Add importance markers
-        if (markers.length > 0) {
-          heading += ` **[${markers.join(', ')}]**`;
-        }
+      output.push(headingLine);
 
-        output.push(heading);
+      // Try to find first paragraph after heading
+      const para = getNextParagraph(heading);
+      if (para) {
+        output.push(`${indent}${para}`);
+      }
+      output.push('');
 
-        // Try to find first paragraph after heading
-        const para = getNextParagraph(child);
-        if (para) {
-          output.push(`${indent}${para}`);
+      // Check for images right after this heading
+      let nextEl = heading.nextElementSibling;
+      if (nextEl) {
+        // Check for image in next element
+        if (nextEl.tagName === 'IMG' && shouldIncludeImage(nextEl)) {
+          output.push(`${indent}![${nextEl.alt}](image)`);
           output.push('');
+        } else {
+          const img = nextEl.querySelector('img');
+          if (img && shouldIncludeImage(img)) {
+            output.push(`${indent}![${img.alt}](image)`);
+            output.push('');
+          }
         }
-      }
 
-      // Blockquotes
-      else if (tagName === 'blockquote') {
-        processedElements.add(child);
-        const text = child.textContent.trim().replace(/\s+/g, ' ');
-        output.push(`${indent}> ${text}`);
-        output.push('');
-      }
-
-      // Lists
-      else if (tagName === 'ul' || tagName === 'ol') {
-        processedElements.add(child);
-        const listData = getListItems(child);
-
-        listData.items.forEach((item, idx) => {
-          const bullet = listData.type === 'ol' ? `${idx + 1}.` : '-';
-          output.push(`${indent}${bullet} ${item}`);
-        });
-
-        if (listData.total > listData.items.length) {
-          output.push(`${indent}  _(${listData.total - listData.items.length} more items)_`);
-        }
-        output.push('');
-      }
-
-      // Images
-      else if (tagName === 'img') {
-        processedElements.add(child);
-        if (shouldIncludeImage(child)) {
-          output.push(`${indent}![${child.alt}](image)`);
+        // Check for lists
+        if (nextEl.tagName === 'UL' || nextEl.tagName === 'OL') {
+          const listData = getListItems(nextEl);
+          listData.items.forEach((item, idx) => {
+            const bullet = listData.type === 'ol' ? `${idx + 1}.` : '-';
+            output.push(`${indent}${bullet} ${item}`);
+          });
+          if (listData.total > listData.items.length) {
+            output.push(`${indent}  _(${listData.total - listData.items.length} more items)_`);
+          }
           output.push('');
+        } else {
+          // Check for lists within the next element
+          const list = nextEl.querySelector('ul, ol');
+          if (list) {
+            const listData = getListItems(list);
+            listData.items.forEach((item, idx) => {
+              const bullet = listData.type === 'ol' ? `${idx + 1}.` : '-';
+              output.push(`${indent}${bullet} ${item}`);
+            });
+            if (listData.total > listData.items.length) {
+              output.push(`${indent}  _(${listData.total - listData.items.length} more items)_`);
+            }
+            output.push('');
+          }
         }
-      }
 
-      // Check if container has images or quotes
-      else {
-        const img = child.querySelector('img');
-        if (img && !processedElements.has(img) && shouldIncludeImage(img)) {
-          processedElements.add(img);
-          output.push(`${indent}![${img.alt}](image)`);
-          output.push('');
-        }
-
-        const quote = child.querySelector('blockquote');
-        if (quote && !processedElements.has(quote)) {
-          processedElements.add(quote);
-          const text = quote.textContent.trim().replace(/\s+/g, ' ');
+        // Check for blockquotes
+        if (nextEl.tagName === 'BLOCKQUOTE') {
+          const text = nextEl.textContent.trim().replace(/\s+/g, ' ');
           output.push(`${indent}> ${text}`);
           output.push('');
+        } else {
+          const quote = nextEl.querySelector('blockquote');
+          if (quote) {
+            const text = quote.textContent.trim().replace(/\s+/g, ' ');
+            output.push(`${indent}> ${text}`);
+            output.push('');
+          }
         }
       }
     });
@@ -232,7 +242,7 @@
     navElements.forEach((nav, idx) => {
       const links = Array.from(nav.querySelectorAll('a'))
         .map(a => a.textContent.trim())
-        .filter(t => t.length > 0)
+        .filter(t => t.length > 0 && t.length < 100)
         .slice(0, 10);
 
       if (links.length > 0) {
@@ -273,7 +283,7 @@
 
     const footerLinks = Array.from(footer.querySelectorAll('a'))
       .map(a => a.textContent.trim())
-      .filter(t => t.length > 0)
+      .filter(t => t.length > 0 && t.length < 100)
       .slice(0, 8);
 
     if (footerLinks.length > 0) {
