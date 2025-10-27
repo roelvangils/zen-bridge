@@ -1,13 +1,11 @@
 """Configuration management for Zen Bridge."""
 
 import json
-import os
 from pathlib import Path
-from typing import Any, Dict, Optional
-
+from typing import Any
 
 # Default configuration
-DEFAULT_CONFIG = {
+DEFAULT_CONFIG: dict[str, Any] = {
     "ai-language": "auto",
     "control": {
         "auto-refocus": "only-spa",
@@ -27,12 +25,12 @@ DEFAULT_CONFIG = {
         "selector-strategy": "id-first",
         "refocus-timeout": 2000,
         "verbose": True,
-        "verbose-logging": False
-    }
+        "verbose-logging": False,
+    },
 }
 
 
-def find_config_file() -> Optional[Path]:
+def find_config_file() -> Path | None:
     """
     Find the config.json file.
 
@@ -56,7 +54,7 @@ def find_config_file() -> Optional[Path]:
     return None
 
 
-def load_config() -> Dict[str, Any]:
+def load_config() -> dict[str, Any]:
     """
     Load configuration from file or return defaults.
 
@@ -69,7 +67,7 @@ def load_config() -> Dict[str, Any]:
         return DEFAULT_CONFIG.copy()
 
     try:
-        with open(config_file, 'r') as f:
+        with open(config_file) as f:
             user_config = json.load(f)
 
         # Merge with defaults (user config takes precedence)
@@ -77,21 +75,22 @@ def load_config() -> Dict[str, Any]:
 
         # Merge root-level properties
         for key in user_config:
-            if key == "control":
+            if key == "control" and isinstance(user_config["control"], dict):
                 # Nested control config - merge deeply
-                config["control"].update(user_config["control"])
+                if isinstance(config["control"], dict):
+                    config["control"].update(user_config["control"])
             else:
                 # Root-level properties like ai-language - overwrite
                 config[key] = user_config[key]
 
         return config
-    except (json.JSONDecodeError, IOError) as e:
+    except (OSError, json.JSONDecodeError):
         # If config file is invalid, fall back to defaults
         # Could log error here if verbose logging is enabled
         return DEFAULT_CONFIG.copy()
 
 
-def validate_control_config(config: Dict[str, Any]) -> Dict[str, Any]:
+def validate_control_config(config: dict[str, Any]) -> dict[str, Any]:
     """
     Validate and normalize control configuration.
 
@@ -188,7 +187,7 @@ def validate_control_config(config: Dict[str, Any]) -> Dict[str, Any]:
     return validated
 
 
-def get_control_config() -> Dict[str, Any]:
+def get_control_config() -> dict[str, Any]:
     """
     Get validated control configuration.
 
@@ -206,7 +205,7 @@ def has_config_file() -> bool:
 
 
 # Convenience function to get config file path
-def get_config_path() -> Optional[str]:
+def get_config_path() -> str | None:
     """Get the path to the config file being used, if any."""
     config_file = find_config_file()
     return str(config_file) if config_file else None

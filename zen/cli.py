@@ -2,17 +2,20 @@
 """
 Zen Browser Bridge CLI - Execute JavaScript in your browser from the command line.
 """
-import sys
-import os
+
 import json
+import os
 import re
-import click
-import subprocess
 import signal
+import subprocess
+import sys
 from pathlib import Path
-from .client import BridgeClient
+
+import click
+
 from . import __version__
 from . import config as zen_config
+from .client import BridgeClient
 
 # Save built-in functions before they get shadowed by Click commands
 _builtin_open = open
@@ -134,7 +137,9 @@ def cli():
 @click.argument("code", required=False)
 @click.option("-f", "--file", type=click.Path(exists=True), help="Execute code from file")
 @click.option("-t", "--timeout", type=float, default=10.0, help="Timeout in seconds (default: 10)")
-@click.option("--format", type=click.Choice(["auto", "json", "raw"]), default="auto", help="Output format")
+@click.option(
+    "--format", type=click.Choice(["auto", "json", "raw"]), default="auto", help="Output format"
+)
 @click.option("--url", is_flag=True, help="Also print page URL")
 @click.option("--title", is_flag=True, help="Also print page title")
 def eval(code, file, timeout, format, url, title):
@@ -158,7 +163,9 @@ def eval(code, file, timeout, format, url, title):
         if not sys.stdin.isatty():
             code = sys.stdin.read()
         else:
-            click.echo("Error: No code provided. Use: zen eval CODE or zen eval --file FILE", err=True)
+            click.echo(
+                "Error: No code provided. Use: zen eval CODE or zen eval --file FILE", err=True
+            )
             sys.exit(1)
 
     try:
@@ -189,7 +196,9 @@ def eval(code, file, timeout, format, url, title):
 @cli.command()
 @click.argument("filepath", type=click.Path(exists=True))
 @click.option("-t", "--timeout", type=float, default=10.0, help="Timeout in seconds")
-@click.option("--format", type=click.Choice(["auto", "json", "raw"]), default="auto", help="Output format")
+@click.option(
+    "--format", type=click.Choice(["auto", "json", "raw"]), default="auto", help="Output format"
+)
 def exec(filepath, timeout, format):
     """
     Execute JavaScript from a file.
@@ -215,34 +224,35 @@ def exec(filepath, timeout, format):
 
 def _get_domain_metrics(domain):
     """Fetch domain metrics including IP, geolocation, WHOIS, and SSL info."""
-    if not domain or domain == 'N/A':
+    if not domain or domain == "N/A":
         return None
 
     metrics = {}
 
     try:
+        import datetime
         import socket
         import ssl
-        import datetime
+
         import requests
 
         # Get IP address
         try:
             ip = socket.gethostbyname(domain)
-            metrics['ip'] = ip
+            metrics["ip"] = ip
 
             # Get geolocation from ip-api.com (free, no auth required)
             try:
-                geo_response = requests.get(f'http://ip-api.com/json/{ip}', timeout=3)
+                geo_response = requests.get(f"http://ip-api.com/json/{ip}", timeout=3)
                 if geo_response.status_code == 200:
                     geo_data = geo_response.json()
-                    if geo_data.get('status') == 'success':
-                        metrics['geolocation'] = {
-                            'country': geo_data.get('country'),
-                            'region': geo_data.get('regionName'),
-                            'city': geo_data.get('city'),
-                            'isp': geo_data.get('isp'),
-                            'org': geo_data.get('org')
+                    if geo_data.get("status") == "success":
+                        metrics["geolocation"] = {
+                            "country": geo_data.get("country"),
+                            "region": geo_data.get("regionName"),
+                            "city": geo_data.get("city"),
+                            "isp": geo_data.get("isp"),
+                            "org": geo_data.get("org"),
                         }
             except Exception:
                 pass  # Geolocation is optional
@@ -258,19 +268,21 @@ def _get_domain_metrics(domain):
                     cert = ssock.getpeercert()
 
                     # Extract issuer
-                    issuer = dict(x[0] for x in cert.get('issuer', []))
-                    issuer_name = issuer.get('organizationName', issuer.get('commonName', 'Unknown'))
+                    issuer = dict(x[0] for x in cert.get("issuer", []))
+                    issuer_name = issuer.get(
+                        "organizationName", issuer.get("commonName", "Unknown")
+                    )
 
                     # Extract expiry date
-                    not_after = cert.get('notAfter')
+                    not_after = cert.get("notAfter")
                     if not_after:
-                        expiry_date = datetime.datetime.strptime(not_after, '%b %d %H:%M:%S %Y %Z')
+                        expiry_date = datetime.datetime.strptime(not_after, "%b %d %H:%M:%S %Y %Z")
                         days_remaining = (expiry_date - datetime.datetime.now()).days
 
-                        metrics['ssl'] = {
-                            'issuer': issuer_name,
-                            'expiry': expiry_date.strftime('%Y-%m-%d'),
-                            'days_remaining': days_remaining
+                        metrics["ssl"] = {
+                            "issuer": issuer_name,
+                            "expiry": expiry_date.strftime("%Y-%m-%d"),
+                            "days_remaining": days_remaining,
                         }
         except Exception:
             pass  # SSL info is optional
@@ -278,6 +290,7 @@ def _get_domain_metrics(domain):
         # Get WHOIS info (try python-whois if available)
         try:
             import whois
+
             w = whois.whois(domain)
             whois_data = {}
 
@@ -286,19 +299,33 @@ def _get_domain_metrics(domain):
             if isinstance(creation_date, list):
                 creation_date = creation_date[0]
             if creation_date:
-                whois_data['creation_date'] = creation_date.strftime('%Y-%m-%d') if hasattr(creation_date, 'strftime') else str(creation_date)
+                whois_data["creation_date"] = (
+                    creation_date.strftime("%Y-%m-%d")
+                    if hasattr(creation_date, "strftime")
+                    else str(creation_date)
+                )
 
             expiration_date = w.expiration_date
             if isinstance(expiration_date, list):
                 expiration_date = expiration_date[0]
             if expiration_date:
-                whois_data['expiration_date'] = expiration_date.strftime('%Y-%m-%d') if hasattr(expiration_date, 'strftime') else str(expiration_date)
+                whois_data["expiration_date"] = (
+                    expiration_date.strftime("%Y-%m-%d")
+                    if hasattr(expiration_date, "strftime")
+                    else str(expiration_date)
+                )
 
             if w.registrar:
-                whois_data['registrar'] = w.registrar if isinstance(w.registrar, str) else w.registrar[0] if isinstance(w.registrar, list) else str(w.registrar)
+                whois_data["registrar"] = (
+                    w.registrar
+                    if isinstance(w.registrar, str)
+                    else w.registrar[0]
+                    if isinstance(w.registrar, list)
+                    else str(w.registrar)
+                )
 
             if whois_data:
-                metrics['whois'] = whois_data
+                metrics["whois"] = whois_data
         except ImportError:
             pass  # python-whois not installed
         except Exception:
@@ -320,20 +347,20 @@ def _get_response_headers(url):
 
         # Extract key headers
         return {
-            'server': headers.get('Server'),
-            'cacheControl': headers.get('Cache-Control'),
-            'contentEncoding': headers.get('Content-Encoding'),
-            'etag': headers.get('ETag'),
-            'lastModified': headers.get('Last-Modified'),
-            'contentType': headers.get('Content-Type'),
+            "server": headers.get("Server"),
+            "cacheControl": headers.get("Cache-Control"),
+            "contentEncoding": headers.get("Content-Encoding"),
+            "etag": headers.get("ETag"),
+            "lastModified": headers.get("Last-Modified"),
+            "contentType": headers.get("Content-Type"),
             # Security headers
-            'xFrameOptions': headers.get('X-Frame-Options'),
-            'xContentTypeOptions': headers.get('X-Content-Type-Options'),
-            'strictTransportSecurity': headers.get('Strict-Transport-Security'),
-            'contentSecurityPolicy': headers.get('Content-Security-Policy'),
-            'permissionsPolicy': headers.get('Permissions-Policy'),
-            'referrerPolicy': headers.get('Referrer-Policy'),
-            'xXssProtection': headers.get('X-XSS-Protection')
+            "xFrameOptions": headers.get("X-Frame-Options"),
+            "xContentTypeOptions": headers.get("X-Content-Type-Options"),
+            "strictTransportSecurity": headers.get("Strict-Transport-Security"),
+            "contentSecurityPolicy": headers.get("Content-Security-Policy"),
+            "permissionsPolicy": headers.get("Permissions-Policy"),
+            "referrerPolicy": headers.get("Referrer-Policy"),
+            "xXssProtection": headers.get("X-XSS-Protection"),
         }
     except Exception:
         return None
@@ -343,6 +370,7 @@ def _get_robots_txt(url):
     """Fetch and parse robots.txt for the given URL."""
     try:
         from urllib.parse import urlparse
+
         import requests
 
         parsed = urlparse(url)
@@ -351,47 +379,49 @@ def _get_robots_txt(url):
         response = requests.get(robots_url, timeout=3)
         if response.status_code == 200:
             content = response.text
-            lines = content.split('\n')
+            lines = content.split("\n")
 
             # Parse key directives
             result = {
-                'exists': True,
-                'url': robots_url,
-                'size': len(content),
-                'lines': len(lines),
-                'userAgents': [],
-                'sitemaps': [],
-                'disallowRules': 0,
-                'allowRules': 0
+                "exists": True,
+                "url": robots_url,
+                "size": len(content),
+                "lines": len(lines),
+                "userAgents": [],
+                "sitemaps": [],
+                "disallowRules": 0,
+                "allowRules": 0,
             }
 
             current_agent = None
             for line in lines:
                 line = line.strip()
-                if line.startswith('User-agent:'):
-                    agent = line.split(':', 1)[1].strip()
-                    if agent and agent not in result['userAgents']:
-                        result['userAgents'].append(agent)
+                if line.startswith("User-agent:"):
+                    agent = line.split(":", 1)[1].strip()
+                    if agent and agent not in result["userAgents"]:
+                        result["userAgents"].append(agent)
                     current_agent = agent
-                elif line.startswith('Disallow:'):
-                    result['disallowRules'] += 1
-                elif line.startswith('Allow:'):
-                    result['allowRules'] += 1
-                elif line.startswith('Sitemap:'):
-                    sitemap = line.split(':', 1)[1].strip()
+                elif line.startswith("Disallow:"):
+                    result["disallowRules"] += 1
+                elif line.startswith("Allow:"):
+                    result["allowRules"] += 1
+                elif line.startswith("Sitemap:"):
+                    sitemap = line.split(":", 1)[1].strip()
                     if sitemap:
-                        result['sitemaps'].append(sitemap)
+                        result["sitemaps"].append(sitemap)
 
             return result
         else:
-            return {'exists': False, 'status': response.status_code}
+            return {"exists": False, "status": response.status_code}
 
     except Exception as e:
-        return {'exists': False, 'error': str(e)}
+        return {"exists": False, "error": str(e)}
 
 
 @cli.command()
-@click.option("--extended", is_flag=True, help="Show extended information (language, meta tags, cookies)")
+@click.option(
+    "--extended", is_flag=True, help="Show extended information (language, meta tags, cookies)"
+)
 @click.option("--json", "output_json", is_flag=True, help="Output as JSON")
 def info(extended, output_json):
     """Get information about the current browser tab."""
@@ -687,7 +717,7 @@ def info(extended, output_json):
             data = result.get("result", {})
 
             # Get userscript version
-            userscript_version = client.get_userscript_version() or 'unknown'
+            userscript_version = client.get_userscript_version() or "unknown"
 
             # If extended, also run the extended_info.js script
             if extended:
@@ -700,30 +730,31 @@ def info(extended, output_json):
                         if extended_result.get("ok"):
                             extended_data = extended_result.get("result", {})
                             # Merge extended data into main data
-                            data['_extended'] = extended_data
+                            data["_extended"] = extended_data
                 except Exception:
                     pass  # Extended info is optional
 
                 # Add server-side data for JSON output
                 if output_json:
                     # Add response headers
-                    headers = _get_response_headers(data.get('url'))
+                    headers = _get_response_headers(data.get("url"))
                     if headers:
-                        data['responseHeaders'] = headers
+                        data["responseHeaders"] = headers
 
                     # Add robots.txt
-                    robots_data = _get_robots_txt(data.get('url'))
+                    robots_data = _get_robots_txt(data.get("url"))
                     if robots_data:
-                        data['robotsTxt'] = robots_data
+                        data["robotsTxt"] = robots_data
 
                     # Add domain metrics
-                    domain_metrics = _get_domain_metrics(data.get('domain'))
+                    domain_metrics = _get_domain_metrics(data.get("domain"))
                     if domain_metrics:
-                        data['domainMetrics'] = domain_metrics
+                        data["domainMetrics"] = domain_metrics
 
                     # Add detected language
                     try:
-                        from langdetect import detect, LangDetectException
+                        from langdetect import LangDetectException, detect
+
                         para_code = "Array.from(document.querySelectorAll('p')).map(p => p.textContent).join(' ').substring(0, 5000)"
                         para_result = client.execute(para_code, timeout=5.0)
                         if para_result.get("ok"):
@@ -731,12 +762,12 @@ def info(extended, output_json):
                             if para_text and len(para_text.strip()) > 50:
                                 try:
                                     detected = detect(para_text)
-                                    data['detectedLanguage'] = detected
+                                    data["detectedLanguage"] = detected
 
                                     # Check if detected language matches declared language
-                                    declared_lang = data.get('specifiedLanguage', '').lower()
-                                    if declared_lang and declared_lang != 'n/a':
-                                        data['languageMatch'] = declared_lang == detected.lower()
+                                    declared_lang = data.get("specifiedLanguage", "").lower()
+                                    if declared_lang and declared_lang != "n/a":
+                                        data["languageMatch"] = declared_lang == detected.lower()
                                 except LangDetectException:
                                     pass
                     except ImportError:
@@ -745,7 +776,8 @@ def info(extended, output_json):
             # If JSON output is requested, output JSON and exit
             if output_json:
                 import json
-                data['userscriptVersion'] = userscript_version
+
+                data["userscriptVersion"] = userscript_version
                 click.echo(json.dumps(data, indent=2))
                 return
 
@@ -758,17 +790,18 @@ def info(extended, output_json):
             click.echo(f"Size:     {data.get('width', 'N/A')}x{data.get('height', 'N/A')}")
 
             if extended:
-                click.echo(f"")
+                click.echo("")
                 click.echo("=== Extended Information ===")
-                click.echo(f"")
+                click.echo("")
 
                 # Language and encoding (with natural language detection)
-                declared_lang = data.get('specifiedLanguage', 'N/A')
+                declared_lang = data.get("specifiedLanguage", "N/A")
                 click.echo(f"Language:           {declared_lang}")
 
                 # Detect actual language using langdetect
                 try:
-                    from langdetect import detect, LangDetectException
+                    from langdetect import LangDetectException, detect
+
                     # Extract paragraph text for language detection
                     para_code = "Array.from(document.querySelectorAll('p')).map(p => p.textContent).join(' ').substring(0, 5000)"
                     para_result = client.execute(para_code, timeout=5.0)
@@ -776,12 +809,19 @@ def info(extended, output_json):
                         para_text = para_result.get("result", "")
                         if para_text and len(para_text.strip()) > 50:
                             try:
-                                detected = detect(para_text)  # Returns ISO 639-1 code (e.g., 'en', 'fr')
+                                detected = detect(
+                                    para_text
+                                )  # Returns ISO 639-1 code (e.g., 'en', 'fr')
                                 if detected:
                                     # Compare with declared language
-                                    if declared_lang != 'N/A' and declared_lang.lower() != detected.lower():
+                                    if (
+                                        declared_lang != "N/A"
+                                        and declared_lang.lower() != detected.lower()
+                                    ):
                                         click.echo(f"  Detected:         {detected}")
-                                        click.echo(f"  ⚠️  Language mismatch! Content appears to be \"{detected}\" but lang=\"{declared_lang}\"")
+                                        click.echo(
+                                            f'  ⚠️  Language mismatch! Content appears to be "{detected}" but lang="{declared_lang}"'
+                                        )
                                     else:
                                         click.echo(f"  Detected:         {detected} ✓ matches")
                             except LangDetectException:
@@ -794,7 +834,7 @@ def info(extended, output_json):
                 click.echo(f"Character Set:      {data.get('charset', 'N/A')}")
 
                 # Resources
-                click.echo(f"")
+                click.echo("")
                 click.echo("Resources:")
                 click.echo(f"  Scripts:          {data.get('scriptCount', 0)}")
                 click.echo(f"  Stylesheets:      {data.get('stylesheetCount', 0)}")
@@ -804,62 +844,68 @@ def info(extended, output_json):
                 click.echo(f"  Iframes:          {data.get('iframeCount', 0)}")
 
                 # Performance Metrics (from extended data)
-                extended_data = data.get('_extended', {})
-                perf = extended_data.get('performance', {})
+                extended_data = data.get("_extended", {})
+                perf = extended_data.get("performance", {})
                 if perf:
-                    click.echo(f"")
+                    click.echo("")
                     click.echo("Performance:")
-                    if perf.get('pageLoadTime'):
+                    if perf.get("pageLoadTime"):
                         click.echo(f"  Page Load Time:    {perf['pageLoadTime']}s")
-                    if perf.get('domContentLoaded'):
+                    if perf.get("domContentLoaded"):
                         click.echo(f"  DOM Content Loaded: {perf['domContentLoaded']}s")
-                    if perf.get('timeToFirstByte'):
+                    if perf.get("timeToFirstByte"):
                         click.echo(f"  Time to First Byte: {perf['timeToFirstByte']}ms")
-                    if perf.get('firstPaint'):
+                    if perf.get("firstPaint"):
                         click.echo(f"  First Paint:       {perf['firstPaint']}s")
-                    if perf.get('firstContentfulPaint'):
+                    if perf.get("firstContentfulPaint"):
                         click.echo(f"  First Contentful Paint: {perf['firstContentfulPaint']}s")
-                    if perf.get('largestContentfulPaint'):
+                    if perf.get("largestContentfulPaint"):
                         click.echo(f"  Largest Contentful Paint: {perf['largestContentfulPaint']}s")
 
                 # Media Content (from extended data)
-                media = extended_data.get('media', {})
-                if media and (media.get('videos', 0) > 0 or media.get('audio', 0) > 0 or media.get('svgImages', 0) > 0):
-                    click.echo(f"")
+                media = extended_data.get("media", {})
+                if media and (
+                    media.get("videos", 0) > 0
+                    or media.get("audio", 0) > 0
+                    or media.get("svgImages", 0) > 0
+                ):
+                    click.echo("")
                     click.echo("Media:")
-                    if media.get('videos', 0) > 0:
+                    if media.get("videos", 0) > 0:
                         click.echo(f"  Videos:            {media['videos']}")
-                    if media.get('audio', 0) > 0:
+                    if media.get("audio", 0) > 0:
                         click.echo(f"  Audio:             {media['audio']}")
-                    if media.get('svgImages', 0) > 0:
+                    if media.get("svgImages", 0) > 0:
                         click.echo(f"  SVG Images:        {media['svgImages']}")
 
                 # Content Stats (from extended data)
-                content = extended_data.get('content', {})
+                content = extended_data.get("content", {})
                 if content:
-                    click.echo(f"")
+                    click.echo("")
                     click.echo("Content:")
-                    if content.get('wordCount'):
+                    if content.get("wordCount"):
                         click.echo(f"  Word Count:        ~{content['wordCount']:,} words")
-                    if content.get('estimatedReadingTime'):
-                        click.echo(f"  Reading Time:      ~{content['estimatedReadingTime']} minutes")
-                    if content.get('paragraphs'):
+                    if content.get("estimatedReadingTime"):
+                        click.echo(
+                            f"  Reading Time:      ~{content['estimatedReadingTime']} minutes"
+                        )
+                    if content.get("paragraphs"):
                         click.echo(f"  Paragraphs:        {content['paragraphs']}")
-                    if content.get('lists'):
+                    if content.get("lists"):
                         click.echo(f"  Lists:             {content['lists']}")
-                    if content.get('languageSwitchers', 0) > 0:
+                    if content.get("languageSwitchers", 0) > 0:
                         click.echo(f"  Language Switchers: {content['languageSwitchers']}")
 
                 # Document dimensions
-                click.echo(f"")
+                click.echo("")
                 click.echo("Document Dimensions:")
                 click.echo(f"  Total Height:     {data.get('scrollHeight', 'N/A')}px")
                 click.echo(f"  Total Width:      {data.get('scrollWidth', 'N/A')}px")
 
                 # Storage
-                click.echo(f"")
+                click.echo("")
                 click.echo("Storage:")
-                cookie_count = data.get('cookieCount', 0)
+                cookie_count = data.get("cookieCount", 0)
                 click.echo(f"  Cookies:          {cookie_count}")
 
                 # Get actual cookie names
@@ -877,7 +923,7 @@ def info(extended, output_json):
                     except Exception:
                         pass
 
-                local_kb = data.get('localStorageSize', 0) / 1024
+                local_kb = data.get("localStorageSize", 0) / 1024
                 click.echo(f"  LocalStorage:     {local_kb:.2f} KB")
 
                 # Get localStorage keys
@@ -895,7 +941,7 @@ def info(extended, output_json):
                     except Exception:
                         pass
 
-                session_kb = data.get('sessionStorageSize', 0) / 1024
+                session_kb = data.get("sessionStorageSize", 0) / 1024
                 click.echo(f"  SessionStorage:   {session_kb:.2f} KB")
 
                 # Get sessionStorage keys
@@ -916,205 +962,221 @@ def info(extended, output_json):
                 click.echo(f"  Service Worker:   {'Yes' if data.get('hasServiceWorker') else 'No'}")
 
                 # Security Info
-                security = data.get('security', {})
+                security = data.get("security", {})
                 if security:
-                    click.echo(f"")
+                    click.echo("")
                     click.echo("Security:")
                     click.echo(f"  HTTPS:            {'Yes' if security.get('isSecure') else 'No'}")
-                    if security.get('isSecure') and security.get('hasMixedContent'):
-                        click.echo(f"  Mixed Content:    ⚠️  Warning - Insecure resources detected")
-                    if security.get('cspMeta'):
-                        csp = security.get('cspMeta', '')
+                    if security.get("isSecure") and security.get("hasMixedContent"):
+                        click.echo("  Mixed Content:    ⚠️  Warning - Insecure resources detected")
+                    if security.get("cspMeta"):
+                        csp = security.get("cspMeta", "")
                         if len(csp) > 50:
-                            csp = csp[:47] + '...'
+                            csp = csp[:47] + "..."
                         click.echo(f"  CSP Meta:         {csp}")
-                    if security.get('referrerPolicy'):
+                    if security.get("referrerPolicy"):
                         click.echo(f"  Referrer Policy:  {security.get('referrerPolicy')}")
 
                 # Accessibility
-                a11y = data.get('accessibility', {})
+                a11y = data.get("accessibility", {})
                 if a11y:
-                    click.echo(f"")
+                    click.echo("")
                     click.echo("Accessibility:")
                     click.echo(f"  Landmarks:        {a11y.get('landmarkCount', 0)} total")
-                    landmarks = a11y.get('landmarks', {})
+                    landmarks = a11y.get("landmarks", {})
                     if landmarks:
                         for role, count in landmarks.items():
                             click.echo(f"    {role}: {count}")
 
                     # Heading structure
-                    heading_structure = a11y.get('headingStructure', {})
+                    heading_structure = a11y.get("headingStructure", {})
                     total_headings = sum(heading_structure.values())
                     if total_headings > 0:
                         click.echo(f"  Headings:         {total_headings} total")
-                        for level in ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']:
+                        for level in ["h1", "h2", "h3", "h4", "h5", "h6"]:
                             count = heading_structure.get(level, 0)
                             if count > 0:
                                 click.echo(f"    {level.upper()}: {count}")
 
                     # A11y issues
-                    img_no_alt = a11y.get('imagesWithoutAlt', 0)
+                    img_no_alt = a11y.get("imagesWithoutAlt", 0)
                     if img_no_alt > 0:
                         click.echo(f"  ⚠️  Images w/o alt: {img_no_alt}")
 
-                    form_issues = a11y.get('formLabelsIssues', {})
-                    if form_issues.get('missingLabels', 0) > 0:
-                        click.echo(f"  ⚠️  Form inputs w/o labels: {form_issues['missingLabels']}/{form_issues['total']}")
+                    form_issues = a11y.get("formLabelsIssues", {})
+                    if form_issues.get("missingLabels", 0) > 0:
+                        click.echo(
+                            f"  ⚠️  Form inputs w/o labels: {form_issues['missingLabels']}/{form_issues['total']}"
+                        )
 
                     # Extended accessibility info
-                    a11y_ext = extended_data.get('accessibility', {})
+                    a11y_ext = extended_data.get("accessibility", {})
                     if a11y_ext:
-                        if a11y_ext.get('linksWithoutText', 0) > 0:
+                        if a11y_ext.get("linksWithoutText", 0) > 0:
                             click.echo(f"  ⚠️  Links w/o text: {a11y_ext['linksWithoutText']}")
-                        if a11y_ext.get('buttonsWithoutLabels', 0) > 0:
-                            click.echo(f"  ⚠️  Buttons w/o labels: {a11y_ext['buttonsWithoutLabels']}")
-                        if a11y_ext.get('hasSkipLink'):
-                            click.echo(f"  ✓  Page has skip link")
-                        if not a11y_ext.get('langAttribute'):
-                            click.echo(f"  ⚠️  Missing lang attribute")
-                        if a11y_ext.get('ariaAttributeCount'):
-                            click.echo(f"  ARIA Usage:        {a11y_ext['ariaAttributeCount']} attributes")
+                        if a11y_ext.get("buttonsWithoutLabels", 0) > 0:
+                            click.echo(
+                                f"  ⚠️  Buttons w/o labels: {a11y_ext['buttonsWithoutLabels']}"
+                            )
+                        if a11y_ext.get("hasSkipLink"):
+                            click.echo("  ✓  Page has skip link")
+                        if not a11y_ext.get("langAttribute"):
+                            click.echo("  ⚠️  Missing lang attribute")
+                        if a11y_ext.get("ariaAttributeCount"):
+                            click.echo(
+                                f"  ARIA Usage:        {a11y_ext['ariaAttributeCount']} attributes"
+                            )
 
                 # Structured Data (from extended data)
-                structured = extended_data.get('structuredData', {})
-                if structured and (structured.get('jsonLdCount', 0) > 0 or structured.get('microdataCount', 0) > 0):
-                    click.echo(f"")
+                structured = extended_data.get("structuredData", {})
+                if structured and (
+                    structured.get("jsonLdCount", 0) > 0 or structured.get("microdataCount", 0) > 0
+                ):
+                    click.echo("")
                     click.echo("Structured Data:")
-                    if structured.get('jsonLdCount', 0) > 0:
+                    if structured.get("jsonLdCount", 0) > 0:
                         click.echo(f"  JSON-LD:           {structured['jsonLdCount']} blocks")
-                        types = structured.get('jsonLdTypes', [])
+                        types = structured.get("jsonLdTypes", [])
                         if types:
                             click.echo(f"    Types: {', '.join(types[:5])}")
-                    if structured.get('microdataCount', 0) > 0:
+                    if structured.get("microdataCount", 0) > 0:
                         click.echo(f"  Microdata:         {structured['microdataCount']} items")
 
                 # SEO Metrics
-                seo = data.get('seo', {})
+                seo = data.get("seo", {})
                 if seo:
-                    click.echo(f"")
+                    click.echo("")
                     click.echo("SEO:")
-                    if seo.get('canonical'):
-                        canonical = seo['canonical']
+                    if seo.get("canonical"):
+                        canonical = seo["canonical"]
                         if len(canonical) > 60:
-                            canonical = canonical[:57] + '...'
+                            canonical = canonical[:57] + "..."
                         click.echo(f"  Canonical:        {canonical}")
-                    if seo.get('description'):
-                        desc = seo['description']
+                    if seo.get("description"):
+                        desc = seo["description"]
                         if len(desc) > 60:
-                            desc = desc[:57] + '...'
+                            desc = desc[:57] + "..."
                         click.echo(f"  Description:      {desc}")
-                    if seo.get('keywords'):
-                        kw = seo['keywords']
+                    if seo.get("keywords"):
+                        kw = seo["keywords"]
                         if len(kw) > 60:
-                            kw = kw[:57] + '...'
+                            kw = kw[:57] + "..."
                         click.echo(f"  Keywords:         {kw}")
-                    if seo.get('robots'):
+                    if seo.get("robots"):
                         click.echo(f"  Robots:           {seo['robots']}")
 
                     # Open Graph
-                    og = seo.get('openGraph', {})
+                    og = seo.get("openGraph", {})
                     if og:
                         click.echo(f"  Open Graph:       {len(og)} tags")
-                        for key in ['title', 'type', 'image', 'url']:
+                        for key in ["title", "type", "image", "url"]:
                             if key in og:
                                 value = og[key]
                                 if len(value) > 50:
-                                    value = value[:47] + '...'
+                                    value = value[:47] + "..."
                                 click.echo(f"    og:{key}: {value}")
 
                     # Twitter Card
-                    twitter = seo.get('twitterCard', {})
+                    twitter = seo.get("twitterCard", {})
                     if twitter:
                         click.echo(f"  Twitter Card:     {len(twitter)} tags")
-                        for key in ['card', 'title', 'description', 'image']:
+                        for key in ["card", "title", "description", "image"]:
                             if key in twitter:
                                 value = twitter[key]
                                 if len(value) > 50:
-                                    value = value[:47] + '...'
+                                    value = value[:47] + "..."
                                 click.echo(f"    twitter:{key}: {value}")
 
                     # SEO Extras (from extended data)
-                    seo_extra = extended_data.get('seoExtra', {})
+                    seo_extra = extended_data.get("seoExtra", {})
                     if seo_extra:
-                        if seo_extra.get('favicon'):
+                        if seo_extra.get("favicon"):
                             click.echo(f"  Favicon:           {seo_extra['favicon']}")
-                        if seo_extra.get('sitemap'):
-                            sitemap = seo_extra['sitemap']
+                        if seo_extra.get("sitemap"):
+                            sitemap = seo_extra["sitemap"]
                             if len(sitemap) > 50:
-                                sitemap = sitemap[:47] + '...'
+                                sitemap = sitemap[:47] + "..."
                             click.echo(f"  Sitemap:           {sitemap}")
-                        alt_langs = seo_extra.get('alternateLanguages', [])
+                        alt_langs = seo_extra.get("alternateLanguages", [])
                         if alt_langs:
                             click.echo(f"  Alternate Languages: {len(alt_langs)}")
                             for lang in alt_langs[:3]:
                                 click.echo(f"    {lang['lang']}")
 
                 # Robots.txt
-                robots_data = _get_robots_txt(data.get('url'))
-                if robots_data and robots_data.get('exists'):
-                    click.echo(f"")
+                robots_data = _get_robots_txt(data.get("url"))
+                if robots_data and robots_data.get("exists"):
+                    click.echo("")
                     click.echo("Robots.txt:")
-                    click.echo(f"  Status:            Found")
-                    click.echo(f"  Size:              {robots_data['size']:,} bytes ({robots_data['lines']} lines)")
-                    if robots_data.get('userAgents'):
-                        agents = robots_data['userAgents']
+                    click.echo("  Status:            Found")
+                    click.echo(
+                        f"  Size:              {robots_data['size']:,} bytes ({robots_data['lines']} lines)"
+                    )
+                    if robots_data.get("userAgents"):
+                        agents = robots_data["userAgents"]
                         if len(agents) <= 3:
                             click.echo(f"  User-agents:       {', '.join(agents)}")
                         else:
                             click.echo(f"  User-agents:       {len(agents)} defined")
-                    if robots_data.get('disallowRules', 0) > 0:
+                    if robots_data.get("disallowRules", 0) > 0:
                         click.echo(f"  Disallow rules:    {robots_data['disallowRules']}")
-                    if robots_data.get('allowRules', 0) > 0:
+                    if robots_data.get("allowRules", 0) > 0:
                         click.echo(f"  Allow rules:       {robots_data['allowRules']}")
-                    if robots_data.get('sitemaps'):
-                        sitemaps = robots_data['sitemaps']
+                    if robots_data.get("sitemaps"):
+                        sitemaps = robots_data["sitemaps"]
                         click.echo(f"  Sitemaps:          {len(sitemaps)} declared")
                         for sitemap in sitemaps[:2]:
                             if len(sitemap) > 50:
-                                sitemap = sitemap[:47] + '...'
+                                sitemap = sitemap[:47] + "..."
                             click.echo(f"    {sitemap}")
 
                 # Third-Party Resources (from extended data)
-                third_party = extended_data.get('thirdParty', {})
-                if third_party and third_party.get('externalDomainCount', 0) > 0:
-                    click.echo(f"")
+                third_party = extended_data.get("thirdParty", {})
+                if third_party and third_party.get("externalDomainCount", 0) > 0:
+                    click.echo("")
                     click.echo("Third-Party:")
                     click.echo(f"  External Domains:  {third_party['externalDomainCount']}")
-                    domains = third_party.get('externalDomains', [])
+                    domains = third_party.get("externalDomains", [])
                     if domains:
                         for domain in domains[:8]:
                             click.echo(f"    - {domain}")
 
                 # Browser/Device Info
-                device = data.get('device', {})
+                device = data.get("device", {})
                 if device:
-                    click.echo(f"")
+                    click.echo("")
                     click.echo("Browser/Device:")
                     click.echo(f"  Platform:         {device.get('platform', 'N/A')}")
                     click.echo(f"  Language:         {device.get('language', 'N/A')}")
                     click.echo(f"  Screen:           {device.get('screenResolution', 'N/A')}")
                     click.echo(f"  Viewport:         {device.get('viewportSize', 'N/A')}")
                     click.echo(f"  Pixel Ratio:      {device.get('devicePixelRatio', 'N/A')}")
-                    click.echo(f"  Touch Support:    {'Yes' if device.get('touchSupport') else 'No'}")
-                    click.echo(f"  Cookies Enabled:  {'Yes' if device.get('cookiesEnabled') else 'No'}")
-                    click.echo(f"  Online:           {'Yes' if device.get('onlineStatus') else 'No'}")
+                    click.echo(
+                        f"  Touch Support:    {'Yes' if device.get('touchSupport') else 'No'}"
+                    )
+                    click.echo(
+                        f"  Cookies Enabled:  {'Yes' if device.get('cookiesEnabled') else 'No'}"
+                    )
+                    click.echo(
+                        f"  Online:           {'Yes' if device.get('onlineStatus') else 'No'}"
+                    )
 
-                    ua = device.get('userAgent', '')
+                    ua = device.get("userAgent", "")
                     if ua:
                         if len(ua) > 80:
                             # Show first 80 chars on first line, rest on second line
                             click.echo(f"  User Agent:       {ua[:80]}")
                             remaining = ua[80:]
                             if len(remaining) > 60:
-                                remaining = remaining[:57] + '...'
+                                remaining = remaining[:57] + "..."
                             click.echo(f"                    {remaining}")
                         else:
                             click.echo(f"  User Agent:       {ua}")
 
                 # Technologies Detected
-                technologies = data.get('technologies', {})
+                technologies = data.get("technologies", {})
                 if technologies:
-                    click.echo(f"")
+                    click.echo("")
                     click.echo("Technologies Detected:")
                     for category, techs in sorted(technologies.items()):
                         if techs:
@@ -1123,192 +1185,214 @@ def info(extended, output_json):
                                 click.echo(f"    - {tech}")
 
                 # Domain Metrics (fetched from server-side)
-                domain_metrics = _get_domain_metrics(data.get('domain'))
+                domain_metrics = _get_domain_metrics(data.get("domain"))
                 if domain_metrics:
-                    click.echo(f"")
+                    click.echo("")
                     click.echo("Domain Metrics:")
 
-                    if domain_metrics.get('ip'):
+                    if domain_metrics.get("ip"):
                         click.echo(f"  IP Address:       {domain_metrics['ip']}")
 
-                    geo = domain_metrics.get('geolocation', {})
+                    geo = domain_metrics.get("geolocation", {})
                     if geo:
-                        location_parts = [geo.get('city'), geo.get('region'), geo.get('country')]
-                        location = ', '.join([p for p in location_parts if p])
+                        location_parts = [geo.get("city"), geo.get("region"), geo.get("country")]
+                        location = ", ".join([p for p in location_parts if p])
                         if location:
                             click.echo(f"  Location:         {location}")
-                        if geo.get('isp'):
+                        if geo.get("isp"):
                             click.echo(f"  ISP:              {geo['isp']}")
-                        if geo.get('org'):
+                        if geo.get("org"):
                             click.echo(f"  Organization:     {geo['org']}")
 
-                    whois = domain_metrics.get('whois', {})
+                    whois = domain_metrics.get("whois", {})
                     if whois:
-                        if whois.get('creation_date'):
+                        if whois.get("creation_date"):
                             click.echo(f"  Registered:       {whois['creation_date']}")
-                        if whois.get('expiration_date'):
+                        if whois.get("expiration_date"):
                             click.echo(f"  Expires:          {whois['expiration_date']}")
-                        if whois.get('registrar'):
+                        if whois.get("registrar"):
                             click.echo(f"  Registrar:        {whois['registrar']}")
 
-                    ssl_info = domain_metrics.get('ssl', {})
+                    ssl_info = domain_metrics.get("ssl", {})
                     if ssl_info:
-                        if ssl_info.get('issuer'):
+                        if ssl_info.get("issuer"):
                             click.echo(f"  SSL Issuer:       {ssl_info['issuer']}")
-                        if ssl_info.get('expiry'):
+                        if ssl_info.get("expiry"):
                             click.echo(f"  SSL Expires:      {ssl_info['expiry']}")
-                        if ssl_info.get('days_remaining'):
-                            days = ssl_info['days_remaining']
+                        if ssl_info.get("days_remaining"):
+                            days = ssl_info["days_remaining"]
                             if days < 30:
                                 click.echo(f"  SSL Status:       ⚠️  Expires in {days} days")
                             else:
                                 click.echo(f"  SSL Status:       Valid ({days} days remaining)")
 
                 # Network Summary (from extended data)
-                network = extended_data.get('network', {})
+                network = extended_data.get("network", {})
                 if network:
-                    click.echo(f"")
+                    click.echo("")
                     click.echo("Network:")
-                    if network.get('totalRequests'):
+                    if network.get("totalRequests"):
                         click.echo(f"  Total Requests:    {network['totalRequests']}")
-                    if network.get('totalSize'):
-                        size_mb = network['totalSize'] / (1024 * 1024)
+                    if network.get("totalSize"):
+                        size_mb = network["totalSize"] / (1024 * 1024)
                         click.echo(f"  Total Size:        {size_mb:.2f} MB")
-                    largest = network.get('largestResource')
+                    largest = network.get("largestResource")
                     if largest:
-                        size_kb = largest['size'] / 1024
+                        size_kb = largest["size"] / 1024
                         click.echo(f"  Largest Resource:  {largest['name']} ({size_kb:.2f} KB)")
 
                 # Fonts (from extended data)
-                fonts = extended_data.get('fonts', {})
-                if fonts and (fonts.get('googleFonts') or fonts.get('customFonts') or fonts.get('totalFontFiles', 0) > 0):
-                    click.echo(f"")
+                fonts = extended_data.get("fonts", {})
+                if fonts and (
+                    fonts.get("googleFonts")
+                    or fonts.get("customFonts")
+                    or fonts.get("totalFontFiles", 0) > 0
+                ):
+                    click.echo("")
                     click.echo("Fonts:")
-                    google_fonts = fonts.get('googleFonts', [])
+                    google_fonts = fonts.get("googleFonts", [])
                     if google_fonts:
                         click.echo(f"  Google Fonts:      {len(google_fonts)}")
                         for font in google_fonts[:5]:
                             click.echo(f"    - {font}")
                         if len(google_fonts) > 5:
                             click.echo(f"    ... and {len(google_fonts) - 5} more")
-                    custom_fonts = fonts.get('customFonts', [])
+                    custom_fonts = fonts.get("customFonts", [])
                     if custom_fonts:
                         click.echo(f"  Custom @font-face: {len(custom_fonts)}")
                         for font in custom_fonts[:5]:
                             click.echo(f"    - {font}")
                         if len(custom_fonts) > 5:
                             click.echo(f"    ... and {len(custom_fonts) - 5} more")
-                    if fonts.get('totalFontFiles', 0) > 0:
+                    if fonts.get("totalFontFiles", 0) > 0:
                         click.echo(f"  Font Files:        {fonts['totalFontFiles']}")
 
                 # Form Details (from extended data)
-                forms = extended_data.get('forms', [])
+                forms = extended_data.get("forms", [])
                 if forms:
-                    click.echo(f"")
+                    click.echo("")
                     click.echo(f"Forms ({len(forms)}):")
                     for form in forms:
                         click.echo(f"  {form['id']}:")
                         click.echo(f"    Method:          {form['method']}")
-                        if form['action'] and form['action'] != 'JavaScript':
-                            action = form['action']
+                        if form["action"] and form["action"] != "JavaScript":
+                            action = form["action"]
                             if len(action) > 50:
-                                action = action[:47] + '...'
+                                action = action[:47] + "..."
                             click.echo(f"    Action:          {action}")
                         click.echo(f"    Fields:          {len(form['fields'])}")
-                        if form['issues']:
+                        if form["issues"]:
                             click.echo(f"    ⚠️  Issues:       {len(form['issues'])}")
-                            for issue in form['issues'][:3]:
+                            for issue in form["issues"][:3]:
                                 click.echo(f"      - {issue}")
-                            if len(form['issues']) > 3:
+                            if len(form["issues"]) > 3:
                                 click.echo(f"      ... and {len(form['issues']) - 3} more")
 
                 # Core Web Vitals (from extended data)
-                cwv = extended_data.get('coreWebVitals', {})
+                cwv = extended_data.get("coreWebVitals", {})
                 if cwv:
-                    click.echo(f"")
+                    click.echo("")
                     click.echo("Core Web Vitals:")
-                    if 'cls' in cwv:
-                        cls_val = float(cwv['cls'])
-                        cls_status = '✓ Good' if cls_val < 0.1 else '⚠️  Needs Improvement' if cls_val < 0.25 else '❌ Poor'
+                    if "cls" in cwv:
+                        cls_val = float(cwv["cls"])
+                        cls_status = (
+                            "✓ Good"
+                            if cls_val < 0.1
+                            else "⚠️  Needs Improvement"
+                            if cls_val < 0.25
+                            else "❌ Poor"
+                        )
                         click.echo(f"  CLS:               {cwv['cls']} ({cls_status})")
-                    if 'fid' in cwv:
-                        fid_val = int(cwv['fid'])
-                        fid_status = '✓ Good' if fid_val < 100 else '⚠️  Needs Improvement' if fid_val < 300 else '❌ Poor'
+                    if "fid" in cwv:
+                        fid_val = int(cwv["fid"])
+                        fid_status = (
+                            "✓ Good"
+                            if fid_val < 100
+                            else "⚠️  Needs Improvement"
+                            if fid_val < 300
+                            else "❌ Poor"
+                        )
                         click.echo(f"  FID:               {cwv['fid']}ms ({fid_status})")
-                    if 'inp' in cwv:
-                        inp_val = int(cwv['inp'])
-                        inp_status = '✓ Good' if inp_val < 200 else '⚠️  Needs Improvement' if inp_val < 500 else '❌ Poor'
+                    if "inp" in cwv:
+                        inp_val = int(cwv["inp"])
+                        inp_status = (
+                            "✓ Good"
+                            if inp_val < 200
+                            else "⚠️  Needs Improvement"
+                            if inp_val < 500
+                            else "❌ Poor"
+                        )
                         click.echo(f"  INP:               {cwv['inp']}ms ({inp_status})")
 
                 # Security Headers and Response Headers
-                headers = _get_response_headers(data.get('url'))
+                headers = _get_response_headers(data.get("url"))
                 if headers:
                     # Security Headers
                     security_headers = {
-                        'xFrameOptions': 'X-Frame-Options',
-                        'xContentTypeOptions': 'X-Content-Type-Options',
-                        'strictTransportSecurity': 'Strict-Transport-Security',
-                        'contentSecurityPolicy': 'Content-Security-Policy',
-                        'permissionsPolicy': 'Permissions-Policy',
-                        'referrerPolicy': 'Referrer-Policy',
-                        'xXssProtection': 'X-XSS-Protection'
+                        "xFrameOptions": "X-Frame-Options",
+                        "xContentTypeOptions": "X-Content-Type-Options",
+                        "strictTransportSecurity": "Strict-Transport-Security",
+                        "contentSecurityPolicy": "Content-Security-Policy",
+                        "permissionsPolicy": "Permissions-Policy",
+                        "referrerPolicy": "Referrer-Policy",
+                        "xXssProtection": "X-XSS-Protection",
                     }
 
-                    has_security_headers = any(headers.get(k) for k in security_headers.keys())
+                    has_security_headers = any(headers.get(k) for k in security_headers)
                     if has_security_headers:
-                        click.echo(f"")
+                        click.echo("")
                         click.echo("Security Headers:")
                         for key, label in security_headers.items():
                             value = headers.get(key)
                             if value:
                                 if len(value) > 60:
-                                    value = value[:57] + '...'
+                                    value = value[:57] + "..."
                                 click.echo(f"  {label}: {value}")
 
                     # Response Headers
                     response_headers = {
-                        'server': 'Server',
-                        'cacheControl': 'Cache-Control',
-                        'contentEncoding': 'Content-Encoding',
-                        'etag': 'ETag',
-                        'lastModified': 'Last-Modified',
-                        'contentType': 'Content-Type'
+                        "server": "Server",
+                        "cacheControl": "Cache-Control",
+                        "contentEncoding": "Content-Encoding",
+                        "etag": "ETag",
+                        "lastModified": "Last-Modified",
+                        "contentType": "Content-Type",
                     }
 
-                    has_response_headers = any(headers.get(k) for k in response_headers.keys())
+                    has_response_headers = any(headers.get(k) for k in response_headers)
                     if has_response_headers:
-                        click.echo(f"")
+                        click.echo("")
                         click.echo("Response Headers:")
                         for key, label in response_headers.items():
                             value = headers.get(key)
                             if value:
                                 if len(value) > 60:
-                                    value = value[:57] + '...'
+                                    value = value[:57] + "..."
                                 click.echo(f"  {label}: {value}")
 
                 # Meta tags
-                meta_tags = data.get('metaTags', [])
+                meta_tags = data.get("metaTags", [])
                 if meta_tags:
-                    click.echo(f"")
+                    click.echo("")
                     click.echo(f"Meta Tags ({len(meta_tags)}):")
                     for meta in meta_tags:
                         # Format meta tag nicely
-                        if 'name' in meta and 'content' in meta:
-                            content = meta['content']
+                        if "name" in meta and "content" in meta:
+                            content = meta["content"]
                             if len(content) > 60:
-                                content = content[:57] + '...'
+                                content = content[:57] + "..."
                             click.echo(f"  {meta['name']}: {content}")
-                        elif 'property' in meta and 'content' in meta:
-                            content = meta['content']
+                        elif "property" in meta and "content" in meta:
+                            content = meta["content"]
                             if len(content) > 60:
-                                content = content[:57] + '...'
+                                content = content[:57] + "..."
                             click.echo(f"  {meta['property']}: {content}")
-                        elif 'charset' in meta:
+                        elif "charset" in meta:
                             click.echo(f"  charset: {meta['charset']}")
-                        elif 'http-equiv' in meta:
+                        elif "http-equiv" in meta:
                             click.echo(f"  {meta['http-equiv']}: {meta.get('content', '')}")
 
-            click.echo(f"")
+            click.echo("")
             click.echo(f"Userscript version: {userscript_version}")
         else:
             click.echo(f"Error: {result.get('error')}", err=True)
@@ -1343,21 +1427,26 @@ def start(port, daemon):
             [sys.executable, "-m", "zen.bridge_ws"],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
-            start_new_session=True
+            start_new_session=True,
         )
         # Wait a bit and check if it started
         import time
+
         time.sleep(0.5)
         if client.is_alive():
-            click.echo("WebSocket server started successfully on ports 8765 (HTTP) and 8766 (WebSocket)")
+            click.echo(
+                "WebSocket server started successfully on ports 8765 (HTTP) and 8766 (WebSocket)"
+            )
         else:
             click.echo("Failed to start server", err=True)
             sys.exit(1)
     else:
         # Run in foreground
         from .bridge_ws import main as start_ws_server
+
         try:
             import asyncio
+
             asyncio.run(start_ws_server())
         except KeyboardInterrupt:
             click.echo("\nServer stopped")
@@ -1410,7 +1499,9 @@ def repl():
         result = client.execute("({url: location.href, title: document.title})")
         if result.get("ok"):
             data = result.get("result", {})
-            click.echo(f"Connected to: {data.get('title', 'Unknown')} ({data.get('url', 'Unknown')})")
+            click.echo(
+                f"Connected to: {data.get('title', 'Unknown')} ({data.get('url', 'Unknown')})"
+            )
             click.echo("")
     except:
         pass
@@ -1532,7 +1623,13 @@ def userscript():
 
 
 @cli.command()
-@click.option("-o", "--output", type=click.Path(), default=None, help="Output directory (default: ~/Downloads/<domain>)")
+@click.option(
+    "-o",
+    "--output",
+    type=click.Path(),
+    default=None,
+    help="Output directory (default: ~/Downloads/<domain>)",
+)
 @click.option("--list", "list_only", is_flag=True, help="Only list files without downloading")
 @click.option("-t", "--timeout", type=float, default=30.0, help="Timeout in seconds (default: 30)")
 def download(output, list_only, timeout):
@@ -1550,8 +1647,8 @@ def download(output, list_only, timeout):
 
         zen download --list
     """
+
     import requests
-    import os
 
     client = BridgeClient()
 
@@ -1578,9 +1675,9 @@ def download(output, list_only, timeout):
         result_data = result.get("result", {})
 
         # Handle new format with url and files
-        if isinstance(result_data, dict) and 'files' in result_data:
-            files_by_category = result_data['files']
-            page_url = result_data.get('url', '')
+        if isinstance(result_data, dict) and "files" in result_data:
+            files_by_category = result_data["files"]
+            page_url = result_data.get("url", "")
         else:
             # Fallback for old format
             files_by_category = result_data
@@ -1598,8 +1695,9 @@ def download(output, list_only, timeout):
             # Default: ~/Downloads/<domain>
             try:
                 from urllib.parse import urlparse
+
                 domain = urlparse(page_url).hostname or "unknown"
-                domain = domain.replace('www.', '')  # Remove www. prefix
+                domain = domain.replace("www.", "")  # Remove www. prefix
                 downloads_dir = Path.home() / "Downloads" / domain
             except Exception:
                 downloads_dir = Path.home() / "Downloads" / "zen-downloads"
@@ -1612,12 +1710,12 @@ def download(output, list_only, timeout):
 
         # Category labels (lowercase)
         category_names = {
-            'images': 'images',
-            'pdfs': 'PDF documents',
-            'videos': 'videos',
-            'audio': 'audio files',
-            'documents': 'documents',
-            'archives': 'archives'
+            "images": "images",
+            "pdfs": "PDF documents",
+            "videos": "videos",
+            "audio": "audio files",
+            "documents": "documents",
+            "archives": "archives",
         }
 
         # Add "Download all" options per category
@@ -1626,13 +1724,13 @@ def download(output, list_only, timeout):
                 count = len(files)
                 display = f"Download all {category_names.get(category, category)} ({count} files)"
                 options.append(display)
-                option_map[display] = {'type': 'category', 'category': category, 'files': files}
+                option_map[display] = {"type": "category", "category": category, "files": files}
 
         # Add separator
         if options:
             separator = "─" * 60
             options.append(separator)
-            option_map[separator] = {'type': 'separator'}
+            option_map[separator] = {"type": "separator"}
 
         # Add individual files grouped by category
         for category, files in files_by_category.items():
@@ -1640,28 +1738,28 @@ def download(output, list_only, timeout):
                 # Add category header
                 header = f"--- {category_names.get(category, category.upper())} ---"
                 options.append(header)
-                option_map[header] = {'type': 'header'}
+                option_map[header] = {"type": "header"}
 
                 # Add individual files
                 for file_info in files:
-                    filename = file_info['filename']
-                    url = file_info['url']
+                    filename = file_info["filename"]
+                    url = file_info["url"]
 
                     # Try to get file size if in list mode
                     display = f"  {filename}"
                     options.append(display)
                     option_map[display] = {
-                        'type': 'file',
-                        'filename': filename,
-                        'url': url,
-                        'category': category
+                        "type": "file",
+                        "filename": filename,
+                        "url": url,
+                        "category": category,
                     }
 
         # List only mode
         if list_only:
             click.echo(f"\nFound {total_files} downloadable files:\n")
             for option in options:
-                if option_map.get(option, {}).get('type') not in ['separator', 'category']:
+                if option_map.get(option, {}).get("type") not in ["separator", "category"]:
                     click.echo(option)
             return
 
@@ -1673,37 +1771,45 @@ def download(output, list_only, timeout):
 
         # Find largest image if we have images
         largest_image = None
-        if 'images' in files_by_category and files_by_category['images']:
-            images_with_dims = [img for img in files_by_category['images']
-                              if img.get('width', 0) > 0 and img.get('height', 0) > 0]
+        if files_by_category.get("images"):
+            images_with_dims = [
+                img
+                for img in files_by_category["images"]
+                if img.get("width", 0) > 0 and img.get("height", 0) > 0
+            ]
             if images_with_dims:
                 # Find image with largest area
-                largest_image = max(images_with_dims,
-                                  key=lambda img: img.get('width', 0) * img.get('height', 0))
+                largest_image = max(
+                    images_with_dims, key=lambda img: img.get("width", 0) * img.get("height", 0)
+                )
 
         # Add largest image option first
         if largest_image:
-            width = largest_image.get('width', 0)
-            height = largest_image.get('height', 0)
-            menu_options.append({
-                'text': f"Download the largest image ({width}×{height}px)",
-                'data': {'type': 'file', 'files': [largest_image]}
-            })
+            width = largest_image.get("width", 0)
+            height = largest_image.get("height", 0)
+            menu_options.append(
+                {
+                    "text": f"Download the largest image ({width}×{height}px)",
+                    "data": {"type": "file", "files": [largest_image]},
+                }
+            )
 
         # Add category download options
         for category, files in files_by_category.items():
             if files:
                 count = len(files)
-                menu_options.append({
-                    'text': f"Download all {category_names.get(category, category)} ({count} files)",
-                    'data': {'type': 'category', 'category': category, 'files': files}
-                })
+                menu_options.append(
+                    {
+                        "text": f"Download all {category_names.get(category, category)} ({count} files)",
+                        "data": {"type": "category", "category": category, "files": files},
+                    }
+                )
 
         # Display menu
         for i, opt in enumerate(menu_options, 1):
             click.echo(f" {i}. {opt['text']}")
 
-        click.echo(f"\nFiles will be saved to:")
+        click.echo("\nFiles will be saved to:")
         click.echo(f"{downloads_dir}\n")
 
         try:
@@ -1717,7 +1823,7 @@ def download(output, list_only, timeout):
                 click.echo("Invalid selection.")
                 return
 
-            selected_data = menu_options[choice - 1]['data']
+            selected_data = menu_options[choice - 1]["data"]
 
         except (KeyboardInterrupt, EOFError):
             click.echo("\nCancelled.")
@@ -1734,13 +1840,13 @@ def download(output, list_only, timeout):
         # Prepare download list
         files_to_download = []
 
-        if selected_data['type'] == 'category':
+        if selected_data["type"] == "category":
             # Download all files in category
-            files_to_download = selected_data['files']
+            files_to_download = selected_data["files"]
             click.echo(f"\nDownloading {len(files_to_download)} files...")
-        elif selected_data['type'] == 'file':
+        elif selected_data["type"] == "file":
             # Download file(s) - can be a list
-            files_to_download = selected_data['files']
+            files_to_download = selected_data["files"]
             click.echo(f"\nDownloading {len(files_to_download)} file(s)...")
 
         # Create output directory if needed
@@ -1749,8 +1855,8 @@ def download(output, list_only, timeout):
         # Download files
         success_count = 0
         for file_info in files_to_download:
-            filename = file_info['filename']
-            url = file_info['url']
+            filename = file_info["filename"]
+            url = file_info["url"]
             output_path = downloads_dir / filename
 
             try:
@@ -1758,7 +1864,7 @@ def download(output, list_only, timeout):
                 response = requests.get(url, timeout=30)
                 response.raise_for_status()
 
-                with _builtin_open(output_path, 'wb') as f:
+                with _builtin_open(output_path, "wb") as f:
                     f.write(response.content)
 
                 file_size = len(response.content)
@@ -1826,8 +1932,8 @@ def send(text, selector):
 
     # Replace placeholder with properly escaped text
     # Escape quotes and backslashes for JavaScript
-    escaped_text = text.replace('\\', '\\\\').replace('"', '\\"').replace("'", "\\'")
-    code = script.replace('TEXT_PLACEHOLDER', f'"{escaped_text}"')
+    escaped_text = text.replace("\\", "\\\\").replace('"', '\\"').replace("'", "\\'")
+    code = script.replace("TEXT_PLACEHOLDER", f'"{escaped_text}"')
 
     try:
         result = client.execute(code, timeout=60.0)
@@ -1943,10 +2049,10 @@ def inspected():
         sys.exit(1)
 
     # Load the get_inspected.js script
-    script_path = os.path.join(os.path.dirname(__file__), 'scripts', 'get_inspected.js')
+    script_path = os.path.join(os.path.dirname(__file__), "scripts", "get_inspected.js")
 
     try:
-        with _builtin_open(script_path, 'r') as f:
+        with _builtin_open(script_path, "r") as f:
             code = f.read()
     except FileNotFoundError:
         click.echo(f"Error: Script not found: {script_path}", err=True)
@@ -1970,104 +2076,112 @@ def inspected():
         click.echo(f"Tag:      <{response['tag']}>")
         click.echo(f"Selector: {response['selector']}")
 
-        if response.get('parentTag'):
+        if response.get("parentTag"):
             click.echo(f"Parent:   <{response['parentTag']}>")
 
-        if response.get('id'):
+        if response.get("id"):
             click.echo(f"ID:       {response['id']}")
 
-        if response.get('classes') and len(response['classes']) > 0:
+        if response.get("classes") and len(response["classes"]) > 0:
             click.echo(f"Classes:  {', '.join(response['classes'])}")
 
-        if response.get('textContent'):
-            text = response['textContent']
+        if response.get("textContent"):
+            text = response["textContent"]
             if len(text) > 60:
-                text = text[:60] + '...'
+                text = text[:60] + "..."
             click.echo(f"Text:     {text}")
 
         # Dimensions
-        dim = response['dimensions']
-        click.echo(f"\nDimensions:")
+        dim = response["dimensions"]
+        click.echo("\nDimensions:")
         click.echo(f"  Position: x={dim['left']}, y={dim['top']}")
         click.echo(f"  Size:     {dim['width']}×{dim['height']}px")
-        click.echo(f"  Bounds:   top={dim['top']}, right={dim['right']}, bottom={dim['bottom']}, left={dim['left']}")
+        click.echo(
+            f"  Bounds:   top={dim['top']}, right={dim['right']}, bottom={dim['bottom']}, left={dim['left']}"
+        )
 
         # Visibility
-        vis = response.get('visibilityDetails', {})
-        click.echo(f"\nVisibility:")
+        vis = response.get("visibilityDetails", {})
+        click.echo("\nVisibility:")
         click.echo(f"  Visible:     {'Yes' if response.get('visible') else 'No'}")
         click.echo(f"  In viewport: {'Yes' if vis.get('inViewport') else 'No'}")
-        if vis.get('displayNone'):
-            click.echo(f"  Issue:       display: none")
-        if vis.get('visibilityHidden'):
-            click.echo(f"  Issue:       visibility: hidden")
-        if vis.get('opacityZero'):
-            click.echo(f"  Issue:       opacity: 0")
-        if vis.get('offScreen'):
-            click.echo(f"  Issue:       positioned off-screen")
+        if vis.get("displayNone"):
+            click.echo("  Issue:       display: none")
+        if vis.get("visibilityHidden"):
+            click.echo("  Issue:       visibility: hidden")
+        if vis.get("opacityZero"):
+            click.echo("  Issue:       opacity: 0")
+        if vis.get("offScreen"):
+            click.echo("  Issue:       positioned off-screen")
 
         # Accessibility
-        a11y = response.get('accessibility', {})
-        click.echo(f"\nAccessibility:")
+        a11y = response.get("accessibility", {})
+        click.echo("\nAccessibility:")
         click.echo(f"  Role:            {a11y.get('role', 'N/A')}")
 
         # Accessible Name (computed)
-        accessible_name = a11y.get('accessibleName', '')
-        name_source = a11y.get('accessibleNameSource', 'none')
+        accessible_name = a11y.get("accessibleName", "")
+        name_source = a11y.get("accessibleNameSource", "none")
         if accessible_name:
             # Truncate if too long
-            display_name = accessible_name if len(accessible_name) <= 50 else accessible_name[:50] + '...'
-            click.echo(f"  Accessible Name: \"{display_name}\"")
+            display_name = (
+                accessible_name if len(accessible_name) <= 50 else accessible_name[:50] + "..."
+            )
+            click.echo(f'  Accessible Name: "{display_name}"')
             click.echo(f"  Name computed from: {name_source}")
         else:
-            click.echo(f"  Accessible Name: (none)")
-            if name_source == 'missing alt attribute':
-                click.echo(f"  ⚠️  Warning: Image missing alt attribute")
-            elif name_source == 'none':
-                click.echo(f"  ⚠️  Warning: No accessible name found")
+            click.echo("  Accessible Name: (none)")
+            if name_source == "missing alt attribute":
+                click.echo("  ⚠️  Warning: Image missing alt attribute")
+            elif name_source == "none":
+                click.echo("  ⚠️  Warning: No accessible name found")
 
-        if a11y.get('ariaLabel'):
+        if a11y.get("ariaLabel"):
             click.echo(f"  ARIA Label:      {a11y['ariaLabel']}")
-        if a11y.get('ariaLabelledBy'):
+        if a11y.get("ariaLabelledBy"):
             click.echo(f"  ARIA LabelledBy: {a11y['ariaLabelledBy']}")
-        if a11y.get('alt'):
+        if a11y.get("alt"):
             click.echo(f"  Alt text:        {a11y['alt']}")
         click.echo(f"  Focusable:       {'Yes' if a11y.get('focusable') else 'No'}")
-        if a11y.get('tabIndex') is not None:
+        if a11y.get("tabIndex") is not None:
             click.echo(f"  Tab index:       {a11y['tabIndex']}")
-        if a11y.get('disabled'):
-            click.echo(f"  Disabled:        Yes")
-        if a11y.get('ariaHidden'):
+        if a11y.get("disabled"):
+            click.echo("  Disabled:        Yes")
+        if a11y.get("ariaHidden"):
             click.echo(f"  ARIA Hidden:     {a11y['ariaHidden']}")
 
         # Semantic info
-        semantic = response.get('semantic', {})
-        if semantic.get('isInteractive') or semantic.get('isFormElement') or semantic.get('isLandmark'):
-            click.echo(f"\nSemantic:")
-            if semantic.get('isInteractive'):
-                click.echo(f"  Interactive element")
-            if semantic.get('isFormElement'):
-                click.echo(f"  Form element")
-            if semantic.get('isLandmark'):
-                click.echo(f"  Landmark element")
-            if semantic.get('hasClickHandler'):
-                click.echo(f"  Has click handler")
+        semantic = response.get("semantic", {})
+        if (
+            semantic.get("isInteractive")
+            or semantic.get("isFormElement")
+            or semantic.get("isLandmark")
+        ):
+            click.echo("\nSemantic:")
+            if semantic.get("isInteractive"):
+                click.echo("  Interactive element")
+            if semantic.get("isFormElement"):
+                click.echo("  Form element")
+            if semantic.get("isLandmark"):
+                click.echo("  Landmark element")
+            if semantic.get("hasClickHandler"):
+                click.echo("  Has click handler")
 
         # Children
-        click.echo(f"\nStructure:")
+        click.echo("\nStructure:")
         click.echo(f"  Children: {response.get('childCount', 0)}")
 
         # Styles
-        click.echo(f"\nStyles:")
-        for key, value in response['styles'].items():
+        click.echo("\nStyles:")
+        for key, value in response["styles"].items():
             click.echo(f"  {key}: {value}")
 
         # Attributes
-        if response.get('attributes'):
-            click.echo(f"\nAttributes:")
-            for key, value in response['attributes'].items():
+        if response.get("attributes"):
+            click.echo("\nAttributes:")
+            for key, value in response["attributes"].items():
                 if len(str(value)) > 50:
-                    value = str(value)[:50] + '...'
+                    value = str(value)[:50] + "..."
                 click.echo(f"  {key}: {value}")
 
     except (ConnectionError, TimeoutError, RuntimeError) as e:
@@ -2150,19 +2264,19 @@ def _perform_click(selector, click_type):
         sys.exit(1)
 
     # Load the click script
-    script_path = os.path.join(os.path.dirname(__file__), 'scripts', 'click_element.js')
+    script_path = os.path.join(os.path.dirname(__file__), "scripts", "click_element.js")
 
     try:
-        with _builtin_open(script_path, 'r') as f:
+        with _builtin_open(script_path, "r") as f:
             script = f.read()
     except FileNotFoundError:
         click.echo(f"Error: Script not found: {script_path}", err=True)
         sys.exit(1)
 
     # Replace placeholders
-    escaped_selector = selector.replace('\\', '\\\\').replace('"', '\\"').replace("'", "\\'")
-    code = script.replace('SELECTOR_PLACEHOLDER', escaped_selector)
-    code = code.replace('CLICK_TYPE_PLACEHOLDER', click_type)
+    escaped_selector = selector.replace("\\", "\\\\").replace('"', '\\"').replace("'", "\\'")
+    code = script.replace("SELECTOR_PLACEHOLDER", escaped_selector)
+    code = code.replace("CLICK_TYPE_PLACEHOLDER", click_type)
 
     try:
         result = client.execute(code, timeout=60.0)
@@ -2179,13 +2293,13 @@ def _perform_click(selector, click_type):
 
         # Show confirmation
         action_name = {
-            'click': 'Clicked',
-            'dblclick': 'Double-clicked',
-            'contextmenu': 'Right-clicked'
-        }.get(click_type, 'Clicked')
+            "click": "Clicked",
+            "dblclick": "Double-clicked",
+            "contextmenu": "Right-clicked",
+        }.get(click_type, "Clicked")
 
         click.echo(f"{action_name}: {response.get('element', 'element')}")
-        pos = response.get('position', {})
+        pos = response.get("position", {})
         if pos:
             click.echo(f"Position: x={pos.get('x')}, y={pos.get('y')}")
 
@@ -2230,41 +2344,41 @@ def wait(selector, timeout, visible, hidden, text):
 
     # Determine wait type
     if hidden:
-        wait_type = 'hidden'
+        wait_type = "hidden"
     elif visible:
-        wait_type = 'visible'
+        wait_type = "visible"
     elif text:
-        wait_type = 'text'
+        wait_type = "text"
     else:
-        wait_type = 'exists'
+        wait_type = "exists"
 
     # Load the wait script
-    script_path = os.path.join(os.path.dirname(__file__), 'scripts', 'wait_for.js')
+    script_path = os.path.join(os.path.dirname(__file__), "scripts", "wait_for.js")
 
     try:
-        with _builtin_open(script_path, 'r') as f:
+        with _builtin_open(script_path, "r") as f:
             script = f.read()
     except FileNotFoundError:
         click.echo(f"Error: Script not found: {script_path}", err=True)
         sys.exit(1)
 
     # Replace placeholders
-    escaped_selector = selector.replace('\\', '\\\\').replace('"', '\\"').replace("'", "\\'")
-    escaped_text = (text or '').replace('\\', '\\\\').replace('"', '\\"').replace("'", "\\'")
+    escaped_selector = selector.replace("\\", "\\\\").replace('"', '\\"').replace("'", "\\'")
+    escaped_text = (text or "").replace("\\", "\\\\").replace('"', '\\"').replace("'", "\\'")
     timeout_ms = timeout * 1000
 
-    code = script.replace('SELECTOR_PLACEHOLDER', escaped_selector)
-    code = code.replace('WAIT_TYPE_PLACEHOLDER', wait_type)
-    code = code.replace('TEXT_PLACEHOLDER', escaped_text)
-    code = code.replace('TIMEOUT_PLACEHOLDER', str(timeout_ms))
+    code = script.replace("SELECTOR_PLACEHOLDER", escaped_selector)
+    code = code.replace("WAIT_TYPE_PLACEHOLDER", wait_type)
+    code = code.replace("TEXT_PLACEHOLDER", escaped_text)
+    code = code.replace("TIMEOUT_PLACEHOLDER", str(timeout_ms))
 
     # Show waiting message
     wait_msg = {
-        'exists': f'Waiting for element: {selector}',
-        'visible': f'Waiting for element to be visible: {selector}',
-        'hidden': f'Waiting for element to be hidden: {selector}',
-        'text': f'Waiting for element to contain "{text}": {selector}'
-    }.get(wait_type, f'Waiting for: {selector}')
+        "exists": f"Waiting for element: {selector}",
+        "visible": f"Waiting for element to be visible: {selector}",
+        "hidden": f"Waiting for element to be hidden: {selector}",
+        "text": f'Waiting for element to contain "{text}": {selector}',
+    }.get(wait_type, f"Waiting for: {selector}")
 
     click.echo(wait_msg)
 
@@ -2287,9 +2401,9 @@ def wait(selector, timeout, visible, hidden, text):
             sys.exit(1)
 
         # Success!
-        waited_sec = response.get('waited', 0) / 1000
+        waited_sec = response.get("waited", 0) / 1000
         click.echo(f"✓ {response.get('status', 'Condition met')}")
-        if response.get('element'):
+        if response.get("element"):
             click.echo(f"  Element: {response['element']}")
         click.echo(f"  Waited: {waited_sec:.2f}s")
 
@@ -2301,7 +2415,13 @@ def wait(selector, timeout, visible, hidden, text):
 @cli.command()
 @click.argument("url")
 @click.option("--wait", is_flag=True, help="Wait for page to finish loading")
-@click.option("--timeout", "-t", type=int, default=30, help="Timeout in seconds when using --wait (default: 30)")
+@click.option(
+    "--timeout",
+    "-t",
+    type=int,
+    default=30,
+    help="Timeout in seconds when using --wait (default: 30)",
+)
 def open(url, wait, timeout):
     """
     Navigate to a URL.
@@ -2511,7 +2631,6 @@ def refresh(hard):
         zen refresh --hard
     """
     # Just call the reload function
-    from click.testing import CliRunner
     ctx = click.get_current_context()
     ctx.invoke(reload, hard=hard)
 
@@ -2530,7 +2649,7 @@ def cookies_list():
     Example:
         zen cookies list
     """
-    _execute_cookie_action('list')
+    _execute_cookie_action("list")
 
 
 @cookies.command(name="get")
@@ -2542,7 +2661,7 @@ def cookies_get(name):
     Example:
         zen cookies get session_id
     """
-    _execute_cookie_action('get', cookie_name=name)
+    _execute_cookie_action("get", cookie_name=name)
 
 
 @cookies.command(name="set")
@@ -2553,7 +2672,11 @@ def cookies_get(name):
 @click.option("--path", type=str, default="/", help="Cookie path (default: /)")
 @click.option("--domain", type=str, help="Cookie domain")
 @click.option("--secure", is_flag=True, help="Secure flag (HTTPS only)")
-@click.option("--same-site", type=click.Choice(['Strict', 'Lax', 'None'], case_sensitive=False), help="SameSite attribute")
+@click.option(
+    "--same-site",
+    type=click.Choice(["Strict", "Lax", "None"], case_sensitive=False),
+    help="SameSite attribute",
+)
 def cookies_set(name, value, max_age, expires, path, domain, secure, same_site):
     """
     Set a cookie.
@@ -2563,21 +2686,19 @@ def cookies_set(name, value, max_age, expires, path, domain, secure, same_site):
         zen cookies set token xyz --max-age 3600
         zen cookies set user_pref dark --path / --secure
     """
-    options = {
-        'path': path
-    }
+    options = {"path": path}
     if max_age:
-        options['maxAge'] = max_age
+        options["maxAge"] = max_age
     if expires:
-        options['expires'] = expires
+        options["expires"] = expires
     if domain:
-        options['domain'] = domain
+        options["domain"] = domain
     if secure:
-        options['secure'] = True
+        options["secure"] = True
     if same_site:
-        options['sameSite'] = same_site
+        options["sameSite"] = same_site
 
-    _execute_cookie_action('set', cookie_name=name, cookie_value=value, options=options)
+    _execute_cookie_action("set", cookie_name=name, cookie_value=value, options=options)
 
 
 @cookies.command(name="delete")
@@ -2589,7 +2710,7 @@ def cookies_delete(name):
     Example:
         zen cookies delete session_id
     """
-    _execute_cookie_action('delete', cookie_name=name)
+    _execute_cookie_action("delete", cookie_name=name)
 
 
 @cookies.command(name="clear")
@@ -2600,10 +2721,10 @@ def cookies_clear():
     Example:
         zen cookies clear
     """
-    _execute_cookie_action('clear')
+    _execute_cookie_action("clear")
 
 
-def _execute_cookie_action(action, cookie_name='', cookie_value='', options=None):
+def _execute_cookie_action(action, cookie_name="", cookie_value="", options=None):
     """Helper function to execute cookie actions."""
     client = BridgeClient()
 
@@ -2612,10 +2733,10 @@ def _execute_cookie_action(action, cookie_name='', cookie_value='', options=None
         sys.exit(1)
 
     # Load the cookies script
-    script_path = os.path.join(os.path.dirname(__file__), 'scripts', 'cookies.js')
+    script_path = os.path.join(os.path.dirname(__file__), "scripts", "cookies.js")
 
     try:
-        with _builtin_open(script_path, 'r') as f:
+        with _builtin_open(script_path, "r") as f:
             script = f.read()
     except FileNotFoundError:
         click.echo(f"Error: Script not found: {script_path}", err=True)
@@ -2623,10 +2744,10 @@ def _execute_cookie_action(action, cookie_name='', cookie_value='', options=None
 
     # Replace placeholders
     options_json = json.dumps(options if options else {})
-    code = script.replace('ACTION_PLACEHOLDER', action)
-    code = code.replace('NAME_PLACEHOLDER', cookie_name)
-    code = code.replace('VALUE_PLACEHOLDER', cookie_value)
-    code = code.replace('OPTIONS_PLACEHOLDER', options_json)
+    code = script.replace("ACTION_PLACEHOLDER", action)
+    code = code.replace("NAME_PLACEHOLDER", cookie_name)
+    code = code.replace("VALUE_PLACEHOLDER", cookie_value)
+    code = code.replace("OPTIONS_PLACEHOLDER", options_json)
 
     try:
         result = client.execute(code, timeout=60.0)
@@ -2642,9 +2763,9 @@ def _execute_cookie_action(action, cookie_name='', cookie_value='', options=None
             sys.exit(1)
 
         # Display results based on action
-        if action == 'list':
-            cookies_dict = response.get('cookies', {})
-            count = response.get('count', 0)
+        if action == "list":
+            cookies_dict = response.get("cookies", {})
+            count = response.get("count", 0)
 
             if count == 0:
                 click.echo("No cookies found")
@@ -2652,13 +2773,13 @@ def _execute_cookie_action(action, cookie_name='', cookie_value='', options=None
                 click.echo(f"Cookies ({count}):\n")
                 for name, value in cookies_dict.items():
                     # Truncate long values
-                    display_value = value if len(value) <= 60 else value[:60] + '...'
+                    display_value = value if len(value) <= 60 else value[:60] + "..."
                     click.echo(f"  {name} = {display_value}")
 
-        elif action == 'get':
-            name = response.get('name')
-            value = response.get('value')
-            exists = response.get('exists')
+        elif action == "get":
+            name = response.get("name")
+            value = response.get("value")
+            exists = response.get("exists")
 
             if exists:
                 click.echo(f"{name} = {value}")
@@ -2666,14 +2787,14 @@ def _execute_cookie_action(action, cookie_name='', cookie_value='', options=None
                 click.echo(f"Cookie not found: {name}", err=True)
                 sys.exit(1)
 
-        elif action == 'set':
+        elif action == "set":
             click.echo(f"✓ Cookie set: {response.get('name')} = {response.get('value')}")
 
-        elif action == 'delete':
+        elif action == "delete":
             click.echo(f"✓ Cookie deleted: {response.get('name')}")
 
-        elif action == 'clear':
-            deleted = response.get('deleted', 0)
+        elif action == "clear":
+            deleted = response.get("deleted", 0)
             click.echo(f"✓ Cleared {deleted} cookie(s)")
 
     except (ConnectionError, TimeoutError, RuntimeError) as e:
@@ -2703,10 +2824,10 @@ def selected(raw):
         sys.exit(1)
 
     # Load the get_selection.js script
-    script_path = os.path.join(os.path.dirname(__file__), 'scripts', 'get_selection.js')
+    script_path = os.path.join(os.path.dirname(__file__), "scripts", "get_selection.js")
 
     try:
-        with _builtin_open(script_path, 'r') as f:
+        with _builtin_open(script_path, "r") as f:
             code = f.read()
     except FileNotFoundError:
         click.echo(f"Error: Script not found: {script_path}", err=True)
@@ -2721,13 +2842,13 @@ def selected(raw):
 
         response = result.get("result", {})
 
-        if not response.get('hasSelection'):
+        if not response.get("hasSelection"):
             if not raw:
                 click.echo("No text selected")
                 click.echo("Hint: Select some text in the browser first, then run: zen selected")
             sys.exit(0)
 
-        text = response.get('text', '')
+        text = response.get("text", "")
 
         # Raw mode: just print the text, nothing else
         if raw:
@@ -2748,25 +2869,25 @@ def selected(raw):
             click.echo(f"(showing first 200 of {len(text)} characters)")
 
         # Position info
-        pos = response.get('position', {})
-        click.echo(f"\nPosition:")
+        pos = response.get("position", {})
+        click.echo("\nPosition:")
         click.echo(f"  x={pos.get('x')}, y={pos.get('y')}")
         click.echo(f"  Size: {pos.get('width')}×{pos.get('height')}px")
 
         # Container element
-        container = response.get('container', {})
-        if container.get('tag'):
-            click.echo(f"\nContainer:")
+        container = response.get("container", {})
+        if container.get("tag"):
+            click.echo("\nContainer:")
             click.echo(f"  Tag:   <{container['tag']}>")
-            if container.get('id'):
+            if container.get("id"):
                 click.echo(f"  ID:    {container['id']}")
-            if container.get('class'):
+            if container.get("class"):
                 click.echo(f"  Class: {container['class']}")
 
         # HTML if different from text
-        html = response.get('html', '')
+        html = response.get("html", "")
         if html and html.strip() != text.strip():
-            click.echo(f"\nHTML:")
+            click.echo("\nHTML:")
             if len(html) <= 200:
                 click.echo(f"  {html}")
             else:
@@ -2778,7 +2899,12 @@ def selected(raw):
 
 
 @cli.command()
-@click.option("--selector", "-s", required=True, help="CSS selector of element to screenshot (or use $0 for inspected element)")
+@click.option(
+    "--selector",
+    "-s",
+    required=True,
+    help="CSS selector of element to screenshot (or use $0 for inspected element)",
+)
 @click.option("--output", "-o", type=click.Path(), default=None, help="Output file path")
 def screenshot(selector, output):
     """
@@ -2807,8 +2933,8 @@ def screenshot(selector, output):
         script = f.read()
 
     # Replace selector placeholder
-    escaped_selector = selector.replace('\\', '\\\\').replace('"', '\\"').replace("'", "\\'")
-    code = script.replace('SELECTOR_PLACEHOLDER', f'"{escaped_selector}"')
+    escaped_selector = selector.replace("\\", "\\\\").replace('"', '\\"').replace("'", "\\'")
+    code = script.replace("SELECTOR_PLACEHOLDER", f'"{escaped_selector}"')
 
     try:
         click.echo(f"Capturing element: {selector}")
@@ -2832,8 +2958,8 @@ def screenshot(selector, output):
             sys.exit(1)
 
         # Extract base64 data
-        if ',' in data_url:
-            base64_data = data_url.split(',', 1)[1]
+        if "," in data_url:
+            base64_data = data_url.split(",", 1)[1]
         else:
             base64_data = data_url
 
@@ -2856,7 +2982,7 @@ def screenshot(selector, output):
 
         # Save image
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        with _builtin_open(output_path, 'wb') as f:
+        with _builtin_open(output_path, "wb") as f:
             f.write(image_data)
 
         size_kb = len(image_data) / 1024
@@ -2941,6 +3067,7 @@ def input():
 
         # Poll for events
         import time
+
         while True:
             result = client.execute(poll_code, timeout=1.0)
             if result.get("ok"):
@@ -2974,10 +3101,10 @@ def control():
     Example:
         zen control
     """
-    import sys
-    import tty
-    import termios
     import select
+    import sys
+    import termios
+    import tty
 
     client = BridgeClient()
 
@@ -3000,9 +3127,9 @@ def control():
         sys.exit(1)
 
     # Start control mode
-    start_code = script_template.replace('ACTION_PLACEHOLDER', 'start')
-    start_code = start_code.replace('KEY_DATA_PLACEHOLDER', '{}')
-    start_code = start_code.replace('CONFIG_PLACEHOLDER', config_json)
+    start_code = script_template.replace("ACTION_PLACEHOLDER", "start")
+    start_code = start_code.replace("KEY_DATA_PLACEHOLDER", "{}")
+    start_code = start_code.replace("CONFIG_PLACEHOLDER", config_json)
 
     try:
         result = client.execute(start_code, timeout=60.0)
@@ -3012,7 +3139,7 @@ def control():
             sys.exit(1)
 
         response = result.get("result", {})
-        title = response.get('title', 'Unknown')
+        title = response.get("title", "Unknown")
 
         click.echo(f"Now controlling: {title}")
         click.echo("Press Ctrl+D to exit\n")
@@ -3034,19 +3161,24 @@ def control():
                     # No input available, check for notifications
                     try:
                         import requests
-                        resp = requests.get(f'http://{client.host}:{client.port}/notifications', timeout=0.5)
+
+                        resp = requests.get(
+                            f"http://{client.host}:{client.port}/notifications", timeout=0.5
+                        )
                         if resp.status_code == 200:
                             data = resp.json()
-                            if data.get('ok') and data.get('notifications'):
-                                for notification in data['notifications']:
-                                    if notification['type'] == 'refocus':
-                                        message = notification['message']
+                            if data.get("ok") and data.get("notifications"):
+                                for notification in data["notifications"]:
+                                    if notification["type"] == "refocus":
+                                        message = notification["message"]
                                         sys.stderr.write(f"\r\n{message}\r\n")
                                         sys.stderr.flush()
                                         # Speak if speak-all is enabled
-                                        if control_config.get('speak-all'):
+                                        if control_config.get("speak-all"):
                                             try:
-                                                subprocess.run(['say', message], check=False, timeout=5)
+                                                subprocess.run(
+                                                    ["say", message], check=False, timeout=5
+                                                )
                                             except Exception:
                                                 pass
                     except Exception:
@@ -3058,53 +3190,53 @@ def control():
                 char = sys.stdin.read(1)
 
                 # Handle Ctrl+D (EOF)
-                if char == '\x04':  # Ctrl+D
+                if char == "\x04":  # Ctrl+D
                     break
 
                 # Map character to key data
                 key_data = {}
 
                 # Special key mappings
-                if char == '\x1b':  # Escape sequence
+                if char == "\x1b":  # Escape sequence
                     # Read next characters for arrow keys, etc.
                     next_char = sys.stdin.read(1)
-                    if next_char == '[':
+                    if next_char == "[":
                         arrow = sys.stdin.read(1)
-                        if arrow == 'A':
-                            key_data = {'key': 'ArrowUp', 'code': 'ArrowUp'}
-                        elif arrow == 'B':
-                            key_data = {'key': 'ArrowDown', 'code': 'ArrowDown'}
-                        elif arrow == 'C':
-                            key_data = {'key': 'ArrowRight', 'code': 'ArrowRight'}
-                        elif arrow == 'D':
-                            key_data = {'key': 'ArrowLeft', 'code': 'ArrowLeft'}
-                        elif arrow == 'Z':
+                        if arrow == "A":
+                            key_data = {"key": "ArrowUp", "code": "ArrowUp"}
+                        elif arrow == "B":
+                            key_data = {"key": "ArrowDown", "code": "ArrowDown"}
+                        elif arrow == "C":
+                            key_data = {"key": "ArrowRight", "code": "ArrowRight"}
+                        elif arrow == "D":
+                            key_data = {"key": "ArrowLeft", "code": "ArrowLeft"}
+                        elif arrow == "Z":
                             # Shift+Tab
-                            key_data = {'key': 'Tab', 'code': 'Tab', 'shift': True}
+                            key_data = {"key": "Tab", "code": "Tab", "shift": True}
                         else:
                             # Unknown sequence, skip
                             continue
                     else:
                         # Just Escape key
-                        key_data = {'key': 'Escape', 'code': 'Escape'}
-                elif char == '\r' or char == '\n':
-                    key_data = {'key': 'Enter', 'code': 'Enter'}
-                elif char == '\t':
-                    key_data = {'key': 'Tab', 'code': 'Tab'}
-                elif char == '\x7f':  # Backspace
-                    key_data = {'key': 'Backspace', 'code': 'Backspace'}
+                        key_data = {"key": "Escape", "code": "Escape"}
+                elif char == "\r" or char == "\n":
+                    key_data = {"key": "Enter", "code": "Enter"}
+                elif char == "\t":
+                    key_data = {"key": "Tab", "code": "Tab"}
+                elif char == "\x7f":  # Backspace
+                    key_data = {"key": "Backspace", "code": "Backspace"}
                 elif ord(char) < 32:  # Control character
                     # Handle Ctrl+letter combinations
                     letter = chr(ord(char) + 96)
-                    key_data = {'key': letter, 'code': f'Key{letter.upper()}', 'ctrl': True}
+                    key_data = {"key": letter, "code": f"Key{letter.upper()}", "ctrl": True}
                 else:
                     # Regular character
-                    key_data = {'key': char, 'code': f'Key{char.upper()}' if char.isalpha() else ''}
+                    key_data = {"key": char, "code": f"Key{char.upper()}" if char.isalpha() else ""}
 
                 # Send key to browser
-                send_code = script_template.replace('ACTION_PLACEHOLDER', 'send')
-                send_code = send_code.replace('KEY_DATA_PLACEHOLDER', json.dumps(key_data))
-                send_code = send_code.replace('CONFIG_PLACEHOLDER', config_json)
+                send_code = script_template.replace("ACTION_PLACEHOLDER", "send")
+                send_code = send_code.replace("KEY_DATA_PLACEHOLDER", json.dumps(key_data))
+                send_code = send_code.replace("CONFIG_PLACEHOLDER", config_json)
 
                 result = client.execute(send_code, timeout=60.0)
 
@@ -3119,7 +3251,7 @@ def control():
                         sys.stderr.flush()
 
                         restart_result = client.execute(start_code, timeout=60.0)
-                        if control_config.get('verbose-logging'):
+                        if control_config.get("verbose-logging"):
                             sys.stderr.write(f"[CLI] Restart: {restart_result.get('ok')}\r\n")
                             sys.stderr.flush()
 
@@ -3133,57 +3265,57 @@ def control():
                 if result.get("ok"):
                     # Check if we should speak the accessible name
                     response = result.get("result", {})
-                    if control_config.get('speak-name') and 'accessibleName' in response:
-                        accessible_name = response.get('accessibleName', '').strip()
-                        role = response.get('role', '')
+                    if control_config.get("speak-name") and "accessibleName" in response:
+                        accessible_name = response.get("accessibleName", "").strip()
+                        role = response.get("role", "")
 
                         if accessible_name:
                             # Build the text to speak
                             speak_text = accessible_name
 
                             # Optionally announce role
-                            if control_config.get('announce-role') and role:
+                            if control_config.get("announce-role") and role:
                                 speak_text = f"{role}, {speak_text}"
 
                             # Use macOS say command
                             try:
-                                subprocess.run(['say', speak_text], check=False, timeout=5)
+                                subprocess.run(["say", speak_text], check=False, timeout=5)
                             except Exception:
                                 # Silently ignore if say command fails
                                 pass
 
                     # Display verbose messages if enabled
-                    if control_config.get('verbose'):
+                    if control_config.get("verbose"):
                         # Check for opening message (when pressing Enter on links/buttons)
-                        if 'message' in response:
-                            message = response['message']
+                        if "message" in response:
+                            message = response["message"]
                             sys.stderr.write(f"\r\n{message}\r\n")
                             sys.stderr.flush()
-                            if control_config.get('speak-all'):
+                            if control_config.get("speak-all"):
                                 try:
-                                    subprocess.run(['say', message], check=False, timeout=5)
+                                    subprocess.run(["say", message], check=False, timeout=5)
                                 except Exception:
                                     pass
 
                         # Check for "opened" message (right after click)
-                        if 'openedMessage' in response:
-                            message = response['openedMessage']
+                        if "openedMessage" in response:
+                            message = response["openedMessage"]
                             sys.stderr.write(f"{message}\r\n")
                             sys.stderr.flush()
-                            if control_config.get('speak-all'):
+                            if control_config.get("speak-all"):
                                 try:
-                                    subprocess.run(['say', message], check=False, timeout=5)
+                                    subprocess.run(["say", message], check=False, timeout=5)
                                 except Exception:
                                     pass
 
                         # Check for refocus message (after page navigation)
-                        if 'refocusMessage' in response:
-                            message = response['refocusMessage']
+                        if "refocusMessage" in response:
+                            message = response["refocusMessage"]
                             sys.stderr.write(f"{message}\r\n")
                             sys.stderr.flush()
-                            if control_config.get('speak-all'):
+                            if control_config.get("speak-all"):
                                 try:
-                                    subprocess.run(['say', message], check=False, timeout=5)
+                                    subprocess.run(["say", message], check=False, timeout=5)
                                 except Exception:
                                     pass
                 else:
@@ -3195,9 +3327,9 @@ def control():
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 
             # Stop control mode
-            stop_code = script_template.replace('ACTION_PLACEHOLDER', 'stop')
-            stop_code = stop_code.replace('KEY_DATA_PLACEHOLDER', '{}')
-            stop_code = stop_code.replace('CONFIG_PLACEHOLDER', config_json)
+            stop_code = script_template.replace("ACTION_PLACEHOLDER", "stop")
+            stop_code = stop_code.replace("KEY_DATA_PLACEHOLDER", "{}")
+            stop_code = stop_code.replace("CONFIG_PLACEHOLDER", config_json)
             client.execute(stop_code, timeout=2.0)
 
             click.echo("\n\nControl mode ended.")
@@ -3244,7 +3376,7 @@ def all():
         sys.exit(1)
 
     # Start watching
-    start_code = script_template.replace('ACTION_PLACEHOLDER', 'start')
+    start_code = script_template.replace("ACTION_PLACEHOLDER", "start")
 
     try:
         result = client.execute(start_code, timeout=60.0)
@@ -3257,10 +3389,10 @@ def all():
         click.echo("")
 
         # Poll code
-        poll_code = script_template.replace('ACTION_PLACEHOLDER', 'poll')
+        poll_code = script_template.replace("ACTION_PLACEHOLDER", "poll")
 
         # Cleanup code
-        stop_code = script_template.replace('ACTION_PLACEHOLDER', 'stop')
+        stop_code = script_template.replace("ACTION_PLACEHOLDER", "stop")
 
         # Set up signal handler for Ctrl+C
         def stop_watching(sig, frame):
@@ -3272,6 +3404,7 @@ def all():
 
         # Poll for events
         import time
+
         while True:
             result = client.execute(poll_code, timeout=1.0)
             if result.get("ok"):
@@ -3279,21 +3412,21 @@ def all():
                 if response.get("hasEvents"):
                     events = response.get("events", [])
                     for event in events:
-                        event_type = event.get('type')
+                        event_type = event.get("type")
 
-                        if event_type == 'text':
+                        if event_type == "text":
                             # Regular text - print on same line
-                            click.echo(event.get('content', ''))
+                            click.echo(event.get("content", ""))
 
-                        elif event_type == 'key':
+                        elif event_type == "key":
                             # Special key - print with brackets
                             click.echo(f"[{event.get('content', '')}]")
 
-                        elif event_type == 'focus':
+                        elif event_type == "focus":
                             # Focus change - show accessible name
-                            accessible_name = event.get('accessibleName', '')
-                            element = event.get('element', '')
-                            role = event.get('role', '')
+                            accessible_name = event.get("accessibleName", "")
+                            element = event.get("element", "")
+                            role = event.get("role", "")
 
                             if accessible_name and accessible_name != element:
                                 click.echo(f"→ Focus: {accessible_name} {element}")
@@ -3308,7 +3441,9 @@ def all():
 
 
 @cli.command()
-@click.option("--language", "--lang", type=str, default=None, help="Language for AI output (overrides config)")
+@click.option(
+    "--language", "--lang", type=str, default=None, help="Language for AI output (overrides config)"
+)
 @click.option("--debug", is_flag=True, help="Show the full prompt instead of calling AI")
 def describe(language, debug):
     """
@@ -3363,7 +3498,7 @@ def describe(language, debug):
         # Extract page language from the structure for language detection
         # Look for "**Language:** xx" pattern
         page_lang = None
-        lang_match = re.search(r'\*\*Language:\*\* (\w+)', page_structure)
+        lang_match = re.search(r"\*\*Language:\*\* (\w+)", page_structure)
         if lang_match:
             page_lang = lang_match.group(1)
 
@@ -3403,11 +3538,7 @@ def describe(language, debug):
         # Call mods
         try:
             result = subprocess.run(
-                ["mods"],
-                input=full_input,
-                text=True,
-                capture_output=True,
-                check=True
+                ["mods"], input=full_input, text=True, capture_output=True, check=True
             )
 
             click.echo(result.stdout)
@@ -3505,20 +3636,16 @@ def _enrich_link_metadata(url: str) -> dict:
         "file_size": None,
         "filename": None,
         "page_title": None,
-        "page_language": None
+        "page_language": None,
     }
 
     try:
         # First, do a HEAD request to get headers
         head_result = subprocess.run(
-            [
-                "curl", "-L", "-I", "-s", "-m", "5",
-                "--user-agent", "zen-bridge/1.0",
-                url
-            ],
+            ["curl", "-L", "-I", "-s", "-m", "5", "--user-agent", "zen-bridge/1.0", url],
             capture_output=True,
             text=True,
-            timeout=10
+            timeout=10,
         )
 
         if head_result.returncode != 0:
@@ -3527,27 +3654,31 @@ def _enrich_link_metadata(url: str) -> dict:
         headers = head_result.stdout
 
         # Parse HTTP status code
-        status_match = re.search(r'HTTP/[\d.]+ (\d+)', headers)
+        status_match = re.search(r"HTTP/[\d.]+ (\d+)", headers)
         if status_match:
             enrichment["http_status"] = int(status_match.group(1))
 
         # Parse Content-Type
-        content_type_match = re.search(r'(?i)^Content-Type:\s*([^\r\n;]+)', headers, re.MULTILINE)
+        content_type_match = re.search(r"(?i)^Content-Type:\s*([^\r\n;]+)", headers, re.MULTILINE)
         if content_type_match:
             enrichment["mime_type"] = content_type_match.group(1).strip()
 
         # Parse Content-Length
-        content_length_match = re.search(r'(?i)^Content-Length:\s*(\d+)', headers, re.MULTILINE)
+        content_length_match = re.search(r"(?i)^Content-Length:\s*(\d+)", headers, re.MULTILINE)
         if content_length_match:
             enrichment["file_size"] = int(content_length_match.group(1))
 
         # Parse Content-Disposition for filename
-        content_disp_match = re.search(r'(?i)^Content-Disposition:.*filename[*]?=["\']?([^"\'\r\n;]+)', headers, re.MULTILINE)
+        content_disp_match = re.search(
+            r'(?i)^Content-Disposition:.*filename[*]?=["\']?([^"\'\r\n;]+)', headers, re.MULTILINE
+        )
         if content_disp_match:
             enrichment["filename"] = content_disp_match.group(1).strip()
 
         # Parse Content-Language
-        content_lang_match = re.search(r'(?i)^Content-Language:\s*([^\r\n;]+)', headers, re.MULTILINE)
+        content_lang_match = re.search(
+            r"(?i)^Content-Language:\s*([^\r\n;]+)", headers, re.MULTILINE
+        )
         if content_lang_match:
             enrichment["page_language"] = content_lang_match.group(1).strip()
 
@@ -3557,30 +3688,38 @@ def _enrich_link_metadata(url: str) -> dict:
             # Fetch first 16KB of content
             get_result = subprocess.run(
                 [
-                    "curl", "-L", "-s", "-m", "5",
-                    "--user-agent", "zen-bridge/1.0",
-                    "--max-filesize", "16384",
-                    url
+                    "curl",
+                    "-L",
+                    "-s",
+                    "-m",
+                    "5",
+                    "--user-agent",
+                    "zen-bridge/1.0",
+                    "--max-filesize",
+                    "16384",
+                    url,
                 ],
                 capture_output=True,
                 text=True,
-                timeout=10
+                timeout=10,
             )
 
             if get_result.returncode == 0:
                 html_content = get_result.stdout
 
                 # Extract page title
-                title_match = re.search(r'<title[^>]*>([^<]+)</title>', html_content, re.IGNORECASE)
+                title_match = re.search(r"<title[^>]*>([^<]+)</title>", html_content, re.IGNORECASE)
                 if title_match:
                     # Decode HTML entities and clean up
                     title = title_match.group(1).strip()
-                    title = re.sub(r'\s+', ' ', title)  # Normalize whitespace
+                    title = re.sub(r"\s+", " ", title)  # Normalize whitespace
                     enrichment["page_title"] = title
 
                 # Extract language from <html lang="...">
                 if not enrichment["page_language"]:
-                    lang_match = re.search(r'<html[^>]+lang=["\']?([^"\'\s>]+)', html_content, re.IGNORECASE)
+                    lang_match = re.search(
+                        r'<html[^>]+lang=["\']?([^"\'\s>]+)', html_content, re.IGNORECASE
+                    )
                     if lang_match:
                         enrichment["page_language"] = lang_match.group(1).strip()
 
@@ -3601,7 +3740,9 @@ def _enrich_external_links(links: list) -> list:
     from concurrent.futures import ThreadPoolExecutor, as_completed
 
     # Filter to get external links only
-    external_links = [link for link in links if link.get("external") or link.get("type") == "external"]
+    external_links = [
+        link for link in links if link.get("external") or link.get("type") == "external"
+    ]
 
     # Check if we should skip enrichment
     if len(external_links) > 50:
@@ -3640,8 +3781,14 @@ def _enrich_external_links(links: list) -> list:
 @click.option("--only-external", is_flag=True, help="Show only external links (different domain)")
 @click.option("--alphabetically", is_flag=True, help="Sort links alphabetically")
 @click.option("--only-urls", is_flag=True, help="Show only URLs without anchor text")
-@click.option("--json", "output_json", is_flag=True, help="Output as JSON with detailed link information")
-@click.option("--enrich-external", is_flag=True, help="Fetch additional metadata for external links (MIME type, file size, page title, language, HTTP status)")
+@click.option(
+    "--json", "output_json", is_flag=True, help="Output as JSON with detailed link information"
+)
+@click.option(
+    "--enrich-external",
+    is_flag=True,
+    help="Fetch additional metadata for external links (MIME type, file size, page title, language, HTTP status)",
+)
 def links(only_internal, only_external, alphabetically, only_urls, output_json, enrich_external):
     """
     Extract all links from the current page.
@@ -3722,11 +3869,8 @@ def links(only_internal, only_external, alphabetically, only_urls, output_json, 
         # If JSON output is requested, output JSON and exit
         if output_json:
             import json
-            output_data = {
-                "links": filtered_links,
-                "total": len(filtered_links),
-                "domain": domain
-            }
+
+            output_data = {"links": filtered_links, "total": len(filtered_links), "domain": domain}
             click.echo(json.dumps(output_data, indent=2))
             return
 
@@ -3803,8 +3947,15 @@ def links(only_internal, only_external, alphabetically, only_urls, output_json, 
 
 
 @cli.command()
-@click.option("--format", type=click.Choice(["summary", "full"]), default="summary", help="Output format (summary or full article)")
-@click.option("--language", "--lang", type=str, default=None, help="Language for AI output (overrides config)")
+@click.option(
+    "--format",
+    type=click.Choice(["summary", "full"]),
+    default="summary",
+    help="Output format (summary or full article)",
+)
+@click.option(
+    "--language", "--lang", type=str, default=None, help="Language for AI output (overrides config)"
+)
 @click.option("--debug", is_flag=True, help="Show the full prompt instead of calling AI")
 def summarize(format, language, debug):
     """
@@ -3914,11 +4065,7 @@ def summarize(format, language, debug):
         # Call mods
         try:
             result = subprocess.run(
-                ["mods"],
-                input=full_input,
-                text=True,
-                capture_output=True,
-                check=True
+                ["mods"], input=full_input, text=True, capture_output=True, check=True
             )
 
             if byline:

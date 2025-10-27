@@ -25,7 +25,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "zen=zen.cli:main",
+            "zen=zen.app.cli:main",
         ],
     },
     classifiers=[
