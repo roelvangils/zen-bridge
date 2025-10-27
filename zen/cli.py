@@ -63,7 +63,7 @@ def get_ai_language(language_override: str = None, page_lang: str = None) -> str
         return language_override
 
     # Priority 2: Config file
-    config = zen_config.load()
+    config = zen_config.load_config()
     config_lang = config.get("ai-language", "auto")
 
     # If config specifies a language (not "auto"), use it

@@ -8,6 +8,7 @@ from typing import Any, Dict, Optional
 
 # Default configuration
 DEFAULT_CONFIG = {
+    "ai-language": "auto",
     "control": {
         "auto-refocus": "only-spa",
         "focus-outline": "custom",
@@ -73,8 +74,15 @@ def load_config() -> Dict[str, Any]:
 
         # Merge with defaults (user config takes precedence)
         config = DEFAULT_CONFIG.copy()
-        if "control" in user_config:
-            config["control"].update(user_config["control"])
+
+        # Merge root-level properties
+        for key in user_config:
+            if key == "control":
+                # Nested control config - merge deeply
+                config["control"].update(user_config["control"])
+            else:
+                # Root-level properties like ai-language - overwrite
+                config[key] = user_config[key]
 
         return config
     except (json.JSONDecodeError, IOError) as e:
