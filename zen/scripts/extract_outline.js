@@ -15,7 +15,8 @@
       level: level,
       text: text,
       type: 'native',
-      tag: heading.tagName.toLowerCase()
+      tag: heading.tagName.toLowerCase(),
+      element: heading  // Store element reference for sorting
     });
   });
 
@@ -32,37 +33,38 @@
         level: level,
         text: text,
         type: 'aria',
-        tag: heading.tagName.toLowerCase()
+        tag: heading.tagName.toLowerCase(),
+        element: heading  // Store element reference for sorting
       });
     }
   });
 
-  // Sort headings by their appearance in the document
+  // Sort headings by their appearance in the document using element references
   headings.sort((a, b) => {
-    const aEl = document.evaluate(
-      `//*[normalize-space(text())="${a.text}"]`,
-      document,
-      null,
-      XPathResult.FIRST_ORDERED_NODE_TYPE,
-      null
-    ).singleNodeValue;
+    if (!a.element || !b.element) return 0;
 
-    const bEl = document.evaluate(
-      `//*[normalize-space(text())="${b.text}"]`,
-      document,
-      null,
-      XPathResult.FIRST_ORDERED_NODE_TYPE,
-      null
-    ).singleNodeValue;
+    const position = a.element.compareDocumentPosition(b.element);
 
-    if (!aEl || !bEl) return 0;
+    if (position & Node.DOCUMENT_POSITION_FOLLOWING) {
+      return -1;  // a comes before b
+    } else if (position & Node.DOCUMENT_POSITION_PRECEDING) {
+      return 1;   // b comes before a
+    }
 
-    return aEl.compareDocumentPosition(bEl) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
+    return 0;  // same element or unrelated
   });
 
+  // Remove element references before returning (not serializable)
+  const cleanedHeadings = headings.map(h => ({
+    level: h.level,
+    text: h.text,
+    type: h.type,
+    tag: h.tag
+  }));
+
   return {
-    headings: headings,
-    total: headings.length,
+    headings: cleanedHeadings,
+    total: cleanedHeadings.length,
     url: window.location.href
   };
 })();
