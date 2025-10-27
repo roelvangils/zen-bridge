@@ -38,6 +38,7 @@
     content: article.textContent,
     excerpt: article.excerpt,
     length: article.length,
-    url: window.location.href
+    url: window.location.href,
+    lang: document.documentElement.lang || null
   };
 })();

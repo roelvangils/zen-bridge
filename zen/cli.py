@@ -41,6 +41,43 @@ def format_output(result: dict, format_type: str = "auto") -> str:
             return str(value)
 
 
+def get_ai_language(language_override: str = None, page_lang: str = None) -> str:
+    """
+    Determine the language for AI operations.
+
+    Priority:
+    1. language_override (from --language flag)
+    2. config.json ai-language setting
+    3. If "auto", detect from page_lang
+    4. Default to None (let AI decide)
+
+    Args:
+        language_override: Language code from CLI flag
+        page_lang: Detected page language
+
+    Returns:
+        Language code (e.g., "en", "nl", "fr") or None
+    """
+    # Priority 1: CLI flag override
+    if language_override:
+        return language_override
+
+    # Priority 2: Config file
+    config = zen_config.load()
+    config_lang = config.get("ai-language", "auto")
+
+    # If config specifies a language (not "auto"), use it
+    if config_lang and config_lang != "auto":
+        return config_lang
+
+    # Priority 3: Auto-detect from page
+    if page_lang:
+        return page_lang
+
+    # Default: let AI decide
+    return None
+
+
 class CustomGroup(click.Group):
     """Custom Click Group that shows all command options in help."""
 
@@ -3270,7 +3307,8 @@ def all():
 
 
 @cli.command()
-def describe():
+@click.option("--language", "--lang", type=str, default=None, help="Language for AI output (overrides config)")
+def describe(language):
     """
     Generate an AI-powered description of the page for screen reader users.
 
@@ -3323,9 +3361,11 @@ def describe():
 
         # Languages
         languages = page_data.get('languages', [])
+        page_lang = None
         if languages:
             primary = _builtin_next((l for l in languages if l['type'] == 'primary'), None)
             alternates = [l for l in languages if l['type'] == 'alternate']
+            page_lang = primary['lang'] if primary else None
 
             lang_info = f"PRIMARY LANGUAGE: {primary['lang'] if primary else 'unknown'}"
             if alternates:
@@ -3415,6 +3455,9 @@ def describe():
             structured_info.append(f"LINKS: {link_summary.get('total', 0)} total ({link_summary.get('internal', 0)} internal, {link_summary.get('external', 0)} external)")
             structured_info.append("")
 
+        # Determine target language for AI
+        target_lang = get_ai_language(language_override=language, page_lang=page_lang)
+
         # Read the prompt
         prompt_path = Path(__file__).parent.parent / "prompts" / "describe.prompt"
 
@@ -3424,6 +3467,10 @@ def describe():
 
         with _builtin_open(prompt_path) as f:
             prompt = f.read().strip()
+
+        # Add language instruction if specified
+        if target_lang:
+            prompt = f"{prompt}\n\nIMPORTANT: Provide your response in {target_lang} language."
 
         # Combine prompt with structured data
         full_input = f"{prompt}\n\n{'='*60}\nPAGE STRUCTURE DATA:\n{'='*60}\n\n" + "\n".join(structured_info)
@@ -3834,7 +3881,8 @@ def links(only_internal, only_external, alphabetically, only_urls, output_json, 
 
 @cli.command()
 @click.option("--format", type=click.Choice(["summary", "full"]), default="summary", help="Output format (summary or full article)")
-def summarize(format):
+@click.option("--language", "--lang", type=str, default=None, help="Language for AI output (overrides config)")
+def summarize(format, language):
     """
     Summarize the current article using AI.
 
@@ -3887,6 +3935,7 @@ def summarize(format):
         title = article.get("title", "Untitled")
         content = article.get("content", "")
         byline = article.get("byline", "")
+        page_lang = article.get("lang")
 
         if not content:
             click.echo("Error: No content extracted. This page may not be an article.", err=True)
@@ -3901,6 +3950,9 @@ def summarize(format):
             click.echo(content)
             return
 
+        # Determine target language for AI
+        target_lang = get_ai_language(language_override=language, page_lang=page_lang)
+
         # Generate summary using mods
         click.echo(f"Generating summary for: {title}", err=True)
 
@@ -3913,6 +3965,10 @@ def summarize(format):
 
         with _builtin_open(prompt_path) as f:
             prompt = f.read().strip()
+
+        # Add language instruction if specified
+        if target_lang:
+            prompt = f"{prompt}\n\nIMPORTANT: Provide your response in {target_lang} language."
 
         # Prepare the input for mods
         full_input = f"{prompt}\n\nTitle: {title}\n\n{content}"

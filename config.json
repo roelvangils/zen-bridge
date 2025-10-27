@@ -1,4 +1,5 @@
 {
+  "ai-language": "auto",
   "control": {
     "auto-refocus": "always",
     "focus-outline": "custom",
