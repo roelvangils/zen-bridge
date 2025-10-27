@@ -7,7 +7,6 @@ import asyncio
 import json
 import time
 import uuid
-from pathlib import Path
 from typing import Any
 
 from pydantic import ValidationError
@@ -131,23 +130,14 @@ async def websocket_handler(request):
                         print("[Server] Auto-reinit requested from browser via WebSocket")
 
                         try:
-                            # Use cached control.js script (no file I/O!)
-                            global CACHED_CONTROL_SCRIPT
-                            if not CACHED_CONTROL_SCRIPT:
-                                print("[Server] WARNING: control.js cache is empty, reloading...")
-                                script_path = Path(__file__).parent / "scripts" / "control.js"
-                                with open(script_path) as f:
-                                    CACHED_CONTROL_SCRIPT = f.read()
-
-                            # Build the start code
-                            import json as json_lib
-
-                            start_code = CACHED_CONTROL_SCRIPT.replace(
-                                "ACTION_PLACEHOLDER", "start"
-                            )
-                            start_code = start_code.replace("KEY_DATA_PLACEHOLDER", "{}")
-                            start_code = start_code.replace(
-                                "CONFIG_PLACEHOLDER", json_lib.dumps(config)
+                            # Use ScriptLoader service (async, cached)
+                            placeholders = {
+                                "ACTION_PLACEHOLDER": "start",
+                                "KEY_DATA_PLACEHOLDER": "{}",
+                                "CONFIG_PLACEHOLDER": json.dumps(config),
+                            }
+                            start_code = await script_loader.load_with_substitution_async(
+                                "control.js", placeholders, use_cache=True
                             )
 
                             # Send back as an execute message
@@ -268,23 +258,15 @@ async def handle_http_reinit_control(request):
 
         print("[Server] Auto-reinitialization requested from browser")
 
-        # Use cached control.js script (no file I/O!)
-        global CACHED_CONTROL_SCRIPT
-        if not CACHED_CONTROL_SCRIPT:
-            print("[Server] WARNING: control.js cache is empty, reloading...")
-            script_path = Path(__file__).parent / "scripts" / "control.js"
-            try:
-                with open(script_path) as f:
-                    CACHED_CONTROL_SCRIPT = f.read()
-            except FileNotFoundError:
-                return web.json_response({"ok": False, "error": "control.js not found"}, status=500)
-
-        # Build the start code
-        import json as json_lib
-
-        start_code = CACHED_CONTROL_SCRIPT.replace("ACTION_PLACEHOLDER", "start")
-        start_code = start_code.replace("KEY_DATA_PLACEHOLDER", "{}")
-        start_code = start_code.replace("CONFIG_PLACEHOLDER", json_lib.dumps(config))
+        # Use ScriptLoader service (async, cached)
+        placeholders = {
+            "ACTION_PLACEHOLDER": "start",
+            "KEY_DATA_PLACEHOLDER": "{}",
+            "CONFIG_PLACEHOLDER": json.dumps(config),
+        }
+        start_code = await script_loader.load_with_substitution_async(
+            "control.js", placeholders, use_cache=True
+        )
 
         # Send to browser via WebSocket
         request_id = await send_code_to_browser(start_code)
@@ -293,6 +275,8 @@ async def handle_http_reinit_control(request):
 
         return web.json_response({"ok": True, "request_id": request_id})
 
+    except FileNotFoundError:
+        return web.json_response({"ok": False, "error": "control.js not found"}, status=500)
     except Exception as e:
         print(f"[Server] Error in auto-reinit: {e}")
         return web.json_response({"ok": False, "error": str(e)}, status=500)

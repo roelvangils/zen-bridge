@@ -1,0 +1,321 @@
+================================================================================
+                  ZEN/CLI.PY - STRUCTURE ANALYSIS SUMMARY
+================================================================================
+
+FILE INFORMATION:
+  Location: /Users/roelvangils/zen_bridge/zen/cli.py
+  Size: 4,093 lines
+  Total Commands: 42 (30 top-level + 12 subcommands + 4 groups)
+  Imports: 13 main modules
+  Helper Functions: 8
+  Helper Scripts: 14
+
+================================================================================
+COMMAND BREAKDOWN BY CATEGORY
+================================================================================
+
+1. EXECUTION COMMANDS (2 commands)
+   - eval (line 145): Execute inline JS or from file
+   - exec (line 202): Execute JS from file
+
+2. INSPECTION COMMANDS (3 commands)
+   - inspect (line 1961): Select and inspect element
+   - inspected (line 2030): Show currently inspected element
+   - screenshot (line 2909): Capture element as PNG
+
+3. INTERACTION COMMANDS (7 main + 2 aliases = 9 commands)
+   - click (line 2194): Click element
+   - double-click (line 2214): Double-click element
+   - right-click (line 2237): Right-click (context menu)
+   - wait (line 2317): Wait for element with multiple modes
+   - send (line 1893): Type text into element
+
+4. NAVIGATION COMMANDS (4 main + 3 aliases = 7 commands)
+   - open (line 2425): Navigate to URL
+   - back (line 2507): Browser back button
+   - forward (line 2544): Browser forward button
+   - reload (line 2582): Reload page
+
+5. COOKIE MANAGEMENT (6 commands = 1 group + 5 subcommands)
+   - cookies (line 2639): Group command
+   - cookies list (line 2645): List all cookies
+   - cookies get (line 2657): Get specific cookie
+   - cookies set (line 2680): Set cookie with options
+   - cookies delete (line 2706): Delete cookie
+   - cookies clear (line 2717): Clear all cookies
+
+6. SELECTION COMMAND (1 command)
+   - selected (line 2807): Get current text selection
+
+7. WATCH COMMANDS (2 main + 2 subcommands = 3 commands)
+   - watch (line 2998): Group command
+   - watch input (line 3004): Monitor keyboard input
+   - watch all (line 3347): Monitor all interactions
+
+8. CONTROL COMMAND (1 command)
+   - control (line 3087): Interactive browser control from terminal
+
+9. CONTENT EXTRACTION COMMANDS (4 commands)
+   - describe (line 3448): AI page description for accessibility
+   - outline (line 3558): Page heading structure
+   - links (line 3792): Extract and optionally enrich links
+   - summarize (line 3960): AI article summarization
+
+10. SERVER COMMANDS (4 commands = 1 group + 3 subcommands)
+    - server (line 1407): Group command
+    - server start (line 1415): Start WebSocket server
+    - server status (line 1456): Check server status
+    - server stop (line 1475): Stop server
+
+11. UTILITY COMMANDS (5 commands)
+    - info (line 426): Page information (basic/extended)
+    - repl (line 1482): Interactive REPL
+    - userscript (line 1607): Show userscript
+    - download (line 1635): Download page files
+    - highlight (line 1538): Highlight elements on page
+
+================================================================================
+SHARED UTILITIES (Core Components)
+================================================================================
+
+FUNCTIONS:
+  1. format_output(result, format_type) [Line 25-45]
+     - Formats JS execution results as JSON/raw/auto
+     - Used by: eval, exec, repl
+     
+  2. get_ai_language(language_override, page_lang) [Line 48-82]
+     - Determines language for AI operations
+     - Priority: CLI flag > config > page language > default
+     - Used by: describe, summarize
+
+  3. _perform_click(selector, click_type) [Line 2258-2308]
+     - Abstraction for all click types (click/dblclick/contextmenu)
+     - Used by: click, double-click, right-click
+
+  4. _execute_cookie_action(action, cookie_name, ...) [Line 2727-2802]
+     - Unified cookie operations
+     - Used by: cookies list/get/set/delete/clear
+
+  5. _enrich_link_metadata(url) [Line 3625-3722]
+     - Fetches HTTP headers, MIME type, file size, title
+     - Used by: links command via _enrich_external_links
+
+  6. _enrich_external_links(links) [Line 3733-3776]
+     - Parallel enrichment with ThreadPoolExecutor (10 workers)
+     - Used by: links command
+
+  7. _get_domain_metrics(domain) [Line 225-338]
+     - IP, geolocation, WHOIS, SSL certificate info
+     - Used by: info command
+
+  8. _get_response_headers(url) [Line 340-367]
+     - Fetch HTTP response headers
+     - Used by: info command
+
+  9. _get_robots_txt(url) [Line 369-418]
+     - Parse robots.txt directives
+     - Used by: info command
+
+CLASS:
+  - CustomGroup [Line 85-126]: Enhanced Click Group with better help formatting
+
+CONSTANTS:
+  - _builtin_open = open [Line 21]: Avoid shadowing by 'open' command
+  - _builtin_next = next [Line 22]: Avoid shadowing by 'next' command
+
+================================================================================
+DEPENDENCY ANALYSIS
+================================================================================
+
+DIRECT DEPENDENCIES (Command to Command):
+  inspect → inspected: Calls internally to show details
+  previous → back: Invokes back via ctx.invoke()
+  next → forward: Invokes forward via ctx.invoke()
+  refresh → reload: Invokes reload via ctx.invoke()
+
+HELPER FUNCTION USAGE:
+  format_output(): eval, exec, repl
+  get_ai_language(): describe, summarize
+  _perform_click(): click, double-click, right-click
+  _execute_cookie_action(): cookies (all 5 subcommands)
+
+EXTERNAL TOOLS REQUIRED:
+  - mods: Used by describe and summarize for AI operations
+  - curl: Used by _enrich_link_metadata() for HTTP headers
+  - say: Used by control command for accessibility announcements (macOS)
+
+EXTERNAL LIBRARIES:
+  - click: CLI framework
+  - requests: HTTP requests (download, link enrichment)
+  - json: JSON formatting
+  - subprocess: External tool execution
+  - pathlib: File path operations
+  - concurrent.futures: Parallel processing (ThreadPoolExecutor)
+
+================================================================================
+REFACTORING PROPOSAL (8-11 Modules)
+================================================================================
+
+zen/cli/
+├── __init__.py              # Entry point
+├── base.py (~150 lines)     # Shared utilities
+│   ├── format_output()
+│   ├── get_ai_language()
+│   ├── CustomGroup class
+│   └── Built-in saves
+│
+├── exec.py (~100 lines)     # eval, exec
+├── inspect.py (~150 lines)  # inspect, inspected, screenshot
+├── interaction.py (~200)    # click*, wait, send (*=aliases)
+├── navigation.py (~150)     # open, back, forward, reload (*=aliases)
+├── cookies.py (~180 lines)  # cookies group + 5 subcommands
+├── selection.py (~80 lines) # selected
+├── watch.py (~250 lines)    # watch group + control command
+├── extraction.py (~400)     # describe, outline, links, summarize
+│   ├── _enrich_link_metadata()
+│   ├── _enrich_external_links()
+│   └── AI operations
+│
+├── server.py (~100 lines)   # server group + 3 subcommands
+└── util.py (~250 lines)     # info, repl, userscript, download, highlight
+    ├── _get_domain_metrics()
+    ├── _get_robots_txt()
+    └── _get_response_headers()
+
+REGISTRATION IN __init__.py:
+  cli = CustomGroup(...)
+  cli.add_command(eval)
+  cli.add_command(exec)
+  # ... etc for all commands
+  cli.add_group(server)
+  cli.add_group(cookies)
+  cli.add_group(watch)
+
+================================================================================
+KEY STATISTICS
+================================================================================
+
+Command Distribution:
+  - Top-level commands: 20
+  - Subcommands: 12
+  - Command groups: 4
+  - Hidden/alias commands: 4
+  - Total executable commands: 30+
+
+Code Organization:
+  - Total lines: 4,093
+  - Commands: 42
+  - Helper functions: 9
+  - Classes: 1 (CustomGroup)
+  - Helper scripts referenced: 14
+
+Complexity Metrics:
+  - Largest command: control (258 lines, 3087-3344)
+  - Largest helper: _enrich_link_metadata (96 lines)
+  - Largest group: watch (3 subcommands + 1 top-level)
+
+Error Handling:
+  - Pattern: Check server alive, handle exceptions, exit(1)
+  - Consistent across all 40+ command implementations
+
+================================================================================
+COMMAND PATTERNS IDENTIFIED
+================================================================================
+
+1. STANDARD BROWSER COMMAND (20+ commands)
+   Pattern: BridgeClient() → check alive → execute → handle result → display
+   
+2. GROUP + SUBCOMMANDS (4 patterns)
+   Pattern: @cli.group() for parent, @group.command() for children
+   Groups: server (3), cookies (5), watch (2)
+
+3. POLLING LOOP (3 commands)
+   Pattern: Start → signal handler → loop (execute, sleep) → cleanup
+   Commands: control, watch input, watch all
+
+4. SCRIPT TEMPLATE INJECTION (8 commands)
+   Pattern: Load script → replace placeholders → execute
+   Example: click, wait, cookies, control
+
+5. AI INTEGRATION (2 commands)
+   Pattern: Extract → detect language → load prompt → call mods
+   Commands: describe, summarize
+
+6. ALIAS/DELEGATION (4 commands)
+   Pattern: ctx.invoke() to call another command
+   Commands: previous→back, next→forward, refresh→reload, inspect→inspected
+
+================================================================================
+IMPORTANT NOTES FOR REFACTORING
+================================================================================
+
+1. Module Imports:
+   - All modules need: click, json, sys, BridgeClient, zen_config
+   - Specific modules need extra: requests, subprocess, base64, etc.
+
+2. Shared Resources:
+   - Helper scripts in zen/scripts/ (unchanged by refactoring)
+   - Prompt files in prompts/ (used by describe, summarize)
+   - Config via zen.config module
+
+3. Command Registration:
+   - Main cli group in __init__.py uses CustomGroup
+   - Subcommands use @group.command() decorators
+   - Hidden commands use hidden=True parameter
+
+4. Testing Considerations:
+   - Each module can be unit tested independently
+   - Server must be running for most commands
+   - Some commands require external tools (mods, curl, say)
+
+5. Documentation:
+   - All commands have detailed docstrings
+   - Examples provided in docstrings
+   - Help text in click.option/click.argument
+
+================================================================================
+USAGE EXAMPLES BY CATEGORY
+================================================================================
+
+EXECUTION:
+  zen eval "document.title"
+  zen exec script.js
+
+INSPECTION:
+  zen inspect "h1"
+  zen screenshot -s ".main" -o hero.png
+
+INTERACTION:
+  zen click "button#submit"
+  zen wait ".modal" --visible
+  zen send "test@example.com" -s "input[email]"
+
+NAVIGATION:
+  zen open "https://example.com"
+  zen reload --hard
+
+COOKIES:
+  zen cookies list
+  zen cookies set session_id abc123 --max-age 3600
+
+CONTENT:
+  zen describe
+  zen links --enrich-external
+  zen summarize --format full
+
+CONTROL:
+  zen control
+  zen watch input
+
+SERVER:
+  zen server start --daemon
+  zen server status
+
+UTILITIES:
+  zen info --extended
+  zen repl
+  zen download
+
+================================================================================
+END OF ANALYSIS
+================================================================================
