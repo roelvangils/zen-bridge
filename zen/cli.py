@@ -1719,7 +1719,7 @@ def download(output, list_only, timeout):
                 response = requests.get(url, timeout=30)
                 response.raise_for_status()
 
-                with open(output_path, 'wb') as f:
+                with _builtin_open(output_path, 'wb') as f:
                     f.write(response.content)
 
                 file_size = len(response.content)
@@ -1782,7 +1782,7 @@ def send(text, selector):
 
     # Load and execute the send_keys script
     script_path = Path(__file__).parent / "scripts" / "send_keys.js"
-    with open(script_path) as f:
+    with _builtin_open(script_path) as f:
         script = f.read()
 
     # Replace placeholder with properly escaped text
@@ -1907,7 +1907,7 @@ def inspected():
     script_path = os.path.join(os.path.dirname(__file__), 'scripts', 'get_inspected.js')
 
     try:
-        with open(script_path, 'r') as f:
+        with _builtin_open(script_path, 'r') as f:
             code = f.read()
     except FileNotFoundError:
         click.echo(f"Error: Script not found: {script_path}", err=True)
@@ -2114,7 +2114,7 @@ def _perform_click(selector, click_type):
     script_path = os.path.join(os.path.dirname(__file__), 'scripts', 'click_element.js')
 
     try:
-        with open(script_path, 'r') as f:
+        with _builtin_open(script_path, 'r') as f:
             script = f.read()
     except FileNotFoundError:
         click.echo(f"Error: Script not found: {script_path}", err=True)
@@ -2203,7 +2203,7 @@ def wait(selector, timeout, visible, hidden, text):
     script_path = os.path.join(os.path.dirname(__file__), 'scripts', 'wait_for.js')
 
     try:
-        with open(script_path, 'r') as f:
+        with _builtin_open(script_path, 'r') as f:
             script = f.read()
     except FileNotFoundError:
         click.echo(f"Error: Script not found: {script_path}", err=True)
@@ -2576,7 +2576,7 @@ def _execute_cookie_action(action, cookie_name='', cookie_value='', options=None
     script_path = os.path.join(os.path.dirname(__file__), 'scripts', 'cookies.js')
 
     try:
-        with open(script_path, 'r') as f:
+        with _builtin_open(script_path, 'r') as f:
             script = f.read()
     except FileNotFoundError:
         click.echo(f"Error: Script not found: {script_path}", err=True)
@@ -2667,7 +2667,7 @@ def selected(raw):
     script_path = os.path.join(os.path.dirname(__file__), 'scripts', 'get_selection.js')
 
     try:
-        with open(script_path, 'r') as f:
+        with _builtin_open(script_path, 'r') as f:
             code = f.read()
     except FileNotFoundError:
         click.echo(f"Error: Script not found: {script_path}", err=True)
@@ -2764,7 +2764,7 @@ def screenshot(selector, output):
 
     # Load screenshot script
     script_path = Path(__file__).parent / "scripts" / "screenshot_element.js"
-    with open(script_path) as f:
+    with _builtin_open(script_path) as f:
         script = f.read()
 
     # Replace selector placeholder
@@ -2817,7 +2817,7 @@ def screenshot(selector, output):
 
         # Save image
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(output_path, 'wb') as f:
+        with _builtin_open(output_path, 'wb') as f:
             f.write(image_data)
 
         size_kb = len(image_data) / 1024
@@ -2854,7 +2854,7 @@ def input():
 
     # Start watching keyboard
     script_path = Path(__file__).parent / "scripts" / "watch_keyboard.js"
-    with open(script_path) as f:
+    with _builtin_open(script_path) as f:
         watch_code = f.read()
 
     try:
@@ -3421,7 +3421,7 @@ def describe():
             click.echo(f"Error: Prompt file not found: {prompt_path}", err=True)
             sys.exit(1)
 
-        with open(prompt_path) as f:
+        with _builtin_open(prompt_path) as f:
             prompt = f.read().strip()
 
         # Combine prompt with structured data
@@ -3910,7 +3910,7 @@ def summarize(format):
             click.echo(f"Error: Prompt file not found: {prompt_path}", err=True)
             sys.exit(1)
 
-        with open(prompt_path) as f:
+        with _builtin_open(prompt_path) as f:
             prompt = f.read().strip()
 
         # Prepare the input for mods
