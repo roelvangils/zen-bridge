@@ -13,6 +13,9 @@ from .client import BridgeClient
 from . import __version__
 from . import config as zen_config
 
+# Save built-in open before it gets shadowed by the 'open' command
+_builtin_open = open
+
 
 def format_output(result: dict, format_type: str = "auto") -> str:
     """Format execution result for display."""
@@ -608,7 +611,7 @@ def info(extended, output_json):
                 try:
                     script_path = Path(__file__).parent / "scripts" / "extended_info.js"
                     if script_path.exists():
-                        with open(script_path) as f:
+                        with _builtin_open(script_path) as f:
                             extended_script = f.read()
                         extended_result = client.execute(extended_script, timeout=10.0)
                         if extended_result.get("ok"):
@@ -2893,7 +2896,7 @@ def control():
     script_path = Path(__file__).parent / "scripts" / "control.js"
 
     try:
-        with open(script_path) as f:
+        with _builtin_open(script_path) as f:
             script_template = f.read()
     except FileNotFoundError:
         click.echo(f"Error: Script not found: {script_path}", err=True)
@@ -3137,7 +3140,7 @@ def all():
     script_path = Path(__file__).parent / "scripts" / "watch_all.js"
 
     try:
-        with open(script_path) as f:
+        with _builtin_open(script_path) as f:
             script_template = f.read()
     except FileNotFoundError:
         click.echo(f"Error: Script not found: {script_path}", err=True)
@@ -3241,7 +3244,7 @@ def describe():
         sys.exit(1)
 
     try:
-        with open(script_path) as f:
+        with _builtin_open(script_path) as f:
             script = f.read()
 
         click.echo("Analyzing page structure...", err=True)
@@ -3416,7 +3419,7 @@ def outline():
         sys.exit(1)
 
     try:
-        with open(script_path) as f:
+        with _builtin_open(script_path) as f:
             script = f.read()
 
         result = client.execute(script, timeout=30.0)
@@ -3499,7 +3502,7 @@ def links(only_internal, only_external, alphabetically, only_urls, output_json):
         sys.exit(1)
 
     try:
-        with open(script_path) as f:
+        with _builtin_open(script_path) as f:
             script = f.read()
 
         result = client.execute(script, timeout=30.0)
@@ -3617,7 +3620,7 @@ def summarize(format):
         sys.exit(1)
 
     try:
-        with open(script_path) as f:
+        with _builtin_open(script_path) as f:
             script = f.read()
 
         click.echo("Extracting article content...", err=True)
