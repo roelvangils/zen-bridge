@@ -2212,6 +2212,210 @@ def wait(selector, timeout, visible, hidden, text):
         sys.exit(1)
 
 
+@cli.command()
+@click.argument("url")
+@click.option("--wait", is_flag=True, help="Wait for page to finish loading")
+@click.option("--timeout", "-t", type=int, default=30, help="Timeout in seconds when using --wait (default: 30)")
+def open(url, wait, timeout):
+    """
+    Navigate to a URL.
+
+    Examples:
+        # Navigate to a URL:
+        zen open "https://example.com"
+
+        # Navigate and wait for page load:
+        zen open "https://example.com" --wait
+
+        # Navigate with custom timeout:
+        zen open "https://example.com" --wait --timeout 60
+    """
+    client = BridgeClient()
+
+    if not client.is_alive():
+        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        sys.exit(1)
+
+    # Basic navigation code
+    nav_code = f"""
+        window.location.href = {json.dumps(url)};
+        true;
+    """
+
+    # If wait flag is set, wait for page load
+    if wait:
+        nav_code = f"""
+            (async () => {{
+                window.location.href = {json.dumps(url)};
+
+                // Wait for navigation to complete
+                await new Promise((resolve, reject) => {{
+                    const startTime = Date.now();
+                    const timeoutMs = {timeout * 1000};
+
+                    const checkLoad = () => {{
+                        if (document.readyState === 'complete') {{
+                            resolve();
+                        }} else if (Date.now() - startTime > timeoutMs) {{
+                            reject(new Error('Page load timeout'));
+                        }} else {{
+                            setTimeout(checkLoad, 100);
+                        }}
+                    }};
+
+                    if (document.readyState === 'complete') {{
+                        resolve();
+                    }} else {{
+                        window.addEventListener('load', resolve, {{ once: true }});
+                        setTimeout(() => reject(new Error('Page load timeout')), timeoutMs);
+                    }}
+                }});
+
+                return {{ ok: true, url: window.location.href }};
+            }})();
+        """
+
+    try:
+        click.echo(f"Opening: {url}")
+        result = client.execute(nav_code, timeout=timeout + 5 if wait else 10.0)
+
+        if not result.get("ok"):
+            click.echo(f"Error: {result.get('error')}", err=True)
+            sys.exit(1)
+
+        if wait:
+            response = result.get("result", {})
+            if response.get("ok"):
+                click.echo(f"✓ Page loaded: {response.get('url', url)}")
+            else:
+                click.echo("Navigation initiated")
+        else:
+            click.echo("✓ Navigation initiated")
+
+    except (ConnectionError, TimeoutError, RuntimeError) as e:
+        click.echo(f"Error: {e}", err=True)
+        sys.exit(1)
+
+
+@cli.command()
+def back():
+    """
+    Go back to the previous page in browser history.
+
+    Example:
+        zen back
+    """
+    client = BridgeClient()
+
+    if not client.is_alive():
+        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        sys.exit(1)
+
+    code = "window.history.back(); true;"
+
+    try:
+        result = client.execute(code, timeout=10.0)
+
+        if not result.get("ok"):
+            click.echo(f"Error: {result.get('error')}", err=True)
+            sys.exit(1)
+
+        click.echo("✓ Navigated back")
+
+    except (ConnectionError, TimeoutError, RuntimeError) as e:
+        click.echo(f"Error: {e}", err=True)
+        sys.exit(1)
+
+
+@cli.command()
+def forward():
+    """
+    Go forward to the next page in browser history.
+
+    Example:
+        zen forward
+    """
+    client = BridgeClient()
+
+    if not client.is_alive():
+        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        sys.exit(1)
+
+    code = "window.history.forward(); true;"
+
+    try:
+        result = client.execute(code, timeout=10.0)
+
+        if not result.get("ok"):
+            click.echo(f"Error: {result.get('error')}", err=True)
+            sys.exit(1)
+
+        click.echo("✓ Navigated forward")
+
+    except (ConnectionError, TimeoutError, RuntimeError) as e:
+        click.echo(f"Error: {e}", err=True)
+        sys.exit(1)
+
+
+@cli.command()
+@click.option("--hard", is_flag=True, help="Hard reload (bypass cache)")
+def reload(hard):
+    """
+    Reload the current page.
+
+    Examples:
+        # Normal reload:
+        zen reload
+
+        # Hard reload (bypass cache):
+        zen reload --hard
+    """
+    client = BridgeClient()
+
+    if not client.is_alive():
+        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        sys.exit(1)
+
+    if hard:
+        code = "window.location.reload(true); true;"
+        msg = "✓ Hard reload initiated"
+    else:
+        code = "window.location.reload(); true;"
+        msg = "✓ Reload initiated"
+
+    try:
+        result = client.execute(code, timeout=10.0)
+
+        if not result.get("ok"):
+            click.echo(f"Error: {result.get('error')}", err=True)
+            sys.exit(1)
+
+        click.echo(msg)
+
+    except (ConnectionError, TimeoutError, RuntimeError) as e:
+        click.echo(f"Error: {e}", err=True)
+        sys.exit(1)
+
+
+@cli.command()
+@click.option("--hard", is_flag=True, help="Hard reload (bypass cache)")
+def refresh(hard):
+    """
+    Reload the current page (alias for 'reload').
+
+    Examples:
+        # Normal reload:
+        zen refresh
+
+        # Hard reload (bypass cache):
+        zen refresh --hard
+    """
+    # Just call the reload function
+    from click.testing import CliRunner
+    ctx = click.get_current_context()
+    ctx.invoke(reload, hard=hard)
+
+
 @cli.group()
 def cookies():
     """Manage browser cookies."""
@@ -3260,7 +3464,8 @@ def outline():
 @click.option("--only-external", is_flag=True, help="Show only external links (different domain)")
 @click.option("--alphabetically", is_flag=True, help="Sort links alphabetically")
 @click.option("--only-urls", is_flag=True, help="Show only URLs without anchor text")
-def links(only_internal, only_external, alphabetically, only_urls):
+@click.option("--json", "output_json", is_flag=True, help="Output as JSON with detailed link information")
+def links(only_internal, only_external, alphabetically, only_urls, output_json):
     """
     Extract all links from the current page.
 
@@ -3331,6 +3536,17 @@ def links(only_internal, only_external, alphabetically, only_urls):
             else:
                 # Sort by anchor text
                 filtered_links.sort(key=lambda x: x["text"].lower())
+
+        # If JSON output is requested, output JSON and exit
+        if output_json:
+            import json
+            output_data = {
+                "links": filtered_links,
+                "total": len(filtered_links),
+                "domain": domain
+            }
+            click.echo(json.dumps(output_data, indent=2))
+            return
 
         # Output links
         if only_urls:
