@@ -1,0 +1,430 @@
+/* Zen Browser Bridge - Custom Styles */
+
+/* ===========================
+   Color Scheme & Variables
+   =========================== */
+
+:root {
+  --zen-primary: #5c6bc0;
+  --zen-accent: #3949ab;
+  --zen-success: #66bb6a;
+  --zen-warning: #ffa726;
+  --zen-error: #ef5350;
+  --zen-info: #29b6f6;
+
+  --zen-gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --zen-gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --zen-gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+
+  --zen-shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+  --zen-shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+  --zen-shadow-lg: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+[data-md-color-scheme="slate"] {
+  --zen-card-bg: #2a2e37;
+  --zen-card-border: #3d4350;
+  --zen-code-bg: #1e2129;
+}
+
+[data-md-color-scheme="default"] {
+  --zen-card-bg: #ffffff;
+  --zen-card-border: #e0e0e0;
+  --zen-code-bg: #f5f5f5;
+}
+
+/* ===========================
+   Enhanced Code Blocks
+   =========================== */
+
+.highlight {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--zen-shadow-md);
+  margin: 1.5em 0;
+}
+
+.highlight pre {
+  margin: 0;
+  padding: 1.5em;
+  background: var(--zen-code-bg);
+  line-height: 1.6;
+}
+
+/* Inline code */
+code:not(.highlight code) {
+  background: var(--zen-code-bg);
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
+  font-size: 0.9em;
+  font-weight: 500;
+}
+
+/* Code block with title */
+.highlight + .tabbed-set {
+  margin-top: -1em;
+}
+
+/* ===========================
+   Custom Cards & Callouts
+   =========================== */
+
+.md-typeset .admonition,
+.md-typeset details {
+  border-radius: 8px;
+  box-shadow: var(--zen-shadow-sm);
+  border-left: 4px solid var(--zen-primary);
+  margin: 1.5em 0;
+}
+
+.md-typeset .admonition-title,
+.md-typeset summary {
+  font-weight: 600;
+  padding-left: 3rem;
+}
+
+/* Success callouts */
+.md-typeset .success {
+  border-left-color: var(--zen-success);
+}
+
+/* Warning callouts */
+.md-typeset .warning {
+  border-left-color: var(--zen-warning);
+}
+
+/* Info callouts */
+.md-typeset .info,
+.md-typeset .note {
+  border-left-color: var(--zen-info);
+}
+
+/* ===========================
+   Enhanced Grid Cards
+   =========================== */
+
+.md-typeset .grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.md-typeset .grid.cards > ul {
+  display: contents;
+  list-style: none;
+  padding: 0;
+}
+
+.md-typeset .grid.cards > ul > li {
+  background: var(--zen-card-bg);
+  border: 1px solid var(--zen-card-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  box-shadow: var(--zen-shadow-sm);
+}
+
+.md-typeset .grid.cards > ul > li:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--zen-shadow-lg);
+  border-color: var(--zen-primary);
+}
+
+.md-typeset .grid.cards > ul > li strong {
+  display: block;
+  font-size: 1.2em;
+  margin-bottom: 0.5em;
+  color: var(--zen-primary);
+}
+
+/* ===========================
+   Enhanced Tables
+   =========================== */
+
+.md-typeset table:not([class]) {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--zen-shadow-sm);
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 1.5em 0;
+}
+
+.md-typeset table:not([class]) thead {
+  background: var(--zen-primary);
+  color: white;
+}
+
+.md-typeset table:not([class]) thead th {
+  font-weight: 600;
+  padding: 1rem;
+  border: none;
+}
+
+.md-typeset table:not([class]) tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.md-typeset table:not([class]) tbody tr:hover {
+  background-color: rgba(92, 107, 192, 0.05);
+}
+
+.md-typeset table:not([class]) tbody td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--zen-card-border);
+}
+
+/* ===========================
+   Mermaid Diagrams
+   =========================== */
+
+.mermaid {
+  text-align: center;
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: var(--zen-card-bg);
+  border-radius: 12px;
+  box-shadow: var(--zen-shadow-md);
+  overflow-x: auto;
+}
+
+.mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ===========================
+   Typography Enhancements
+   =========================== */
+
+.md-typeset h1 {
+  font-weight: 700;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  background: var(--zen-gradient-1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.md-typeset h2 {
+  font-weight: 600;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--zen-card-border);
+}
+
+.md-typeset h3 {
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  color: var(--zen-primary);
+}
+
+/* Better link styling */
+.md-typeset a {
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+.md-typeset a:hover {
+  border-bottom-color: currentColor;
+}
+
+/* ===========================
+   Command/Terminal Output
+   =========================== */
+
+.terminal-output {
+  background: #1e1e1e;
+  color: #d4d4d4;
+  padding: 1.5rem;
+  border-radius: 8px;
+  font-family: 'Roboto Mono', 'Courier New', monospace;
+  font-size: 0.9em;
+  margin: 1.5em 0;
+  box-shadow: var(--zen-shadow-md);
+  overflow-x: auto;
+}
+
+.terminal-output .command {
+  color: #9cdcfe;
+  font-weight: 600;
+}
+
+.terminal-output .comment {
+  color: #6a9955;
+}
+
+.terminal-output .output {
+  color: #ce9178;
+}
+
+/* Command prompt */
+.terminal-output::before {
+  content: "$ ";
+  color: #4ec9b0;
+  font-weight: bold;
+}
+
+/* ===========================
+   Feature Comparison Table
+   =========================== */
+
+.feature-comparison {
+  margin: 2rem 0;
+}
+
+.feature-comparison table {
+  width: 100%;
+}
+
+.feature-comparison td:first-child {
+  font-weight: 600;
+}
+
+.feature-comparison td {
+  text-align: center;
+}
+
+.feature-comparison td:first-child {
+  text-align: left;
+}
+
+/* Checkmark and X styling */
+.feature-comparison td:has(> :is(.check, .cross)) {
+  font-size: 1.2em;
+}
+
+/* ===========================
+   Navigation Enhancements
+   =========================== */
+
+.md-nav__item--active > .md-nav__link {
+  font-weight: 600;
+  color: var(--zen-primary);
+}
+
+.md-tabs__item--active {
+  font-weight: 600;
+}
+
+/* ===========================
+   Improved Spacing
+   =========================== */
+
+.md-typeset hr {
+  margin: 3rem 0;
+  border: none;
+  height: 2px;
+  background: linear-gradient(to right, transparent, var(--zen-card-border), transparent);
+}
+
+.md-typeset ul,
+.md-typeset ol {
+  margin: 1em 0;
+}
+
+.md-typeset li {
+  margin: 0.5em 0;
+}
+
+/* ===========================
+   Copy Button Enhancement
+   =========================== */
+
+.md-clipboard {
+  color: var(--zen-primary);
+  transition: transform 0.2s ease;
+}
+
+.md-clipboard:hover {
+  transform: scale(1.1);
+}
+
+/* ===========================
+   Tabbed Content
+   =========================== */
+
+.tabbed-set {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--zen-shadow-sm);
+  margin: 1.5rem 0;
+}
+
+.tabbed-labels > label {
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.tabbed-labels > label:hover {
+  background-color: rgba(92, 107, 192, 0.1);
+}
+
+/* ===========================
+   Responsive Adjustments
+   =========================== */
+
+@media screen and (max-width: 768px) {
+  .md-typeset .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mermaid {
+    padding: 1rem;
+  }
+
+  .md-typeset h1 {
+    font-size: 1.8em;
+  }
+}
+
+/* ===========================
+   Print Styles
+   =========================== */
+
+@media print {
+  .md-typeset .grid.cards > ul > li {
+    break-inside: avoid;
+  }
+
+  .mermaid {
+    break-inside: avoid;
+  }
+}
+
+/* ===========================
+   Accessibility
+   =========================== */
+
+/* Focus indicators */
+*:focus-visible {
+  outline: 2px solid var(--zen-primary);
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .md-typeset .grid.cards > ul > li {
+    border-width: 2px;
+  }
+
+  .md-typeset table:not([class]) {
+    border: 2px solid var(--zen-card-border);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

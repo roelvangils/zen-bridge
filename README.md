@@ -10,6 +10,15 @@ A powerful CLI tool for browser automation, debugging, and interactive developme
 [![Coverage](https://img.shields.io/badge/coverage-12.53%25-yellow.svg)](https://github.com/roelvangils/zen-bridge)
 [![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![CI](https://img.shields.io/badge/CI-GitHub%20Actions-blue.svg)](https://github.com/roelvangils/zen-bridge/actions)
+[![Documentation](https://img.shields.io/badge/docs-mkdocs-blue.svg)](https://roelvangils.github.io/zen-bridge/)
+
+---
+
+📚 **[Read the Full Documentation →](https://roelvangils.github.io/zen-bridge/)**
+
+Comprehensive guides, API reference, tutorials, and examples. Beautiful Material theme with search, dark mode, and interactive examples.
+
+---
 
 ## ✨ Features
 

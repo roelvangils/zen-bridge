@@ -48,3 +48,6 @@ htmlcov/
 *.log
 .env
 coverage.xml
+
+# Documentation
+site/
