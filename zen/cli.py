@@ -3308,7 +3308,8 @@ def all():
 
 @cli.command()
 @click.option("--language", "--lang", type=str, default=None, help="Language for AI output (overrides config)")
-def describe(language):
+@click.option("--debug", is_flag=True, help="Show the full prompt instead of calling AI")
+def describe(language, debug):
     """
     Generate an AI-powered description of the page for screen reader users.
 
@@ -3474,6 +3475,17 @@ def describe(language):
 
         # Combine prompt with structured data
         full_input = f"{prompt}\n\n{'='*60}\nPAGE STRUCTURE DATA:\n{'='*60}\n\n" + "\n".join(structured_info)
+
+        # Debug mode: show the full prompt instead of calling AI
+        if debug:
+            click.echo("=" * 80)
+            click.echo("DEBUG: Full prompt that would be sent to AI")
+            click.echo("=" * 80)
+            click.echo()
+            click.echo(full_input)
+            click.echo()
+            click.echo("=" * 80)
+            return
 
         click.echo("Generating description...", err=True)
 
@@ -3882,7 +3894,8 @@ def links(only_internal, only_external, alphabetically, only_urls, output_json, 
 @cli.command()
 @click.option("--format", type=click.Choice(["summary", "full"]), default="summary", help="Output format (summary or full article)")
 @click.option("--language", "--lang", type=str, default=None, help="Language for AI output (overrides config)")
-def summarize(format, language):
+@click.option("--debug", is_flag=True, help="Show the full prompt instead of calling AI")
+def summarize(format, language, debug):
     """
     Summarize the current article using AI.
 
@@ -3972,6 +3985,20 @@ def summarize(format, language):
 
         # Prepare the input for mods
         full_input = f"{prompt}\n\nTitle: {title}\n\n{content}"
+
+        # Debug mode: show the full prompt instead of calling AI
+        if debug:
+            click.echo("=" * 80)
+            click.echo("DEBUG: Full prompt that would be sent to AI")
+            click.echo("=" * 80)
+            click.echo()
+            if byline:
+                click.echo(f"Article by: {byline}")
+                click.echo()
+            click.echo(full_input)
+            click.echo()
+            click.echo("=" * 80)
+            return
 
         # Call mods
         try:
