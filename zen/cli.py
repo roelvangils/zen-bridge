@@ -2028,7 +2028,7 @@ def double_click(selector):
     _perform_click(selector, "dblclick")
 
 
-@cli.command(name="doubleclick")
+@cli.command(name="doubleclick", hidden=True)
 @click.argument("selector", required=False, default="$0")
 def doubleclick_alias(selector):
     """Alias for double-click command."""
@@ -2051,7 +2051,7 @@ def right_click(selector):
     _perform_click(selector, "contextmenu")
 
 
-@cli.command(name="rightclick")
+@cli.command(name="rightclick", hidden=True)
 @click.argument("selector", required=False, default="$0")
 def rightclick_alias(selector):
     """Alias for right-click command."""
@@ -2330,6 +2330,13 @@ def back():
         sys.exit(1)
 
 
+@cli.command(hidden=True)
+def previous():
+    """Alias for 'back' command."""
+    ctx = click.get_current_context()
+    ctx.invoke(back)
+
+
 @cli.command()
 def forward():
     """
@@ -2358,6 +2365,13 @@ def forward():
     except (ConnectionError, TimeoutError, RuntimeError) as e:
         click.echo(f"Error: {e}", err=True)
         sys.exit(1)
+
+
+@cli.command(hidden=True)
+def next():
+    """Alias for 'forward' command."""
+    ctx = click.get_current_context()
+    ctx.invoke(forward)
 
 
 @cli.command()
@@ -2400,7 +2414,7 @@ def reload(hard):
         sys.exit(1)
 
 
-@cli.command()
+@cli.command(hidden=True)
 @click.option("--hard", is_flag=True, help="Hard reload (bypass cache)")
 def refresh(hard):
     """
