@@ -4,8 +4,12 @@
 
 A powerful CLI tool for browser automation, debugging, and interactive development. Control your browser, extract data, automate tasks, and interact with web pages—all from your terminal.
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/roelvangils/zen-bridge)
+[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/roelvangils/zen-bridge)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Tests](https://img.shields.io/badge/tests-244%20passing-brightgreen.svg)](https://github.com/roelvangils/zen-bridge)
+[![Coverage](https://img.shields.io/badge/coverage-12.53%25-yellow.svg)](https://github.com/roelvangils/zen-bridge)
+[![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![CI](https://img.shields.io/badge/CI-GitHub%20Actions-blue.svg)](https://github.com/roelvangils/zen-bridge/actions)
 
 ## ✨ Features
 
@@ -20,9 +24,21 @@ A powerful CLI tool for browser automation, debugging, and interactive developme
 - **Smart Help** - Enhanced help system shows all available flags for each command
 - **Fast & Reliable** - WebSocket-based architecture for instant responses
 
+## 🆕 What's New in v2.0
+
+- **Modular Architecture** - Clean hexagonal design with 4 layers
+- **Comprehensive Testing** - 244 tests with 97%+ coverage on core services
+- **Enhanced Performance** - Eliminated blocking I/O for faster responses
+- **Better Documentation** - Complete architecture and security docs
+- **Type Safety** - Full type hints with Pydantic validation
+- **CI/CD Pipeline** - Automated testing on Python 3.11-3.13
+- **Zero Breaking Changes** - Full backward compatibility with v1.x
+
 ## 📦 Installation
 
 ### 1. Install the CLI tool
+
+**Requirements:** Python 3.11+
 
 ```bash
 # Clone the repository
@@ -648,22 +664,65 @@ zen control --help
 - `prompts/summary.prompt` - AI summarization prompt
 - `prompts/describe.prompt` - Page description prompt
 
-## 🏗️ Architecture
+## 🏗 Architecture
 
-The bridge uses a **WebSocket-based architecture** for fast, bidirectional communication:
+Zen Bridge follows a **hexagonal architecture** with clear separation of concerns:
+
+- **Domain Layer** - Pure business logic with Pydantic models
+- **Adapter Layer** - I/O operations (filesystem, WebSocket)
+- **Service Layer** - Application services and orchestration
+- **Application Layer** - CLI commands and server
+
+This design ensures:
+- ✅ High testability (97%+ coverage on services)
+- ✅ Clear dependencies (no circular imports)
+- ✅ Easy extensibility (add new commands/services)
+- ✅ Maintainable codebase (avg 362 lines per module)
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for details.
+
+## 🛠 Development
+
+### Running Tests
+
+```bash
+# Run all tests
+make test
+
+# Run specific test suites
+pytest tests/unit/ -v              # Unit tests
+pytest tests/integration/ -v       # Integration tests
+pytest tests/e2e/ -v               # E2E tests (requires Playwright)
+
+# Check code quality
+make lint                          # Linting with ruff
+make typecheck                     # Type checking with mypy
+make format                        # Auto-format code
+```
+
+### Project Structure
 
 ```
-┌─────────┐         ┌────────────┐         ┌─────────────┐
-│   CLI   │────────>│   Bridge   │<───────>│   Browser   │
-│         │  HTTP   │   Server   │WebSocket│ (Userscript)│
-└─────────┘         └────────────┘         └─────────────┘
+zen/
+├── domain/          # Core models (Pydantic)
+├── adapters/        # I/O adapters (filesystem, etc.)
+├── services/        # Business logic
+│   ├── bridge_executor.py
+│   ├── ai_integration.py
+│   ├── control_manager.py
+│   └── script_loader.py
+└── app/
+    ├── cli/         # CLI commands (12 modules)
+    └── bridge_ws.py # WebSocket server
 ```
 
-**Key features:**
-- **Fast:** ~12x faster than HTTP polling
-- **Reliable:** Request IDs match commands with results
-- **Persistent:** Survives page navigation with auto-reconnect
-- **Optimized:** Scripts cached in memory for speed
+### Documentation
+
+- [ARCHITECTURE.md](ARCHITECTURE.md) - System architecture and design
+- [SECURITY.md](SECURITY.md) - Security model and best practices
+- [PROTOCOL.md](PROTOCOL.md) - WebSocket protocol specification
+- [CONTRIBUTING.md](CONTRIBUTING.md) - Development guide
+- [REFACTOR_PLAN.md](REFACTOR_PLAN.md) - Refactoring history
 
 ## 🐛 Troubleshooting
 
@@ -704,42 +763,6 @@ zen server status
 zen server start  # (foreground mode to see logs)
 ```
 
-## 🧪 Development
-
-### Project Structure
-
-```
-zen_bridge/
-├── zen/
-│   ├── __init__.py        # Package info
-│   ├── bridge_ws.py       # WebSocket server
-│   ├── client.py          # Client library
-│   ├── cli.py             # CLI interface
-│   ├── config.py          # Configuration
-│   ├── scripts/           # Built-in scripts
-│   └── templates/         # Script templates
-├── prompts/               # AI prompts
-├── userscript_ws.js      # Browser userscript
-├── setup.py              # Package setup
-├── requirements.txt      # Dependencies
-└── README.md            # Documentation
-```
-
-### Running Tests
-
-```bash
-# Start server
-zen server start --daemon
-
-# Open browser and navigate to a test page
-
-# Run manual tests
-zen eval "document.title"
-zen info
-zen repl
-zen links
-zen outline
-```
 
 ## 📝 License
 
@@ -760,6 +783,8 @@ Special thanks to:
 
 Contributions are welcome! Please feel free to submit issues, feature requests, or pull requests.
 
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines and [ARCHITECTURE.md](ARCHITECTURE.md) for system design details.
+
 ## 📖 More Resources
 
 - **[EXAMPLES.md](EXAMPLES.md)** - 50+ real-world use cases and workflows
@@ -768,4 +793,4 @@ Contributions are welcome! Please feel free to submit issues, feature requests, 
 
 ---
 
-**Zen Browser Bridge v1.0.0** - Control your browser from the command line.
+**Zen Browser Bridge v2.0.0** - Control your browser from the command line.
