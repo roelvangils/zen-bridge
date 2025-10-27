@@ -40,7 +40,51 @@ def format_output(result: dict, format_type: str = "auto") -> str:
             return str(value)
 
 
-@click.group()
+class CustomGroup(click.Group):
+    """Custom Click Group that shows all command options in help."""
+
+    def format_help(self, ctx, formatter):
+        self.format_usage(ctx, formatter)
+        self.format_help_text(ctx, formatter)
+        self.format_options(ctx, formatter)
+        self.format_commands_with_options(ctx, formatter)
+        self.format_epilog(ctx, formatter)
+
+    def format_commands_with_options(self, ctx, formatter):
+        """List all commands with their options."""
+        commands = self.list_commands(ctx)
+
+        if len(commands):
+            formatter.write_paragraph()
+            formatter.write_text("Commands:")
+            formatter.write_paragraph()
+
+            for subcommand in commands:
+                cmd = self.get_command(ctx, subcommand)
+                if cmd is None:
+                    continue
+
+                # Write command name and description
+                help_text = cmd.get_short_help_str(limit=80)
+                formatter.write_text(f"  {subcommand}")
+                if help_text:
+                    formatter.write_text(f"    {help_text}")
+
+                # Write command options
+                params = [p for p in cmd.params if isinstance(p, click.Option)]
+                if params:
+                    for param in params:
+                        opts = ", ".join(param.opts)
+                        help_text = param.help or ""
+                        default = ""
+                        if param.default is not None and not isinstance(param.default, bool):
+                            default = f" [default: {param.default}]"
+                        formatter.write_text(f"      {opts}  {help_text}{default}")
+
+                formatter.write_paragraph()
+
+
+@click.group(cls=CustomGroup)
 @click.version_option(version=__version__)
 def cli():
     """Zen Browser Bridge - Execute JavaScript in your browser from the CLI."""
@@ -3476,13 +3520,158 @@ def outline():
         sys.exit(1)
 
 
+def _enrich_link_metadata(url: str) -> dict:
+    """
+    Fetch metadata for a single external link using curl.
+
+    Returns dict with: http_status, mime_type, file_size, filename, page_title, page_language
+    """
+    import re
+
+    enrichment = {
+        "http_status": None,
+        "mime_type": None,
+        "file_size": None,
+        "filename": None,
+        "page_title": None,
+        "page_language": None
+    }
+
+    try:
+        # First, do a HEAD request to get headers
+        head_result = subprocess.run(
+            [
+                "curl", "-L", "-I", "-s", "-m", "5",
+                "--user-agent", "zen-bridge/1.0",
+                url
+            ],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+
+        if head_result.returncode != 0:
+            return enrichment
+
+        headers = head_result.stdout
+
+        # Parse HTTP status code
+        status_match = re.search(r'HTTP/[\d.]+ (\d+)', headers)
+        if status_match:
+            enrichment["http_status"] = int(status_match.group(1))
+
+        # Parse Content-Type
+        content_type_match = re.search(r'(?i)^Content-Type:\s*([^\r\n;]+)', headers, re.MULTILINE)
+        if content_type_match:
+            enrichment["mime_type"] = content_type_match.group(1).strip()
+
+        # Parse Content-Length
+        content_length_match = re.search(r'(?i)^Content-Length:\s*(\d+)', headers, re.MULTILINE)
+        if content_length_match:
+            enrichment["file_size"] = int(content_length_match.group(1))
+
+        # Parse Content-Disposition for filename
+        content_disp_match = re.search(r'(?i)^Content-Disposition:.*filename[*]?=["\']?([^"\'\r\n;]+)', headers, re.MULTILINE)
+        if content_disp_match:
+            enrichment["filename"] = content_disp_match.group(1).strip()
+
+        # Parse Content-Language
+        content_lang_match = re.search(r'(?i)^Content-Language:\s*([^\r\n;]+)', headers, re.MULTILINE)
+        if content_lang_match:
+            enrichment["page_language"] = content_lang_match.group(1).strip()
+
+        # If this looks like HTML, fetch partial content to get title and lang
+        mime_type = enrichment.get("mime_type", "").lower()
+        if mime_type and ("html" in mime_type or mime_type == "text/html"):
+            # Fetch first 16KB of content
+            get_result = subprocess.run(
+                [
+                    "curl", "-L", "-s", "-m", "5",
+                    "--user-agent", "zen-bridge/1.0",
+                    "--max-filesize", "16384",
+                    url
+                ],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+
+            if get_result.returncode == 0:
+                html_content = get_result.stdout
+
+                # Extract page title
+                title_match = re.search(r'<title[^>]*>([^<]+)</title>', html_content, re.IGNORECASE)
+                if title_match:
+                    # Decode HTML entities and clean up
+                    title = title_match.group(1).strip()
+                    title = re.sub(r'\s+', ' ', title)  # Normalize whitespace
+                    enrichment["page_title"] = title
+
+                # Extract language from <html lang="...">
+                if not enrichment["page_language"]:
+                    lang_match = re.search(r'<html[^>]+lang=["\']?([^"\'\s>]+)', html_content, re.IGNORECASE)
+                    if lang_match:
+                        enrichment["page_language"] = lang_match.group(1).strip()
+
+    except (subprocess.TimeoutExpired, subprocess.SubprocessError, Exception):
+        # Silently fail - return partial data
+        pass
+
+    return enrichment
+
+
+def _enrich_external_links(links: list) -> list:
+    """
+    Enrich external links with metadata using parallel curl requests.
+    Only processes up to 50 external links.
+
+    Returns the same list with enrichment data added to external links.
+    """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    # Filter to get external links only
+    external_links = [link for link in links if link.get("external") or link.get("type") == "external"]
+
+    # Check if we should skip enrichment
+    if len(external_links) > 50:
+        return links
+
+    # Create a mapping of URL to link object
+    url_to_link = {}
+    urls_to_enrich = []
+
+    for link in external_links:
+        url = link.get("url") or link.get("href")
+        if url:
+            url_to_link[url] = link
+            urls_to_enrich.append(url)
+
+    # Fetch metadata in parallel
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        future_to_url = {executor.submit(_enrich_link_metadata, url): url for url in urls_to_enrich}
+
+        for future in as_completed(future_to_url):
+            url = future_to_url[future]
+            try:
+                enrichment = future.result()
+                # Add enrichment data to the link object
+                link_obj = url_to_link[url]
+                link_obj.update(enrichment)
+            except Exception:
+                # Skip failed enrichments
+                pass
+
+    return links
+
+
 @cli.command()
 @click.option("--only-internal", is_flag=True, help="Show only internal links (same domain)")
 @click.option("--only-external", is_flag=True, help="Show only external links (different domain)")
 @click.option("--alphabetically", is_flag=True, help="Sort links alphabetically")
 @click.option("--only-urls", is_flag=True, help="Show only URLs without anchor text")
 @click.option("--json", "output_json", is_flag=True, help="Output as JSON with detailed link information")
-def links(only_internal, only_external, alphabetically, only_urls, output_json):
+@click.option("--enrich-external", is_flag=True, help="Fetch additional metadata for external links (MIME type, file size, page title, language, HTTP status)")
+def links(only_internal, only_external, alphabetically, only_urls, output_json, enrich_external):
     """
     Extract all links from the current page.
 
@@ -3496,6 +3685,7 @@ def links(only_internal, only_external, alphabetically, only_urls, output_json):
         zen links --alphabetically          # Sort alphabetically
         zen links --only-urls               # Show only URLs
         zen links --only-external --only-urls  # External URLs only
+        zen links --enrich-external         # Add metadata for external links
     """
     client = BridgeClient()
 
@@ -3545,6 +3735,10 @@ def links(only_internal, only_external, alphabetically, only_urls, output_json):
             click.echo(f"No {filter_type} links found.", err=True)
             sys.exit(0)
 
+        # Enrich external links if requested
+        if enrich_external:
+            filtered_links = _enrich_external_links(filtered_links)
+
         # Sort if requested
         if alphabetically:
             if only_urls:
@@ -3582,6 +3776,45 @@ def links(only_internal, only_external, alphabetically, only_urls, output_json):
                 type_indicator = "↗" if link["type"] == "external" else "→"
                 click.echo(f"{type_indicator} {text}")
                 click.echo(f"  {href}")
+
+                # Show enrichment data if available
+                if enrich_external and link.get("type") == "external":
+                    enrichment_lines = []
+
+                    if link.get("http_status") is not None:
+                        enrichment_lines.append(f"HTTP {link['http_status']}")
+
+                    if link.get("mime_type"):
+                        enrichment_lines.append(link["mime_type"])
+
+                    if link.get("file_size") is not None:
+                        # Format file size in human-readable format
+                        size = link["file_size"]
+                        if size < 1024:
+                            size_str = f"{size} B"
+                        elif size < 1024 * 1024:
+                            size_str = f"{size / 1024:.1f} KB"
+                        elif size < 1024 * 1024 * 1024:
+                            size_str = f"{size / (1024 * 1024):.1f} MB"
+                        else:
+                            size_str = f"{size / (1024 * 1024 * 1024):.1f} GB"
+                        enrichment_lines.append(size_str)
+
+                    if link.get("filename"):
+                        enrichment_lines.append(f"File: {link['filename']}")
+
+                    if link.get("page_title"):
+                        title = link["page_title"]
+                        if len(title) > 60:
+                            title = title[:57] + "..."
+                        enrichment_lines.append(f"Title: {title}")
+
+                    if link.get("page_language"):
+                        enrichment_lines.append(f"Lang: {link['page_language']}")
+
+                    if enrichment_lines:
+                        click.echo(f"  {' | '.join(enrichment_lines)}")
+
                 click.echo("")
 
         # Show summary

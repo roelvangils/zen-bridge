@@ -1,27 +1,34 @@
 # Zen Browser Bridge
 
-Execute JavaScript in your browser from the command line. A powerful CLI tool for browser automation, debugging, and interactive development.
+**Execute JavaScript in your browser from the command line.**
 
-## Features
+A powerful CLI tool for browser automation, debugging, and interactive development. Control your browser, extract data, automate tasks, and interact with web pages—all from your terminal.
 
-- Execute JavaScript code in your active browser tab from the terminal
-- Interactive REPL for live experimentation
-- AI-powered article summarization with Mozilla Readability
-- AI-generated page descriptions for screen reader users
-- Page outline visualization (heading hierarchy)
-- Link extraction with filtering (internal/external) and sorting
-- Keyboard-driven browser control with auto-refocus and verbose mode
-- Synchronous request/response handling
-- Execute code from files or stdin
-- Get page information (URL, title, dimensions, etc.)
-- Multiple output formats (auto, JSON, raw)
-- Works with Firefox, Zen, and any browser supporting userscripts
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/roelvangils/zen-bridge)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-## Installation
+## ✨ Features
+
+- **Execute JavaScript** - Run code in your active browser tab from the terminal
+- **Interactive REPL** - Live JavaScript experimentation with instant feedback
+- **AI Integration** - Article summarization and page descriptions powered by AI
+- **Element Interaction** - Click, inspect, highlight, and wait for elements
+- **Keyboard Control** - Navigate pages entirely from your keyboard with auto-refocus
+- **Data Extraction** - Links, images, tables, metadata, and more
+- **File Downloads** - Interactive file finder and downloader
+- **Real-time Monitoring** - Watch keyboard events and browser activity
+- **Smart Help** - Enhanced help system shows all available flags for each command
+- **Fast & Reliable** - WebSocket-based architecture for instant responses
+
+## 📦 Installation
 
 ### 1. Install the CLI tool
 
 ```bash
+# Clone the repository
+git clone https://github.com/roelvangils/zen-bridge.git
+cd zen-bridge
+
 # Install in development mode
 pip install -e .
 
@@ -31,27 +38,23 @@ pip install -r requirements.txt
 
 ### 2. Install the userscript
 
-The browser needs a userscript to receive and execute commands from the CLI.
+The browser needs a userscript to receive commands from the CLI.
 
-1. Install a userscript manager in your browser:
+1. **Install a userscript manager** in your browser:
    - [Violentmonkey](https://violentmonkey.github.io/) (recommended)
    - [Tampermonkey](https://www.tampermonkey.net/)
    - [Greasemonkey](https://www.greasespot.net/) (Firefox only)
 
-2. Create a new userscript and copy the contents of **`userscript_ws.js`** (WebSocket version)
+2. **Create a new userscript** and copy the contents of `userscript_ws.js`
 
-3. Save and enable the script
+3. **Save and enable** the script
 
-To view the userscript location:
+To view the userscript:
 ```bash
 zen userscript
 ```
 
-**Note:** The WebSocket version (`userscript_ws.js`) is recommended for better performance and features like auto-refocus in control mode.
-
 ### 3. Start the bridge server
-
-The bridge server acts as a communication hub between the CLI and browser.
 
 ```bash
 # Start in foreground
@@ -64,43 +67,91 @@ zen server start --daemon
 zen server status
 ```
 
-## Usage
+## 🚀 Quick Start
 
-### Execute JavaScript code
+```bash
+# Execute JavaScript code
+zen eval "document.title"
+
+# Get page information
+zen info
+
+# Extract all links
+zen links --only-external
+
+# Start interactive REPL
+zen repl
+
+# Summarize article with AI
+zen summarize
+
+# Control browser with keyboard
+zen control
+
+# Get help with all commands and flags
+zen --help
+```
+
+## 📖 Usage Guide
+
+### Execute JavaScript
 
 ```bash
 # Simple expression
 zen eval "document.title"
 
-# Get page info
-zen eval "location.href"
-
-# Execute complex code
+# Complex code
 zen eval "Array.from(document.querySelectorAll('a')).map(a => a.href)"
 
-# Show URL and title
+# Show URL and title metadata
 zen eval "document.title" --url --title
 
 # JSON output format
 zen eval "({url: location.href, title: document.title})" --format json
-```
 
-### Execute from file
-
-```bash
-# Execute a JavaScript file
+# Execute from file
 zen eval --file script.js
 zen exec script.js
 
-# Or use stdin
-cat script.js | zen eval
+# Use stdin
 echo "console.log('Hello')" | zen eval
+cat script.js | zen eval
 ```
 
-### Get page information
+### Interactive REPL
+
+Start a live JavaScript session:
 
 ```bash
+zen repl
+```
+
+Example session:
+```javascript
+zen> document.title
+"Example Domain"
+
+zen> document.querySelectorAll('p').length
+2
+
+zen> Array.from(document.links).map(a => a.href)
+["https://example.com/page1", "https://example.com/page2"]
+
+zen> exit
+Goodbye!
+```
+
+### Page Information
+
+```bash
+# Basic info
 zen info
+
+# Extended info (language, meta tags, cookies)
+zen info --extended
+
+# JSON output
+zen info --json
 ```
 
 Output:
@@ -113,60 +164,120 @@ State:    complete
 Size:     1280x720
 ```
 
-### Interactive REPL
+### Element Interaction
 
-Start an interactive session to execute JavaScript live:
-
+**Click elements:**
 ```bash
-zen repl
+# Click by selector
+zen click "button#submit"
+
+# Double-click
+zen double-click "div.editable"
+
+# Right-click (context menu)
+zen right-click "a.download"
 ```
 
-Example session:
-```
-Zen Browser REPL - Type JavaScript code, 'exit' to quit
-
-Connected to: Example Domain (https://example.com)
-
-zen> document.title
-Example Domain
-
-zen> document.querySelectorAll('p').length
-2
-
-zen> exit
-Goodbye!
-```
-
-### Highlight elements on page
-
-Visually highlight elements matching a CSS selector:
-
+**Inspect elements:**
 ```bash
-# Highlight headings
+# Inspect by selector
+zen inspect "h1"
+
+# Get details of inspected element
+zen inspected
+
+# In browser DevTools Console, you can also use:
+# zenStore($0)  - Store currently inspected element
+# Then: zen inspected
+```
+
+**Highlight elements:**
+```bash
+# Highlight with default color (red)
 zen highlight "h1, h2"
 
-# Highlight with custom color
+# Custom color
 zen highlight "a" --color blue
 
-# Highlight form fields
-zen highlight "input, textarea" --color orange
-
-# Clear all highlights
-zen highlight "h1" --clear
+# Clear highlights
+zen highlight --clear
 ```
 
-### View page outline
+**Wait for elements:**
+```bash
+# Wait for element to exist (default: 30s timeout)
+zen wait "button#submit"
 
-Display the page's heading structure as a nested, hierarchical outline:
+# Wait for element to be visible
+zen wait ".modal-dialog" --visible
+
+# Wait for element to be hidden
+zen wait ".loading-spinner" --hidden
+
+# Wait for text content
+zen wait "div.result" --text "Success"
+
+# Custom timeout
+zen wait "div.notification" --timeout 10
+```
+
+### Extract Links
+
+```bash
+# Show all links
+zen links
+
+# Only URLs (one per line)
+zen links --only-urls
+
+# Filter to internal links
+zen links --only-internal
+
+# Filter to external links
+zen links --only-external
+
+# Sort alphabetically
+zen links --alphabetically
+
+# Get enriched metadata (MIME type, size, title, status)
+zen links --enrich-external
+
+# Combine filters
+zen links --only-external --only-urls --alphabetically
+```
+
+**Example output:**
+```
+→ Home Page
+  https://example.com/
+
+↗ External Resource
+  https://other-site.com/page
+
+Total: 15 links (8 internal, 7 external)
+```
+
+**Practical uses:**
+```bash
+# Export external links for analysis
+zen links --only-external --only-urls > external-links.txt
+
+# Count total links
+zen links --only-urls | wc -l
+
+# Find all PDF links
+zen links --only-urls | grep "\.pdf$"
+```
+
+### Page Outline
+
+Display heading hierarchy:
 
 ```bash
 zen outline
 ```
 
-**Output:**
-
-Shows all headings (H1-H6 and ARIA headings) with proper indentation:
-
+Output:
 ```
 H1 Getting Started
    H2 Installation
@@ -176,397 +287,132 @@ H1 Getting Started
       H3 Basic Settings
       H3 Advanced Options
          H4 Environment Variables
-   H2 Usage Examples
 
-Total: 8 headings
+Total: 7 headings
 ```
 
 **Features:**
-- Includes native HTML headings (H1-H6)
-- Includes ARIA headings (`role="heading"` with `aria-level`)
-- Proper nesting with 3-space indentation per level
-- Heading levels displayed in gray, text in white
-- Shows heading hierarchy at a glance
+- Native HTML headings (H1-H6)
+- ARIA headings (`role="heading"` with `aria-level`)
+- Hierarchical indentation
+- Colored output for readability
 
 **Use cases:**
-- Check document outline accessibility
-- Verify proper heading hierarchy
-- Understand page structure quickly
-- Identify missing or misplaced headings
+- Accessibility audits
+- Verify heading hierarchy
+- SEO analysis
+- Quick page structure overview
 
-### Extract links from page
+### AI-Powered Features
 
-Extract and filter all links from the current page:
+**Article Summarization:**
 
 ```bash
-# Show all links with anchor text
-zen links
+# Generate concise summary
+zen summarize
 
-# Show only URLs (one per line)
-zen links --only-urls
-
-# Filter to internal links only (same domain)
-zen links --only-internal
-
-# Filter to external links only (different domains)
-zen links --only-external
-
-# Sort links alphabetically
-zen links --alphabetically
-
-# Combine filters
-zen links --only-external --only-urls
-zen links --only-internal --only-urls --alphabetically
+# Show full extracted article
+zen summarize --format full
 ```
 
-**Output formats:**
+Requires [mods](https://github.com/charmbracelet/mods) to be installed.
 
-Default output shows anchor text with link type indicator:
-```
-→ Home Page
-  https://example.com/
-
-↗ External Resource
-  https://other-site.com/page
-
-Total: 15 links
-```
-
-With `--only-urls`, shows clean list of URLs:
-```
-https://example.com/
-https://example.com/about
-https://example.com/contact
-```
-
-**Use cases:**
-```bash
-# Get all external links for analysis
-zen links --only-external --only-urls > external-links.txt
-
-# Find all internal pages
-zen links --only-internal --only-urls --alphabetically
-
-# Quick link count
-zen links --only-urls | wc -l
-```
-
-### AI-powered page descriptions for screen readers
-
-Generate natural-language descriptions of web pages perfect for blind users:
+**Page Descriptions for Screen Readers:**
 
 ```bash
 zen describe
 ```
 
-**Purpose:**
+Generates a natural-language description perfect for blind users:
 
-Creates concise, conversational descriptions that help screen reader users quickly understand a page's structure and content without having to navigate through it first.
+```
+This webpage is in Dutch, but is also available in English and French.
+At the top you can navigate to services, articles, careers, about us
+and contact us. The main part contains a rather long article about an
+empathy lab with five headings. The footer contains standard links
+such as a sitemap and privacy statement.
+```
 
 **What it analyzes:**
-- Available languages and language switchers
-- Navigation menus and their options
-- Landmarks (header, main, footer, aside, etc.)
-- Heading structure and count
-- Main content length and type
-- Significant images with alt text
+- Available languages
+- Navigation menus
+- Page landmarks
+- Heading structure
+- Main content type and length
+- Significant images
 - Forms and interactive elements
-- Footer links and utilities
+- Footer utilities
 
-**Example output:**
+Requires [mods](https://github.com/charmbracelet/mods) to be installed.
 
-```
-This webpage is in Dutch, but is also available in English and French. At the top you
-can navigate to services, articles, careers, about us and contact us. There are no
-significant images on the page. The main part contains a rather long article about an
-empathy lab with five headings. Below that is a section with contact information. The
-footer contains standard links such as a sitemap and privacy statement.
-```
+### Download Files
 
-**How it works:**
-
-1. Extracts comprehensive page structure data
-2. Formats it as structured information for AI
-3. Sends to `mods` with a specialized prompt
-4. Returns a natural, conversational description
-
-**Requirements:**
-- [mods](https://github.com/charmbracelet/mods) must be installed
-- Works best on well-structured, semantic HTML
-
-**Customization:**
-
-Edit `prompts/describe.prompt` to adjust the description style:
+Find and download files interactively:
 
 ```bash
-nano prompts/describe.prompt
-```
-
-**Use cases:**
-- Quick page overviews for screen reader users
-- Accessibility testing and documentation
-- Understanding unfamiliar page structures
-- Pre-navigation decision making
-
-### Download files from page
-
-Find and download files from the current page interactively:
-
-```bash
-# Interactive selection with gum
+# Interactive selection
 zen download
 
-# List all downloadable files without downloading
+# List files without downloading
 zen download --list
 
-# Download to specific directory
+# Custom output directory
 zen download --output ~/Downloads
 ```
 
-Supported file types:
-- Images (jpg, png, gif, svg, webp, etc.)
-- PDF documents
-- Videos (mp4, webm, avi, mov, etc.)
-- Audio files (mp3, wav, ogg, etc.)
-- Documents (docx, xlsx, pptx, txt, csv, etc.)
-- Archives (zip, rar, tar.gz, 7z, etc.)
+**Supported file types:**
+- Images (jpg, png, gif, svg, webp)
+- Documents (pdf, docx, xlsx, pptx, txt, csv)
+- Videos (mp4, webm, avi, mov)
+- Audio (mp3, wav, ogg)
+- Archives (zip, rar, tar.gz, 7z)
 
-### Send text to browser
+### Keyboard Control Mode
 
-Type text character by character into the browser, simulating keyboard input:
-
-```bash
-# Type into the currently focused input field
-zen send "Hello World"
-
-# Type into a specific element
-zen send "test@example.com" --selector "input[type=email]"
-
-# Type a longer text
-zen send "This will be typed character by character"
-```
-
-**Note**: Click on an input field first, or use `--selector` to target a specific element.
-
-### Summarize articles with AI
-
-Extract and summarize article content from any webpage using Mozilla Readability and AI:
-
-```bash
-# Generate a concise AI summary
-zen summarize
-
-# Show the full extracted article text
-zen summarize --format full
-```
-
-**How it works:**
-1. Injects Mozilla Readability library into the page
-2. Extracts clean article content (title, author, text)
-3. Sends to `mods` command for AI summarization
-4. Returns a 3-5 sentence summary
-
-**Requirements:**
-- [mods](https://github.com/charmbracelet/mods) must be installed
-- Works best on article pages (blogs, news, documentation)
-
-**Example output:**
-```
-Extracting article content...
-Generating summary for: Getting Started with Rust
-
-=== Summary: Getting Started with Rust ===
-
-This guide introduces Rust, a systems programming language focusing on safety
-and performance. It covers installation via rustup, creating your first project
-with Cargo, and understanding Rust's ownership model. The article walks through
-a simple "Hello, World!" example and explains Rust's compile-time guarantees.
-```
-
-**Customization:**
-
-The summarization prompt can be customized by editing `prompts/summary.prompt`:
-
-```bash
-# Edit the prompt
-nano prompts/summary.prompt
-
-# Example custom prompt:
-# "Summarize this article in 3 bullet points, focusing on actionable takeaways."
-```
-
-### Control browser with keyboard
-
-Navigate and interact with web pages using keyboard controls from your terminal:
+Navigate and interact with pages using only your keyboard:
 
 ```bash
 zen control
 ```
-
-**Features:**
-- **Keyboard Navigation**: Tab through focusable elements, use arrow keys, press Enter to click
-- **Auto-refocus**: After clicking links, automatically refocuses the element that triggered navigation
-- **Visual Feedback**: Elements are highlighted with a blue outline as you navigate
-- **Accessible Names**: Hear element names spoken via screen reader (if enabled)
-- **Verbose Mode**: Real-time terminal announcements for navigation actions
-- **Speech Output**: Optional text-to-speech for all verbose messages
-- **Persistent Across Navigation**: Control mode survives page reloads and navigations
 
 **Controls:**
-- `Tab` / `Shift+Tab`: Navigate forward/backward through elements
-- `Arrow Keys`: Move focus in specified direction
-- `Enter` / `Space`: Click/activate focused element
-- `Escape`: Return to body element
-- `q`: Quit control mode
+- `Tab` / `Shift+Tab` - Navigate forward/backward
+- `Arrow Keys` - Move focus directionally
+- `Enter` / `Space` - Activate focused element
+- `Escape` - Return to body
+- `q` - Quit control mode
 
-**Example workflow:**
-```bash
-# Start control mode
-zen control
+**Features:**
+- Auto-refocus after navigation
+- Visual feedback with blue outlines
+- Real-time terminal announcements
+- Optional text-to-speech (macOS)
+- Persistent across page loads
 
-# Tab through links on a page
-# Press Enter on a link → Page navigates
-# Element automatically refocuses after page loads
-# Continue tabbing from where you left off
-```
-
-**Verbose Mode:**
-
-When verbose mode is enabled (default), control mode provides real-time feedback:
-
-```
-Opening 'Blog'...
-'Blog' Opened
-Focus restored
-```
-
-Messages appear instantly in the terminal and optionally via speech (macOS). Four types of announcements:
-
-1. **"Opening '{name}'..."** - When you press Enter on a link/button
-2. **"'{name}' Opened"** - Immediately after the click completes
-3. **"Focus restored"** - Element successfully refocused after navigation (~150ms)
-4. **"Focus lost. Starting from top."** - If refocus fails, restarts from page top
-
-**Configuration:**
-
-Control mode behavior is configured in `config.json`:
-
+**Configuration** (`config.json`):
 ```json
 {
   "control": {
-    "verbose": true,           // Show terminal announcements
-    "speak-all": true,         // Speak all verbose messages (macOS)
-    "verbose-logging": false   // Browser console logging (debugging)
+    "verbose": true,       // Terminal announcements
+    "speak-all": true,     // Text-to-speech
+    "verbose-logging": false
   }
 }
 ```
 
-- **verbose**: Enable/disable terminal announcements (default: true)
-- **speak-all**: Use macOS `say` command to speak all messages (default: true)
-- **verbose-logging**: Log debug info to browser console (default: false)
+**Example workflow:**
+```bash
+zen control
+# Tab to link → Enter → Page loads → Element auto-refocuses → Continue tabbing
+```
 
-**Technical Details:**
-
-The auto-refocus feature uses intelligent element matching (combining CSS selectors with text content) to ensure the correct element is refocused even when multiple elements share the same class.
-
-Verbose notifications use WebSocket push notifications combined with HTTP polling (100ms intervals) to display messages immediately without waiting for keypresses. This provides instant feedback when pages load and focus is restored.
-
-### Watch keyboard input
-
-Monitor all keyboard input in the browser in real-time:
+### Text Selection
 
 ```bash
-zen watch input
-```
-
-Example output:
-```
-Watching keyboard input... (Press Ctrl+C to stop)
-
-H e l l o [SPACE] w o r l d [BACKSPACE] [BACKSPACE] [BACKSPACE] [BACKSPACE] [BACKSPACE] W o r l d [ENTER]
-```
-
-Shows:
-- Regular characters as-is
-- Special keys in brackets: `[ENTER]`, `[TAB]`, `[BACKSPACE]`, `[SPACE]`, etc.
-- Arrow keys: `[UP]`, `[DOWN]`, `[LEFT]`, `[RIGHT]`
-- Modifiers: `[CTRL+C]`, `[ALT+F4]`, `[SHIFT+A]`
-
-Press `Ctrl+C` to stop watching.
-
-### Inspect elements
-
-Get detailed information about DOM elements using two methods:
-
-**Method 1: Select programmatically (fastest)**
-
-```bash
-# Select an element by CSS selector
-zen inspect "h1"
-
-# View detailed information
-zen inspected
-```
-
-**Method 2: Capture from DevTools (useful when you can't easily write a selector)**
-
-When you want to inspect a specific element you're looking at in the browser:
-
-1. **Right-click** on any element → **Inspect** (opens DevTools with element selected)
-2. Switch to the **Console** tab in DevTools
-3. Run: **`zenStore($0)`** (stores the currently inspected element)
-4. In your terminal: **`zen inspected`**
-
-> **Why `zenStore($0)`?** The `$0` variable in DevTools Console always refers to the currently inspected element. By calling `zenStore($0)`, you're explicitly passing that element reference to the Zen Bridge, which stores it for CLI access.
-
-Example output:
-```
-Tag:      <div>
-Selector: div#main-content
-ID:       main-content
-Classes:  container, active
-Text:     Welcome to our website...
-Position: x=20, y=100
-Size:     1200×800px
-Visible:  Yes
-Children: 5
-
-Styles:
-  display: block
-  position: relative
-  backgroundColor: rgb(255, 255, 255)
-  color: rgb(33, 33, 33)
-  fontSize: 16px
-
-Attributes:
-  id: main-content
-  class: container active
-  data-page: home
-```
-
-**Alternative ways to use zenStore:**
-
-```javascript
-// Store the inspected element
-zenStore($0)
-
-// Store a specific element by selector
-zenStore(document.querySelector('.my-class'))
-
-// Store any element reference
-const btn = document.getElementById('submit-btn');
-zenStore(btn)
-```
-
-### Get text selection
-
-Get the currently selected text in the browser:
-
-```bash
-# Get selection with metadata
+# Get selected text with metadata
 zen selected
 
-# Get just the raw text (no formatting)
+# Raw text only
 zen selected --raw
 
 # Use in scripts
@@ -574,155 +420,88 @@ zen selected --raw | pbcopy
 zen selected --raw > selection.txt
 ```
 
-Example output:
-```
-Selected Text (42 characters):
+### Send Text to Browser
 
-"Execute JavaScript in your browser from"
-
-Position:
-  x=120, y=340
-  Size: 450×24px
-
-Container:
-  Tag:   <p>
-  Class: description
-```
-
-### Click elements
-
-Click, double-click, or right-click on elements:
+Type text character by character:
 
 ```bash
-# Click on element
-zen click "button#submit"
+# Type into focused field
+zen send "Hello World"
 
-# Use with inspect
-zen inspect "button.primary"
-zen click
-
-# Double-click
-zen double-click "div.editable"
-zen doubleclick "div.item"  # alias
-
-# Right-click (context menu)
-zen right-click "a.download"
-zen rightclick "img"  # alias
+# Type into specific element
+zen send "test@example.com" --selector "input[type=email]"
 ```
 
-### Wait for elements
-
-Wait for elements to appear, be visible, hidden, or contain text:
+### Take Screenshots
 
 ```bash
-# Wait for element to exist (default timeout: 30s)
-zen wait "button#submit"
+# Screenshot by selector
+zen screenshot --selector "h1" --output screenshot.png
 
-# Wait for element to be visible
-zen wait ".modal-dialog" --visible
-
-# Wait for element to be hidden (useful for loading spinners)
-zen wait ".loading-spinner" --hidden
-
-# Wait for element to contain specific text
-zen wait "div.result" --text "Success"
-
-# Custom timeout (in seconds)
-zen wait "div.notification" --timeout 10
+# Use inspected element ($0 in DevTools)
+zen screenshot --selector "$0" --output element.png
 ```
 
-Example output:
-```
-Waiting for element to be visible: .modal-dialog
-✓ Element is visible
-  Element: <div#confirmDialog.modal-dialog>
-  Waited: 1.23s
-```
-
-**Automation example:**
-```bash
-#!/bin/bash
-# Click a button and wait for results
-zen click "button.load-more"
-zen wait ".new-content" --visible
-zen selected --raw > results.txt
-```
-
-### Server management
+### Navigation
 
 ```bash
-# Start server
-zen server start
+# Navigate to URL
+zen open https://example.com
 
-# Start in background
-zen server start --daemon
+# Navigate and wait for load
+zen open https://example.com --wait
 
-# Check status
-zen server status
+# Browser history
+zen back
+zen forward
 
-# Stop (if in foreground, use Ctrl+C)
-zen server stop
+# Reload page
+zen reload
+
+# Hard reload (bypass cache)
+zen reload --hard
 ```
 
-## Built-in Scripts
+### Watch Events
 
-Zen comes with ready-to-use scripts for common tasks:
+Monitor browser activity in real-time:
 
-### 📸 Extract all images
 ```bash
-zen exec zen/scripts/extract_images.js --format json
+# Watch keyboard input
+zen watch input
 ```
 
-### 📊 Extract table data
+Output:
+```
+Watching keyboard input... (Press Ctrl+C to stop)
+H e l l o [SPACE] W o r l d [ENTER]
+```
+
+### Cookie Management
+
 ```bash
-# Convert HTML tables to JSON
+zen cookies
+```
+
+## 🎯 Practical Examples
+
+### Web Scraping
+
+```bash
+# Extract all product prices
+zen eval "Array.from(document.querySelectorAll('.price')).map(el => el.textContent)"
+
+# Get all image URLs
+zen eval "Array.from(document.images).map(img => img.src)" --format json
+
+# Extract table data
 zen exec zen/scripts/extract_table.js --format json > data.json
 ```
 
-### 🔍 Get SEO metadata
-```bash
-# Extract all meta tags, Open Graph, Twitter Cards, etc.
-zen exec zen/scripts/extract_metadata.js --format json
-```
-
-### ⚡ Performance metrics
-```bash
-# Detailed page performance analysis
-zen exec zen/scripts/performance_metrics.js --format json
-```
-
-### 💉 Inject jQuery
-```bash
-zen exec zen/scripts/inject_jquery.js
-# Then use jQuery
-zen eval "$('a').length"
-```
-
-### 🎨 Highlight elements
-```bash
-# Edit zen/scripts/highlight_selector.js to change selector
-zen exec zen/scripts/highlight_selector.js
-```
-
-## Quick Examples
-
-### DOM manipulation
+### Authenticated Data Extraction
 
 ```bash
-# Get all links
-zen eval "Array.from(document.querySelectorAll('a')).map(a => ({text: a.textContent, href: a.href}))" --format json
-
-# Count elements
-zen eval "document.querySelectorAll('div').length"
-
-# Change page title
-zen eval "document.title = 'Changed by Zen!'"
-```
-
-### Data extraction from authenticated pages
-
-```bash
-# Extract data from dashboard (while logged in)
+# Extract dashboard data (while logged in)
 zen eval "
   Array.from(document.querySelectorAll('.dashboard-item')).map(item => ({
     title: item.querySelector('.title').textContent,
@@ -731,17 +510,17 @@ zen eval "
 " --format json > dashboard.json
 ```
 
-### Debug application state
+### Form Automation
 
 ```bash
-# Check React/Redux state
-zen eval "window.__REDUX_DEVTOOLS_EXTENSION__?.store.getState()" --format json
-
-# Inspect your app state
-zen eval "window.myApp?.state" --format json
+# Fill form fields
+zen eval "document.querySelector('#email').value = 'user@example.com'"
+zen eval "document.querySelector('#password').value = 'secret'"
+zen click "button[type=submit]"
+zen wait ".success-message" --visible
 ```
 
-### Performance monitoring
+### Performance Monitoring
 
 ```bash
 # Page load time
@@ -749,65 +528,144 @@ zen eval "(performance.timing.loadEventEnd - performance.timing.navigationStart)
 
 # Memory usage
 zen eval "Math.round(performance.memory.usedJSHeapSize / 1048576) + 'MB'"
+
+# Full performance metrics
+zen exec zen/scripts/performance_metrics.js --format json
 ```
 
-### Shell integration
+### Debugging & Development
+
+```bash
+# Check React/Redux state
+zen eval "window.__REDUX_DEVTOOLS_EXTENSION__?.store.getState()" --format json
+
+# Inspect app state
+zen eval "window.myApp?.state" --format json
+
+# Console log monitoring
+zen watch
+```
+
+### SEO Analysis
+
+```bash
+# Extract metadata
+zen exec zen/scripts/extract_metadata.js --format json
+
+# Get all headings
+zen outline
+
+# Find broken internal links
+zen links --only-internal --only-urls | xargs -I {} curl -s -o /dev/null -w "%{http_code} {}\n" {}
+
+# Check external link status
+zen links --enrich-external --json
+```
+
+### Shell Integration
 
 ```bash
 # Use in scripts
 TITLE=$(zen eval "document.title" --format raw)
 echo "Current page: $TITLE"
 
-# Monitor changes
+# Monitor for changes
 while true; do
   zen eval "document.querySelectorAll('.notification').length" --format raw
   sleep 5
 done
 
-# Extract and process with other tools
-zen eval "Array.from(document.links).map(a => a.href).join('\n')" --format raw | grep "github"
+# Process with other tools
+zen links --only-urls | grep "github" | sort | uniq
 ```
 
-## 📚 More Examples
+## 🛠️ Built-in Scripts
 
-See [EXAMPLES.md](EXAMPLES.md) for 50+ real-world use cases including:
-- Web scraping workflows
-- Form automation
-- Performance analysis
-- Accessibility checks
-- Local storage operations
-- And much more!
+Zen includes ready-to-use scripts for common tasks:
 
-## How it works
+```bash
+# Extract all images
+zen exec zen/scripts/extract_images.js --format json
+
+# Extract table data to JSON
+zen exec zen/scripts/extract_table.js --format json > data.json
+
+# Get SEO metadata (Open Graph, Twitter Cards, etc.)
+zen exec zen/scripts/extract_metadata.js --format json
+
+# Performance metrics
+zen exec zen/scripts/performance_metrics.js --format json
+
+# Inject jQuery
+zen exec zen/scripts/inject_jquery.js
+# Then use: zen eval "$('a').length"
+
+# Highlight elements
+# Edit zen/scripts/highlight_selector.js to change selector
+zen exec zen/scripts/highlight_selector.js
+```
+
+## 📚 Command Reference
+
+Run `zen --help` to see all commands with their available flags and options:
+
+```bash
+zen --help
+```
+
+The enhanced help system shows:
+- All available commands
+- Complete flag documentation for each command
+- Default values
+- Usage examples
+
+For command-specific help:
+```bash
+zen eval --help
+zen links --help
+zen control --help
+```
+
+## ⚙️ Configuration
+
+**Server Ports:**
+- HTTP: `127.0.0.1:8765` (CLI ⟷ Server)
+- WebSocket: `127.0.0.1:8766` (Server ⟷ Browser)
+
+**Config File:** `config.json`
+
+```json
+{
+  "control": {
+    "verbose": true,
+    "speak-all": true,
+    "verbose-logging": false
+  }
+}
+```
+
+**Customizable Prompts:**
+- `prompts/summary.prompt` - AI summarization prompt
+- `prompts/describe.prompt` - Page description prompt
+
+## 🏗️ Architecture
 
 The bridge uses a **WebSocket-based architecture** for fast, bidirectional communication:
-
-1. **Bridge Server**: Runs on `127.0.0.1:8765` (HTTP) and `:8766` (WebSocket)
-2. **Userscript**: Maintains a persistent WebSocket connection to the server
-3. **CLI**: Sends commands via HTTP, server forwards to browser via WebSocket
 
 ```
 ┌─────────┐         ┌────────────┐         ┌─────────────┐
 │   CLI   │────────>│   Bridge   │<───────>│   Browser   │
 │         │  HTTP   │   Server   │WebSocket│ (Userscript)│
 └─────────┘         └────────────┘         └─────────────┘
-                          ↓
-                    • HTTP: :8765 (CLI ⟷ Server)
-                    • WebSocket: :8766 (Server ⟷ Browser)
-                    • Scripts cached in memory for speed
 ```
 
 **Key features:**
-- **Fast**: WebSocket provides ~12x faster responses than HTTP polling
-- **Reliable**: Request IDs match commands with results
-- **Persistent**: Connection survives page navigation with auto-reconnect
-- **Optimized**: Scripts cached in memory, minimal delays (~150ms refocus time)
+- **Fast:** ~12x faster than HTTP polling
+- **Reliable:** Request IDs match commands with results
+- **Persistent:** Survives page navigation with auto-reconnect
+- **Optimized:** Scripts cached in memory for speed
 
-## Configuration
-
-The bridge server runs on `127.0.0.1:8765` by default. This can be changed in the code if needed.
-
-## Troubleshooting
+## 🐛 Troubleshooting
 
 ### "Bridge server is not running"
 
@@ -816,264 +674,98 @@ Start the server:
 zen server start
 ```
 
-### "No response from browser after X seconds"
+### "No response from browser"
 
-1. Make sure the userscript is installed and active
-2. Open a browser tab (the userscript only works in visible tabs)
-3. Check the browser console for errors
-4. Verify the userscript is polling (you should see a connection message)
+1. Verify userscript is installed and enabled
+2. Open a browser tab (userscript only works in visible tabs)
+3. Check browser console for errors
+4. Ensure WebSocket connection is established
 
 ### Commands timeout
 
-- Increase the timeout: `zen eval "code" --timeout 30`
-- Check if the browser tab is visible (inactive tabs don't execute code)
-
-## Advanced Usage
-
-### Custom timeout
-
 ```bash
-# Wait up to 30 seconds for result
-zen eval "await longRunningOperation()" --timeout 30
+# Increase timeout
+zen eval "slow_operation()" --timeout 30
+
+# Check if tab is active (inactive tabs may throttle execution)
 ```
 
-### Output formatting
+### WebSocket connection issues
 
 ```bash
-# Auto format (default - smart detection)
-zen eval "document.title"
+# Restart the server
+zen server stop
+zen server start
 
-# Force JSON
-zen eval "document.title" --format json
+# Check server status
+zen server status
 
-# Raw output (no formatting)
-zen eval "document.title" --format raw
+# View server logs
+zen server start  # (foreground mode to see logs)
 ```
 
-### Piping and composition
+## 🧪 Development
 
-```bash
-# Pipe to other tools
-zen eval "document.body.innerHTML" | grep -i "error"
-
-# Use in scripts
-TITLE=$(zen eval "document.title" --format raw)
-echo "Current page: $TITLE"
-```
-
-## Development
-
-### Project structure
+### Project Structure
 
 ```
 zen_bridge/
-├── zen/                    # Main package
+├── zen/
 │   ├── __init__.py        # Package info
-│   ├── bridge.py          # HTTP server
+│   ├── bridge_ws.py       # WebSocket server
 │   ├── client.py          # Client library
 │   ├── cli.py             # CLI interface
-│   ├── scripts/           # Pre-built scripts
+│   ├── config.py          # Configuration
+│   ├── scripts/           # Built-in scripts
 │   └── templates/         # Script templates
-├── userscript.js          # Browser userscript
-├── setup.py               # Package setup
-├── requirements.txt       # Dependencies
-└── README.md             # This file
+├── prompts/               # AI prompts
+├── userscript_ws.js      # Browser userscript
+├── setup.py              # Package setup
+├── requirements.txt      # Dependencies
+└── README.md            # Documentation
 ```
 
-### Running tests
+### Running Tests
 
 ```bash
 # Start server
 zen server start --daemon
 
-# Open a test page in your browser
-# Then run manual tests
+# Open browser and navigate to a test page
+
+# Run manual tests
 zen eval "document.title"
 zen info
 zen repl
+zen links
+zen outline
 ```
 
-## Development Notes
+## 📝 License
 
-### Recent Updates (October 2025)
+MIT License - see [LICENSE](LICENSE) file for details
 
-**AI Article Summarization:**
+## 👏 Credits
 
-Added `zen summarize` command for intelligent article extraction and summarization:
+Created by **Roel van Gils**
 
-- ✅ **Mozilla Readability integration** - Extracts clean article content from any webpage
-- ✅ **AI summarization** - Pipes content to `mods` for concise summaries
-- ✅ **Customizable prompts** - Stored in `prompts/summary.prompt` for easy editing
-- ✅ **Full extraction mode** - `--format full` shows complete extracted article
-- ✅ **Script injection** - Dynamically loads Readability library when needed
-- ✅ **Error handling** - Graceful failures for non-article pages
+Inspired by the original KM JS Bridge concept.
 
-**Implementation:**
-- `zen/scripts/extract_article.js` - Injects Readability and extracts article data
-- `prompts/summary.prompt` - Customizable summarization prompt for AI
-- CLI pipes extracted content to `mods` command with prompt
-- Returns article title, author, and AI-generated summary
+Special thanks to:
+- [Mozilla Readability](https://github.com/mozilla/readability) for article extraction
+- [mods](https://github.com/charmbracelet/mods) for AI integration
+- The open-source community
 
-**Link Extraction:**
+## 🤝 Contributing
 
-Added `zen links` command for comprehensive link extraction and filtering:
+Contributions are welcome! Please feel free to submit issues, feature requests, or pull requests.
 
-- ✅ **Internal/external filtering** - `--only-internal` or `--only-external` flags
-- ✅ **Alphabetical sorting** - `--alphabetically` flag for organized output
-- ✅ **URL-only mode** - `--only-urls` for clean list output (perfect for piping)
-- ✅ **Smart filtering** - Skips javascript:, mailto:, tel: links
-- ✅ **Type indicators** - Visual arrows (→ internal, ↗ external) in default mode
-- ✅ **Summary statistics** - Shows filtered count vs total links
+## 📖 More Resources
 
-**Implementation:**
-- `zen/scripts/extract_links.js` - Extracts all anchor tags with href attributes
-- Determines link type by comparing hostname with current domain
-- CLI provides flexible filtering and formatting options
-- Perfect for SEO analysis, link checking, and content discovery
+- **[EXAMPLES.md](EXAMPLES.md)** - 50+ real-world use cases and workflows
+- **GitHub Issues** - Bug reports and feature requests
+- **Wiki** - Additional documentation and guides
 
-**Use cases:**
-- Export all external links for link audit
-- Generate sitemap of internal pages
-- Quick link counting for analysis
-- Pipe to other tools for further processing
+---
 
-**Page Outline Visualization:**
-
-Added `zen outline` command to display heading hierarchy:
-
-- ✅ **Native heading support** - Extracts H1-H6 elements
-- ✅ **ARIA heading support** - Includes elements with `role="heading"` and `aria-level`
-- ✅ **Hierarchical display** - Proper nesting with 3-space indentation per level
-- ✅ **Colored output** - Heading levels in gray, text in white
-- ✅ **Document order** - Headings displayed in page order
-- ✅ **Summary statistics** - Total heading count
-
-**Implementation:**
-- `zen/scripts/extract_outline.js` - Extracts native and ARIA headings
-- Detects heading level from tag name (H1-H6) or aria-level attribute
-- CLI formats with indentation and terminal colors using click.style()
-- Validates ARIA levels (1-6 only)
-
-**Use cases:**
-- Accessibility audits (verify heading hierarchy)
-- Content structure analysis
-- Quick navigation understanding
-- SEO heading structure review
-- Identify heading hierarchy issues (skipped levels, multiple H1s, etc.)
-
-**AI-Powered Page Descriptions:**
-
-Added `zen describe` command for screen reader users:
-
-- ✅ **Comprehensive extraction** - Gathers landmarks, headings, links, images, forms
-- ✅ **Language detection** - Primary language and alternates (hreflang)
-- ✅ **Navigation analysis** - Extracts nav menus with top link items
-- ✅ **Content metrics** - Word count, reading time, paragraph/list counts
-- ✅ **Image analysis** - Significant images (>100x100px) with alt text
-- ✅ **Form detection** - Identifies forms with field counts and types
-- ✅ **Natural language output** - Conversational descriptions via AI
-- ✅ **Performance optimized** - Limits to first 20 headings, top 5 images
-
-**Implementation:**
-- `zen/scripts/extract_page_structure.js` - Comprehensive page analysis
-- `prompts/describe.prompt` - Specialized prompt for screen reader descriptions
-- Extracts: languages, landmarks, navigation, headings, main content, images, forms, footer
-- CLI formats structured data and sends to `mods` for natural language generation
-
-**Data extracted:**
-- HTML lang attribute and alternate language links
-- ARIA landmarks and HTML5 semantic elements (header, nav, main, aside, footer)
-- Native and ARIA headings with levels
-- Navigation menus with link counts
-- Main content statistics (words, reading time, paragraphs, lists)
-- Significant images with dimensions and alt text status
-- Form fields with types and labels
-- Footer links
-- Internal vs external link counts
-
-**Use cases:**
-- Blind users getting quick page overview before navigation
-- Accessibility audits and testing
-- Screen reader user onboarding for new sites
-- Understanding complex page structures
-- Pre-navigation decision making
-
-**Keyboard Control Mode Enhancements:**
-
-Added comprehensive verbose mode with real-time terminal feedback and speech output:
-
-- ✅ **Verbose configuration** - `"verbose": true/false` in config.json
-- ✅ **Speech output** - `"speak-all": true/false` to speak all messages via macOS `say`
-- ✅ **Four announcement types**:
-  - Opening announcement before click
-  - Opened announcement after click
-  - Refocus success/failure immediately when page loads
-- ✅ **Immediate notifications** - WebSocket push + HTTP polling architecture
-- ✅ **Intelligent element matching** - CSS selectors combined with text content
-- ✅ **Non-blocking I/O** - `select.select()` with 100ms timeout for instant display
-- ✅ **Terminal raw mode support** - Proper `\r\n` formatting and stderr output
-
-**Architecture:**
-- Browser sends WebSocket notifications for async events (page load, refocus)
-- Server stores notifications in queue (`pending_notifications`)
-- CLI polls `/notifications` endpoint every 100ms without blocking keyboard input
-- Messages display within ~100ms of event occurrence
-
-**Key implementation details:**
-- Global browser variables for message passing: `window.__ZEN_CONTROL_*__`
-- WebSocket message type: `{type: 'refocus_notification', success: bool, message: string}`
-- Server-side HTTP endpoint: `GET /notifications` returns and clears queue
-- CLI uses `select.select([sys.stdin], [], [], 0.1)` for non-blocking polling
-
-### Future Work Ideas
-
-**Article Summarization Enhancements:**
-- **Multiple summary styles** - Options for bullet points, executive summary, ELI5, etc.
-- **Language detection** - Automatically detect article language and summarize accordingly
-- **Save summaries** - Option to save summaries to file or database
-- **Compare summaries** - Side-by-side comparison of article vs summary
-- **Extract key quotes** - Highlight the most important quotes from the article
-- **Topic extraction** - Automatically identify main topics/themes
-- **Reading time estimate** - Show estimated reading time for article vs summary
-- **Batch processing** - Summarize multiple articles from a list of URLs
-
-**Control Mode Enhancements:**
-- **Customizable key bindings** - Allow users to remap keys in config.json
-- **Multiple navigation modes** - Add "links-only", "buttons-only", "inputs-only" modes
-- **Search within page** - Press `/` to search, `n` for next match
-- **History navigation** - Remember visited elements, allow quick return
-- **Element filtering** - Type to filter visible elements by text
-- **Visual improvements** - Highlight all focusable elements, show count
-
-**Speech & Accessibility:**
-- **Speak element context** - Announce parent containers ("Link in navigation", "Button in form")
-- **Custom voice selection** - Choose different macOS voices
-- **Speech rate control** - Configurable speaking speed
-- **Selective speech** - Choose which message types to speak
-- **Screen reader integration** - Better integration with existing screen readers
-
-**Performance & UX:**
-- **Faster element detection** - Cache element tree, update on mutations
-- **Smooth scrolling** - Auto-scroll focused element into view
-- **Focus indicator customization** - Custom colors, styles for outline
-- **Persistent preferences** - Remember last navigation position per domain
-
-**Cross-platform:**
-- **Linux speech support** - Use `espeak` or `festival` on Linux
-- **Windows speech support** - Use Windows Speech API
-- **Cross-browser testing** - Test with Chrome, Safari, Edge
-
-**WebSocket Improvements:**
-- **Reconnection backoff** - Exponential backoff for WebSocket reconnections
-- **Health checks** - Periodic ping/pong to detect stale connections
-- **Multiple browser tabs** - Support controlling specific tabs by ID
-
-## License
-
-MIT
-
-## Credits
-
-Created by Roel van Gils
-
-Based on the original KM JS Bridge concept.
+**Zen Browser Bridge v1.0.0** - Control your browser from the command line.

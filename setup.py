@@ -10,7 +10,7 @@ if readme_file.exists():
 
 setup(
     name="zen-bridge",
-    version="0.1.0",
+    version="1.0.0",
     description="Execute JavaScript in your browser from the command line",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -29,7 +29,7 @@ setup(
         ],
     },
     classifiers=[
-        "Development Status :: 4 - Beta",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",
