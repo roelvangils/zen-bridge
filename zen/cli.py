@@ -5,6 +5,7 @@ Zen Browser Bridge CLI - Execute JavaScript in your browser from the command lin
 import sys
 import os
 import json
+import re
 import click
 import subprocess
 import signal
@@ -3352,109 +3353,19 @@ def describe(language, debug):
             click.echo(f"Error: {result.get('error')}", err=True)
             sys.exit(1)
 
-        page_data = result.get("result", {})
+        # The script now returns a markdown-formatted string
+        page_structure = result.get("result", "")
 
-        # Format the page data as a readable structure for the AI
-        structured_info = []
+        if not page_structure or not isinstance(page_structure, str):
+            click.echo("Error: No page structure extracted", err=True)
+            sys.exit(1)
 
-        structured_info.append(f"PAGE TITLE: {page_data.get('title', 'Untitled')}")
-        structured_info.append("")
-
-        # Languages
-        languages = page_data.get('languages', [])
+        # Extract page language from the structure for language detection
+        # Look for "**Language:** xx" pattern
         page_lang = None
-        if languages:
-            primary = _builtin_next((l for l in languages if l['type'] == 'primary'), None)
-            alternates = [l for l in languages if l['type'] == 'alternate']
-            page_lang = primary['lang'] if primary else None
-
-            lang_info = f"PRIMARY LANGUAGE: {primary['lang'] if primary else 'unknown'}"
-            if alternates:
-                alt_langs = ', '.join([l['lang'] for l in alternates])
-                lang_info += f"\nALTERNATE LANGUAGES: {alt_langs}"
-            structured_info.append(lang_info)
-            structured_info.append("")
-
-        # Landmarks
-        landmarks = page_data.get('landmarks', {})
-        if landmarks:
-            structured_info.append("LANDMARKS:")
-            for landmark, count in landmarks.items():
-                structured_info.append(f"  - {landmark}: {count}")
-            structured_info.append("")
-
-        # Navigation
-        navigation = page_data.get('navigation', [])
-        if navigation:
-            structured_info.append("NAVIGATION:")
-            for nav in navigation:
-                structured_info.append(f"  {nav['label']} ({nav['linkCount']} links)")
-                if nav['links']:
-                    top_links = [link['text'] for link in nav['links'][:8]]
-                    structured_info.append(f"    Top items: {', '.join(top_links)}")
-            structured_info.append("")
-
-        # Headings
-        headings = page_data.get('headings', [])
-        heading_count = page_data.get('headingCount', len(headings))
-        if headings:
-            structured_info.append(f"HEADINGS: {heading_count} total")
-            for h in headings:
-                indent = "  " * h['level']
-                structured_info.append(f"{indent}H{h['level']}: {h['text']}")
-            if heading_count > len(headings):
-                structured_info.append(f"  (Showing first {len(headings)} of {heading_count})")
-            structured_info.append("")
-
-        # Main content
-        main_content = page_data.get('mainContent', {})
-        if main_content:
-            structured_info.append("MAIN CONTENT:")
-            structured_info.append(f"  Word count: {main_content.get('wordCount', 0)}")
-            structured_info.append(f"  Estimated reading time: {main_content.get('estimatedReadingTime', 0)} minutes")
-            structured_info.append(f"  Paragraphs: {main_content.get('paragraphCount', 0)}")
-            structured_info.append(f"  Lists: {main_content.get('listCount', 0)}")
-            structured_info.append("")
-
-        # Images
-        images = page_data.get('images', [])
-        if images:
-            meaningful_images = [img for img in images if img['hasAlt']]
-            decorative_images = [img for img in images if not img['hasAlt']]
-
-            structured_info.append(f"IMAGES: {len(images)} significant images")
-            if meaningful_images:
-                structured_info.append(f"  With alt text: {len(meaningful_images)}")
-                for img in meaningful_images[:3]:
-                    structured_info.append(f"    - \"{img['alt']}\"")
-            if decorative_images:
-                structured_info.append(f"  Decorative/unlabeled: {len(decorative_images)}")
-            structured_info.append("")
-
-        # Forms
-        forms = page_data.get('forms', [])
-        if forms:
-            structured_info.append(f"FORMS: {len(forms)}")
-            for form in forms:
-                structured_info.append(f"  {form['label']} ({form['fieldCount']} fields)")
-                if form['fields']:
-                    field_summary = ', '.join([f"{f['type']}" for f in form['fields'][:5]])
-                    structured_info.append(f"    Fields: {field_summary}")
-            structured_info.append("")
-
-        # Footer
-        footer = page_data.get('footer', {})
-        if footer and footer.get('linkCount', 0) > 0:
-            structured_info.append(f"FOOTER: {footer['linkCount']} links")
-            if footer.get('links'):
-                structured_info.append(f"  Includes: {', '.join(footer['links'])}")
-            structured_info.append("")
-
-        # Link summary
-        link_summary = page_data.get('linkSummary', {})
-        if link_summary:
-            structured_info.append(f"LINKS: {link_summary.get('total', 0)} total ({link_summary.get('internal', 0)} internal, {link_summary.get('external', 0)} external)")
-            structured_info.append("")
+        lang_match = re.search(r'\*\*Language:\*\* (\w+)', page_structure)
+        if lang_match:
+            page_lang = lang_match.group(1)
 
         # Determine target language for AI
         target_lang = get_ai_language(language_override=language, page_lang=page_lang)
@@ -3473,8 +3384,8 @@ def describe(language, debug):
         if target_lang:
             prompt = f"{prompt}\n\nIMPORTANT: Provide your response in {target_lang} language."
 
-        # Combine prompt with structured data
-        full_input = f"{prompt}\n\n{'='*60}\nPAGE STRUCTURE DATA:\n{'='*60}\n\n" + "\n".join(structured_info)
+        # Combine prompt with page structure (now in Markdown format)
+        full_input = f"{prompt}\n\n---\n\nPAGE STRUCTURE:\n\n{page_structure}"
 
         # Debug mode: show the full prompt instead of calling AI
         if debug:

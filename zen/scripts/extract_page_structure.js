@@ -1,192 +1,292 @@
-// Extract comprehensive page structure for AI-powered descriptions
-// Gathers landmarks, headings, links, images, forms, and language info
+// Extract page structure in natural reading flow with Markdown formatting
+// Provides a snapshot of the page for AI analysis
 
 (function() {
-  const data = {
-    title: document.title,
-    url: window.location.href,
-    languages: [],
-    landmarks: {},
-    headings: [],
-    navigation: [],
-    mainContent: {},
-    images: [],
-    forms: [],
-    footer: {}
-  };
+  const output = [];
+  const processedElements = new WeakSet();
 
-  // 1. Extract language information
-  const htmlLang = document.documentElement.lang || 'unknown';
-  data.languages.push({ lang: htmlLang, type: 'primary' });
-
-  // Look for alternate language links
-  const langLinks = document.querySelectorAll('link[rel="alternate"][hreflang], a[hreflang]');
-  langLinks.forEach(link => {
-    const lang = link.getAttribute('hreflang');
-    if (lang && lang !== htmlLang) {
-      data.languages.push({
-        lang: lang,
-        type: 'alternate',
-        text: link.textContent?.trim() || ''
-      });
-    }
-  });
-
-  // 2. Extract landmarks (ARIA and HTML5 semantic elements)
-  const landmarks = document.querySelectorAll([
-    'header', '[role="banner"]',
-    'nav', '[role="navigation"]',
-    'main', '[role="main"]',
-    'aside', '[role="complementary"]',
-    'footer', '[role="contentinfo"]',
-    'form', '[role="form"]', '[role="search"]'
-  ].join(','));
-
-  const landmarkCounts = {};
-  landmarks.forEach(landmark => {
-    const role = landmark.getAttribute('role') || landmark.tagName.toLowerCase();
-    landmarkCounts[role] = (landmarkCounts[role] || 0) + 1;
-  });
-  data.landmarks = landmarkCounts;
-
-  // 3. Extract headings (limit to first 20 for performance)
-  const allHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6, [role="heading"]');
-  const headingsList = Array.from(allHeadings).slice(0, 20);
-
-  headingsList.forEach(heading => {
-    let level;
-    if (heading.hasAttribute('role')) {
-      level = parseInt(heading.getAttribute('aria-level')) || 2;
-    } else {
-      level = parseInt(heading.tagName.substring(1));
-    }
-
-    data.headings.push({
-      level: level,
-      text: heading.textContent.trim().replace(/\s+/g, ' ').substring(0, 100)
-    });
-  });
-
-  data.headingCount = allHeadings.length; // Store total count
-
-  // 4. Extract navigation links
-  const navElements = document.querySelectorAll('nav, [role="navigation"]');
-  navElements.forEach((nav, index) => {
-    const links = nav.querySelectorAll('a');
-    const navData = {
-      label: nav.getAttribute('aria-label') || `Navigation ${index + 1}`,
-      linkCount: links.length,
-      links: Array.from(links).slice(0, 10).map(a => ({
-        text: a.textContent.trim().replace(/\s+/g, ' '),
-        href: a.href
-      }))
-    };
-    data.navigation.push(navData);
-  });
-
-  // 5. Extract main content information
-  const mainElement = document.querySelector('main, [role="main"]');
-  if (mainElement) {
-    const text = mainElement.textContent.trim();
-    const words = text.split(/\s+/).length;
-    const chars = text.length;
-
-    data.mainContent = {
-      wordCount: words,
-      charCount: chars,
-      estimatedReadingTime: Math.ceil(words / 200), // Average reading speed
-      paragraphCount: mainElement.querySelectorAll('p').length,
-      listCount: mainElement.querySelectorAll('ul, ol').length
-    };
+  // Helper: Get computed font size
+  function getFontSize(el) {
+    const size = window.getComputedStyle(el).fontSize;
+    return parseFloat(size);
   }
 
-  // 6. Extract significant images (larger than 100x100px, with alt text)
-  const images = document.querySelectorAll('img');
-  images.forEach(img => {
-    // Only include images that are reasonably large and have alt text
-    if (img.naturalWidth > 100 && img.naturalHeight > 100) {
-      const alt = img.alt || '';
-      const src = img.src;
+  // Helper: Find largest text on page
+  function findLargestText() {
+    const candidates = document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, div');
+    let largest = null;
+    let largestSize = 0;
 
-      data.images.push({
-        alt: alt,
-        width: img.naturalWidth,
-        height: img.naturalHeight,
-        hasAlt: alt.length > 0,
-        isDecorative: alt === '' && img.getAttribute('role') === 'presentation'
-      });
-    }
-  });
-
-  // Sort by size and take top 5
-  data.images.sort((a, b) => (b.width * b.height) - (a.width * a.height));
-  data.images = data.images.slice(0, 5);
-
-  // 7. Extract form information
-  const forms = document.querySelectorAll('form');
-  forms.forEach((form, index) => {
-    const inputs = form.querySelectorAll('input, select, textarea');
-    const formData = {
-      label: form.getAttribute('aria-label') || form.name || `Form ${index + 1}`,
-      action: form.action || '',
-      fieldCount: inputs.length,
-      fields: []
-    };
-
-    // Get field details
-    inputs.forEach(input => {
-      const type = input.type || input.tagName.toLowerCase();
-      const label = input.labels?.[0]?.textContent.trim() ||
-                   input.getAttribute('aria-label') ||
-                   input.getAttribute('placeholder') ||
-                   input.name ||
-                   'Unlabeled';
-
-      formData.fields.push({
-        type: type,
-        label: label
-      });
-    });
-
-    data.forms.push(formData);
-  });
-
-  // 8. Extract footer information
-  const footerElement = document.querySelector('footer, [role="contentinfo"]');
-  if (footerElement) {
-    const links = footerElement.querySelectorAll('a');
-    data.footer = {
-      linkCount: links.length,
-      links: Array.from(links).slice(0, 8).map(a =>
-        a.textContent.trim().replace(/\s+/g, ' ')
-      )
-    };
-  }
-
-  // 9. Count links by type
-  const allLinks = document.querySelectorAll('a[href]');
-  const currentDomain = window.location.hostname;
-  let internalLinks = 0;
-  let externalLinks = 0;
-
-  allLinks.forEach(link => {
-    try {
-      const url = new URL(link.href);
-      if (url.hostname === currentDomain) {
-        internalLinks++;
-      } else {
-        externalLinks++;
+    candidates.forEach(el => {
+      const text = el.textContent.trim();
+      if (text.length > 5 && text.length < 200) {
+        const size = getFontSize(el);
+        if (size > largestSize) {
+          largestSize = size;
+          largest = el;
+        }
       }
-    } catch (e) {
-      internalLinks++;
+    });
+
+    return { element: largest, size: largestSize };
+  }
+
+  // Helper: Get first sentence from text
+  function getFirstSentence(text) {
+    text = text.trim();
+    const match = text.match(/^[^.!?]+[.!?]+/);
+    if (match) {
+      return match[0].trim();
     }
-  });
+    // If no sentence ending found, return first 150 chars
+    return text.substring(0, 150) + (text.length > 150 ? '...' : '');
+  }
 
-  data.linkSummary = {
-    total: allLinks.length,
-    internal: internalLinks,
-    external: externalLinks
-  };
+  // Helper: Check for importance keywords
+  function getImportanceMarkers(text) {
+    const markers = [];
+    const lower = text.toLowerCase();
 
-  return data;
+    if (lower.includes('important')) markers.push('IMPORTANT');
+    if (lower.includes('new') || lower.includes('nuevo') || lower.includes('nouveau') || lower.includes('nieuw')) markers.push('NEW');
+    if (lower.includes('update')) markers.push('UPDATE');
+    if (lower.includes('warning') || lower.includes('caution') || lower.includes('alert')) markers.push('WARNING');
+
+    return markers;
+  }
+
+  // Helper: Find next sibling paragraph
+  function getNextParagraph(element) {
+    let next = element.nextElementSibling;
+    let attempts = 0;
+
+    while (next && attempts < 5) {
+      if (next.tagName === 'P' && next.textContent.trim().length > 20) {
+        return getFirstSentence(next.textContent);
+      }
+      // Also check first child if it's a container
+      const firstP = next.querySelector('p');
+      if (firstP && firstP.textContent.trim().length > 20) {
+        return getFirstSentence(firstP.textContent);
+      }
+      next = next.nextElementSibling;
+      attempts++;
+    }
+    return null;
+  }
+
+  // Helper: Check if image should be included
+  function shouldIncludeImage(img) {
+    if (!img.alt || img.alt.trim() === '') return false;
+    if (img.naturalWidth < 200) return false;
+
+    const altLower = img.alt.toLowerCase();
+    const iconWords = ['icon', 'logo', 'button', 'arrow', 'bullet'];
+    return !iconWords.some(word => altLower.includes(word));
+  }
+
+  // Helper: Get list items (first 5)
+  function getListItems(listEl) {
+    const items = listEl.querySelectorAll('li');
+    const result = [];
+
+    for (let i = 0; i < Math.min(5, items.length); i++) {
+      const text = items[i].textContent.trim().replace(/\s+/g, ' ');
+      if (text) result.push(text);
+    }
+
+    return {
+      items: result,
+      total: items.length,
+      type: listEl.tagName.toLowerCase()
+    };
+  }
+
+  // Find the largest text element
+  const largestInfo = findLargestText();
+
+  // Process content within a container
+  function processContent(container, indent = '') {
+    const children = Array.from(container.children);
+
+    children.forEach(child => {
+      if (processedElements.has(child)) return;
+
+      const tagName = child.tagName.toLowerCase();
+
+      // Headings
+      if (/^h[1-6]$/.test(tagName)) {
+        processedElements.add(child);
+
+        const level = tagName.substring(1);
+        const text = child.textContent.trim();
+        const fontSize = getFontSize(child);
+        const markers = getImportanceMarkers(text);
+
+        let heading = `${indent}${'#'.repeat(parseInt(level))} ${text}`;
+
+        // Add font size
+        heading += ` (${Math.round(fontSize)}px)`;
+
+        // Mark if largest
+        if (child === largestInfo.element) {
+          heading += ' **[LARGEST TEXT]**';
+        }
+
+        // Add importance markers
+        if (markers.length > 0) {
+          heading += ` **[${markers.join(', ')}]**`;
+        }
+
+        output.push(heading);
+
+        // Try to find first paragraph after heading
+        const para = getNextParagraph(child);
+        if (para) {
+          output.push(`${indent}${para}`);
+          output.push('');
+        }
+      }
+
+      // Blockquotes
+      else if (tagName === 'blockquote') {
+        processedElements.add(child);
+        const text = child.textContent.trim().replace(/\s+/g, ' ');
+        output.push(`${indent}> ${text}`);
+        output.push('');
+      }
+
+      // Lists
+      else if (tagName === 'ul' || tagName === 'ol') {
+        processedElements.add(child);
+        const listData = getListItems(child);
+
+        listData.items.forEach((item, idx) => {
+          const bullet = listData.type === 'ol' ? `${idx + 1}.` : '-';
+          output.push(`${indent}${bullet} ${item}`);
+        });
+
+        if (listData.total > listData.items.length) {
+          output.push(`${indent}  _(${listData.total - listData.items.length} more items)_`);
+        }
+        output.push('');
+      }
+
+      // Images
+      else if (tagName === 'img') {
+        processedElements.add(child);
+        if (shouldIncludeImage(child)) {
+          output.push(`${indent}![${child.alt}](image)`);
+          output.push('');
+        }
+      }
+
+      // Check if container has images or quotes
+      else {
+        const img = child.querySelector('img');
+        if (img && !processedElements.has(img) && shouldIncludeImage(img)) {
+          processedElements.add(img);
+          output.push(`${indent}![${img.alt}](image)`);
+          output.push('');
+        }
+
+        const quote = child.querySelector('blockquote');
+        if (quote && !processedElements.has(quote)) {
+          processedElements.add(quote);
+          const text = quote.textContent.trim().replace(/\s+/g, ' ');
+          output.push(`${indent}> ${text}`);
+          output.push('');
+        }
+      }
+    });
+  }
+
+  // Start building output
+  output.push(`# ${document.title}`);
+  output.push('');
+
+  // Language info
+  const lang = document.documentElement.lang || 'unknown';
+  const langLinks = document.querySelectorAll('link[rel="alternate"][hreflang], a[hreflang]');
+  const altLangs = Array.from(langLinks)
+    .map(l => l.getAttribute('hreflang'))
+    .filter(l => l && l !== lang)
+    .filter((v, i, a) => a.indexOf(v) === i) // unique
+    .slice(0, 5);
+
+  if (altLangs.length > 0) {
+    output.push(`**Language:** ${lang} (also available: ${altLangs.join(', ')})`);
+  } else {
+    output.push(`**Language:** ${lang}`);
+  }
+  output.push('');
+  output.push('---');
+  output.push('');
+
+  // Navigation
+  const navElements = document.querySelectorAll('nav, [role="navigation"]');
+  if (navElements.length > 0) {
+    output.push('## Navigation');
+    output.push('');
+
+    navElements.forEach((nav, idx) => {
+      const links = Array.from(nav.querySelectorAll('a'))
+        .map(a => a.textContent.trim())
+        .filter(t => t.length > 0)
+        .slice(0, 10);
+
+      if (links.length > 0) {
+        output.push(links.join(' | '));
+      }
+    });
+
+    output.push('');
+    output.push('---');
+    output.push('');
+  }
+
+  // Main content
+  const main = document.querySelector('main, [role="main"]');
+  if (main) {
+    output.push('## Main Content');
+    output.push('');
+    processContent(main);
+    output.push('---');
+    output.push('');
+  }
+
+  // Sidebar/Complementary
+  const aside = document.querySelector('aside, [role="complementary"]');
+  if (aside) {
+    output.push('## Sidebar');
+    output.push('');
+    processContent(aside);
+    output.push('---');
+    output.push('');
+  }
+
+  // Footer
+  const footer = document.querySelector('footer, [role="contentinfo"]');
+  if (footer) {
+    output.push('## Footer');
+    output.push('');
+
+    const footerLinks = Array.from(footer.querySelectorAll('a'))
+      .map(a => a.textContent.trim())
+      .filter(t => t.length > 0)
+      .slice(0, 8);
+
+    if (footerLinks.length > 0) {
+      output.push(footerLinks.join(' | '));
+
+      const totalFooterLinks = footer.querySelectorAll('a').length;
+      if (totalFooterLinks > footerLinks.length) {
+        output.push(`_(${totalFooterLinks} links total)_`);
+      }
+    }
+
+    output.push('');
+  }
+
+  return output.join('\n');
 })();
