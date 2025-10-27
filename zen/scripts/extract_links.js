@@ -208,6 +208,7 @@
       classes: classes,
       role: role,
       // Legacy fields for backward compatibility
+      href: href,
       text: accessibleName,
       type: internal ? 'internal' : 'external'
     };
