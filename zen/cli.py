@@ -322,7 +322,7 @@ def info(extended, output_json):
             width: window.innerWidth,
             height: window.innerHeight,
             // Extended info
-            language: document.documentElement.lang || 'N/A',
+            specifiedLanguage: document.documentElement.lang || 'N/A',
             charset: document.characterSet || 'N/A',
             metaTags: Array.from(document.querySelectorAll('head meta')).map(meta => {
                 const attrs = {};
@@ -648,7 +648,7 @@ def info(extended, output_json):
                                     data['detectedLanguage'] = detected
 
                                     # Check if detected language matches declared language
-                                    declared_lang = data.get('language', '').lower()
+                                    declared_lang = data.get('specifiedLanguage', '').lower()
                                     if declared_lang and declared_lang != 'n/a':
                                         data['languageMatch'] = declared_lang == detected.lower()
                                 except LangDetectException:
@@ -677,7 +677,7 @@ def info(extended, output_json):
                 click.echo(f"")
 
                 # Language and encoding (with natural language detection)
-                declared_lang = data.get('language', 'N/A')
+                declared_lang = data.get('specifiedLanguage', 'N/A')
                 click.echo(f"Language:           {declared_lang}")
 
                 # Detect actual language using langdetect
