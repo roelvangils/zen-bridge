@@ -1095,7 +1095,7 @@ def info(extended, output_json):
 
                 # Fonts (from extended data)
                 fonts = extended_data.get('fonts', {})
-                if fonts and (fonts.get('googleFonts') or fonts.get('customFonts', 0) > 0 or fonts.get('totalFontFiles', 0) > 0):
+                if fonts and (fonts.get('googleFonts') or fonts.get('customFonts') or fonts.get('totalFontFiles', 0) > 0):
                     click.echo(f"")
                     click.echo("Fonts:")
                     google_fonts = fonts.get('googleFonts', [])
@@ -1105,8 +1105,13 @@ def info(extended, output_json):
                             click.echo(f"    - {font}")
                         if len(google_fonts) > 5:
                             click.echo(f"    ... and {len(google_fonts) - 5} more")
-                    if fonts.get('customFonts', 0) > 0:
-                        click.echo(f"  Custom @font-face: {fonts['customFonts']}")
+                    custom_fonts = fonts.get('customFonts', [])
+                    if custom_fonts:
+                        click.echo(f"  Custom @font-face: {len(custom_fonts)}")
+                        for font in custom_fonts[:5]:
+                            click.echo(f"    - {font}")
+                        if len(custom_fonts) > 5:
+                            click.echo(f"    ... and {len(custom_fonts) - 5} more")
                     if fonts.get('totalFontFiles', 0) > 0:
                         click.echo(f"  Font Files:        {fonts['totalFontFiles']}")
 

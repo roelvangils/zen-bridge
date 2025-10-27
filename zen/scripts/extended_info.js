@@ -264,7 +264,7 @@
   extended.fonts = (() => {
     const fonts = {
       googleFonts: [],
-      customFonts: 0,
+      customFonts: [],
       totalFontFiles: 0
     };
 
@@ -284,13 +284,21 @@
       }
     });
 
-    // Check for @font-face in stylesheets
+    // Check for @font-face in stylesheets and extract font family names
+    const customFontNames = new Set();
     try {
       Array.from(document.styleSheets).forEach(sheet => {
         try {
           Array.from(sheet.cssRules || []).forEach(rule => {
             if (rule instanceof CSSFontFaceRule) {
-              fonts.customFonts++;
+              const fontFamily = rule.style.getPropertyValue('font-family');
+              if (fontFamily) {
+                // Clean up quotes and whitespace
+                const cleanName = fontFamily.replace(/['"]/g, '').trim();
+                if (cleanName) {
+                  customFontNames.add(cleanName);
+                }
+              }
             }
           });
         } catch (e) {
@@ -298,6 +306,7 @@
         }
       });
     } catch (e) {}
+    fonts.customFonts = Array.from(customFontNames);
 
     // Count font files from performance entries
     if (performance && performance.getEntriesByType) {
