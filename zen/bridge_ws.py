@@ -28,6 +28,7 @@ from zen.domain.models import (
     RunResponse,
     parse_incoming_message,
 )
+from zen.services.script_loader import ScriptLoader
 
 HOST = "127.0.0.1"
 PORT = 8765
@@ -47,8 +48,8 @@ pending_notifications: list = []
 # Cleanup old requests after 5 minutes
 MAX_REQUEST_AGE = 300
 
-# Cache for control.js script (loaded once on startup)
-CACHED_CONTROL_SCRIPT: str = ""
+# Script loader service (singleton)
+script_loader = ScriptLoader()
 
 
 def cleanup_old_requests():
@@ -323,20 +324,6 @@ async def handle_http_health(request):
     )
 
 
-def load_control_script():
-    """Load control.js script into memory cache."""
-    global CACHED_CONTROL_SCRIPT
-    script_path = Path(__file__).parent / "scripts" / "control.js"
-
-    try:
-        with open(script_path) as f:
-            CACHED_CONTROL_SCRIPT = f.read()
-        print(f"✓ Loaded control.js into cache ({len(CACHED_CONTROL_SCRIPT)} bytes)")
-    except FileNotFoundError:
-        print(f"✗ WARNING: control.js not found at {script_path}")
-        print("  Auto-refocus will not work until file is available")
-
-
 async def main():
     """Start HTTP and WebSocket server."""
     print("Zen Bridge WebSocket Server (aiohttp)")
@@ -344,8 +331,14 @@ async def main():
     print(f"HTTP API: http://{HOST}:{PORT}")
     print("")
 
-    # Load control.js into cache
-    load_control_script()
+    # Preload control.js into cache (async, no blocking!)
+    try:
+        await script_loader.preload_script_async("control.js")
+        cached_scripts = script_loader.get_cached_scripts()
+        print(f"✓ Preloaded {len(cached_scripts)} script(s): {', '.join(cached_scripts)}")
+    except FileNotFoundError as e:
+        print(f"✗ WARNING: {e}")
+        print("  Auto-refocus will not work until file is available")
     print("")
 
     # Setup aiohttp app
