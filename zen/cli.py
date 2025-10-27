@@ -13,8 +13,9 @@ from .client import BridgeClient
 from . import __version__
 from . import config as zen_config
 
-# Save built-in open before it gets shadowed by the 'open' command
+# Save built-in functions before they get shadowed by Click commands
 _builtin_open = open
+_builtin_next = next
 
 
 def format_output(result: dict, format_type: str = "auto") -> str:
@@ -3323,7 +3324,7 @@ def describe():
         # Languages
         languages = page_data.get('languages', [])
         if languages:
-            primary = next((l for l in languages if l['type'] == 'primary'), None)
+            primary = _builtin_next((l for l in languages if l['type'] == 'primary'), None)
             alternates = [l for l in languages if l['type'] == 'alternate']
 
             lang_info = f"PRIMARY LANGUAGE: {primary['lang'] if primary else 'unknown'}"
