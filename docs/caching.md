@@ -441,5 +441,4 @@ The cache uses several optimizations:
 ## See Also
 
 - [zen do Command](commands/do.md) - Detailed action caching
-- [Configuration Guide](configuration.md) - All config options
-- [Performance Tips](performance.md) - Speed optimization
+- [Configuration Guide](getting-started/configuration.md) - All config options
