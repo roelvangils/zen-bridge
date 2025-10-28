@@ -187,6 +187,82 @@ Found 2 matching action(s):
 High confidence match! Executing action... [AI]
 ```
 
+---
+
+## Multilingual Support
+
+The `zen do` command supports **5 languages** with automatic language detection:
+
+- 🇬🇧 **English** (en)
+- 🇳🇱 **Dutch** (nl)
+- 🇫🇷 **French** (fr)
+- 🇩🇪 **German** (de)
+- 🇪🇸 **Spanish** (es)
+
+### How It Works
+
+1. **Automatic Detection**: Reads page language from `<html lang="...">` attribute
+2. **Smart Normalization**: Removes filler words in the detected language
+3. **Multilingual Matching**: Tries action patterns in the page's language first
+4. **Fallback**: Always includes English as a fallback
+
+### Examples
+
+**Dutch Page:**
+```bash
+zen do "Ga naar de inloggen pagina"
+# Normalizes: "inloggen"
+# Matches: Dutch "inloggen" pattern → finds login link
+```
+
+**French Page:**
+```bash
+zen do "Aller à la page de connexion"
+# Normalizes: "connexion"
+# Matches: French "connexion" pattern → finds login link
+```
+
+**German Page:**
+```bash
+zen do "Gehen Sie zur Anmeldeseite"
+# Normalizes: "anmeldeseite"
+# Matches: German "anmelden" pattern → finds login link
+```
+
+**Spanish Page:**
+```bash
+zen do "Ir a la página de inicio de sesión"
+# Normalizes: "inicio sesión"
+# Matches: Spanish "iniciar sesión" pattern → finds login link
+```
+
+**English Works Everywhere:**
+```bash
+# Even on non-English pages, English commands work!
+zen do "login"
+zen do "go to homepage"
+zen do "click search"
+```
+
+### Supported Actions (Multilingual)
+
+The following common actions are available in all 5 languages:
+
+- **Navigation**: home, about, contact, help, search, news, privacy
+- **Authentication**: login, logout, register
+- **Account**: profile, settings
+- **E-commerce**: cart, checkout
+
+### Adding New Languages
+
+Languages are configured in JSON files at `zen/i18n/`:
+- `filler_words.json` - Words to remove during normalization
+- `common_actions.json` - Common action patterns with translations
+
+See the [i18n README](https://github.com/roelvangils/zen-bridge/tree/main/zen/i18n) for contribution guidelines.
+
+---
+
 ## Execution Behavior
 
 ### Auto-Execute (Score ≥ 100%)
