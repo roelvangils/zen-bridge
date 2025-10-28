@@ -48,6 +48,10 @@ htmlcov/
 *.log
 .env
 coverage.xml
+nohup.out
+
+# Cache databases
+action_cache.db
 
 # Documentation
 site/
