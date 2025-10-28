@@ -215,6 +215,10 @@
   output.push(`# ${document.title}`);
   output.push('');
 
+  // URL info
+  output.push(`**URL:** ${window.location.href}`);
+  output.push('');
+
   // Language info
   const lang = document.documentElement.lang || 'unknown';
   const langLinks = document.querySelectorAll('link[rel="alternate"][hreflang], a[hreflang]');

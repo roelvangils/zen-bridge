@@ -9,6 +9,7 @@ Thank you for your interest in contributing to Zen Bridge! This guide will help 
 - [Getting Started](#getting-started)
 - [Development Setup](#development-setup)
 - [Development Workflow](#development-workflow)
+- [Adding or Modifying Commands](#adding-or-modifying-commands)
 - [Code Style & Standards](#code-style--standards)
 - [Testing](#testing)
 - [Commit Guidelines](#commit-guidelines)
@@ -167,6 +168,31 @@ make lint
 # Run type checker
 make typecheck
 ```
+
+---
+
+## Adding or Modifying Commands
+
+⚠️ **IMPORTANT**: Before adding or modifying CLI commands, read the [**Command Development Guide**](COMMAND_DEVELOPMENT_GUIDE.md).
+
+This comprehensive guide covers:
+- Directory structure and path resolution rules
+- Step-by-step instructions for adding new commands
+- Complete testing checklist (MUST complete before submitting PR)
+- Common pitfalls and how to avoid them
+- Quick reference for file locations
+
+**Why this is critical**: Incorrect path resolution can break commands. The guide provides exact patterns for:
+- JavaScript scripts: `.parent.parent.parent / "scripts"`
+- AI prompts: `.parent.parent.parent.parent / "prompts"`
+
+Always complete the full testing checklist from the guide, including:
+1. Help text verification
+2. Path resolution testing
+3. Script execution testing
+4. Full functionality testing
+5. Error handling testing
+6. Integration testing with existing commands
 
 ---
 

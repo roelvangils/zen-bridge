@@ -61,7 +61,7 @@ Repository = "https://github.com/roelvangils/zen-bridge"
 Issues = "https://github.com/roelvangils/zen-bridge/issues"
 
 [project.scripts]
-zen = "zen.cli:main"
+zen = "zen.app.cli:main"
 
 [tool.setuptools]
 packages = ["zen"]

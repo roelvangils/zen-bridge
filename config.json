@@ -19,5 +19,28 @@
     "refocus-timeout": 2000,
     "verbose": true,
     "verbose-logging": true
+  },
+  "cache": {
+    "enabled": true,
+    "ttl_hours": 24,
+    "max_urls": 100,
+    "max_actions_per_url": 10,
+    "max_total_actions": 1000,
+    "similarity_threshold": 0.8,
+    "literal_match_threshold": 0.8,
+    "use_fuzzy_matching": true,
+    "max_fuzzy_distance": 2,
+    "describe": {
+      "enabled": true,
+      "ttl_hours": 12,
+      "similarity_threshold": 0.85,
+      "max_entries": 100
+    },
+    "summarize": {
+      "enabled": true,
+      "ttl_days": 7,
+      "similarity_threshold": 0.90,
+      "max_entries": 50
+    }
   }
 }

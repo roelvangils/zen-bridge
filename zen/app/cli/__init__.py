@@ -74,6 +74,7 @@ cli.add_command(server_module.server, name="server")  # group
 
 # Content extraction commands (from extraction.py)
 cli.add_command(extraction_module.describe, name="describe")
+cli.add_command(extraction_module.do, name="do")
 cli.add_command(extraction_module.outline, name="outline")
 cli.add_command(extraction_module.links, name="links")
 cli.add_command(extraction_module.summarize, name="summarize")
