@@ -1059,4 +1059,4 @@ except ValidationError as e:
 - [Commands Reference](commands.md)
 - [Services Reference](services.md)
 - [Protocol Specification](protocol.md)
-- [Configuration Guide](../guides/configuration.md)
+- [Configuration Guide](../getting-started/configuration.md)

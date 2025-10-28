@@ -1641,5 +1641,5 @@ Commands respect these environment settings:
 - [Services API Reference](services.md)
 - [Models Reference](models.md)
 - [Protocol Specification](protocol.md)
-- [Configuration Guide](../guides/configuration.md)
-- [Getting Started](../getting-started.md)
+- [Configuration Guide](../getting-started/configuration.md)
+- [Quick Start Guide](../getting-started/quick-start.md)

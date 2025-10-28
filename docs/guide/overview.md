@@ -300,7 +300,7 @@ This design ensures:
 - Easy extensibility (add new commands/services)
 - Maintainable codebase
 
-See [ARCHITECTURE.md](../../ARCHITECTURE.md) for technical details.
+See [Architecture Guide](../development/architecture.md) for technical details.
 
 ## Getting Started
 
@@ -316,17 +316,17 @@ Ready to try Zen Bridge? Check out these guides:
 
 ## Next Steps
 
-1. Install Zen Bridge and the userscript (see Installation guide)
+1. Install Zen Bridge and the userscript (see [Installation guide](../getting-started/installation.md))
 2. Start the server: `zen server start --daemon`
 3. Try basic commands: `zen eval "document.title"`
 4. Explore the guides above
-5. Check out [50+ examples](../../EXAMPLES.md)
+5. Check out the [API Reference](../api/commands.md) for complete documentation
 
 ## Getting Help
 
 - Run `zen --help` to see all commands
 - Run `zen <command> --help` for command-specific help
 - Check the [GitHub Issues](https://github.com/roelvangils/zen-bridge/issues) for known issues
-- Read the [Contributing Guide](../../CONTRIBUTING.md) to contribute
+- Read the [Contributing Guide](../development/contributing.md) to contribute
 
 Welcome to Zen Bridge - control your browser from the command line!

@@ -693,9 +693,11 @@ curl http://127.0.0.1:8765/notifications
 - [Architecture Documentation](architecture.md)
 - [Testing Guide](testing.md)
 - [Security Guide](security.md)
-- [Complete ARCHITECTURE.md](../../ARCHITECTURE.md)
-- [PROTOCOL.md](../../PROTOCOL.md)
-- [REFACTOR_PLAN.md](../../REFACTOR_PLAN.md)
+
+For additional technical documentation, see the project repository root files:
+- `ARCHITECTURE.md` - Complete architecture documentation
+- `PROTOCOL.md` - WebSocket protocol specification
+- `REFACTOR_PLAN.md` - Refactoring progress and phases
 
 ## Code of Conduct
 

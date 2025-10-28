@@ -661,9 +661,10 @@ This security model is appropriate for a development tool on a trusted local mac
 
 ## Resources
 
-- [SECURITY.md](../../SECURITY.md) - Complete security policy
 - [Architecture Guide](architecture.md) - System design
 - [Contributing Guide](contributing.md) - Development workflow
+
+For the complete security policy, see `SECURITY.md` in the project repository root.
 
 ---
 

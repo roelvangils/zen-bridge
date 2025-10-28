@@ -618,6 +618,7 @@ See [Security Guide](security.md) for detailed threat model.
 
 ## References
 
-- [ARCHITECTURE.md](../../ARCHITECTURE.md) - Complete architecture doc
-- [REFACTOR_PLAN.md](../../REFACTOR_PLAN.md) - Refactoring progress
-- [PROTOCOL.md](../../PROTOCOL.md) - WebSocket protocol spec
+For additional technical documentation, see the project repository root files:
+- `ARCHITECTURE.md` - Complete architecture documentation
+- `REFACTOR_PLAN.md` - Refactoring progress and phases
+- `PROTOCOL.md` - WebSocket protocol specification

@@ -813,9 +813,11 @@ done
 
 ## Next Steps
 
-- Explore [EXAMPLES.md](../../EXAMPLES.md) for 50+ practical examples
-- Read [ARCHITECTURE.md](../../ARCHITECTURE.md) for system design
-- Check [CONTRIBUTING.md](../../CONTRIBUTING.md) to contribute
+- Explore the [API Reference](../api/commands.md) for complete command documentation
+- Read [Architecture Guide](../development/architecture.md) for system design
+- Check [Contributing Guide](../development/contributing.md) to contribute
+
+For additional examples and documentation, see the project repository root files.
 
 ---
 

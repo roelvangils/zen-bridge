@@ -677,7 +677,7 @@ Now that you've mastered the basics, explore these resources:
 
     Explore ready-to-use scripts for common tasks like data extraction and SEO analysis.
 
-    [:octicons-arrow-right-24: Scripts Reference](../guide/advanced.md#built-in-scripts)
+    [:octicons-arrow-right-24: Advanced Scripting](../guide/advanced.md#scripting-patterns)
 
 -   :hammer_and_wrench: __API Reference__
 
