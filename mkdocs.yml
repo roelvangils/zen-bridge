@@ -136,9 +136,12 @@ nav:
       - Data Extraction: guide/data-extraction.md
       - AI Features: guide/ai-features.md
       - Control Mode: guide/control-mode.md
+      - Caching: caching.md
       - Advanced Usage: guide/advanced.md
   - API Reference:
       - CLI Commands: api/commands.md
+      - Command Reference:
+          - zen do: commands/do.md
       - Services: api/services.md
       - Models: api/models.md
       - Protocol: api/protocol.md
