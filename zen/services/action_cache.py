@@ -18,7 +18,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-from zen.config import find_config_file
+from zen.config import find_config_file, load_config
 
 
 class ActionCache:
@@ -38,6 +38,7 @@ class ActionCache:
         self.db_path = config_dir / "action_cache.db"
         self._init_database()
         self.config = self._load_config()
+        self.filler_words = self._load_filler_words()
 
     def _load_config(self) -> dict[str, Any]:
         """Load cache configuration from config.json."""
@@ -61,6 +62,44 @@ class ActionCache:
             "literal_match_threshold": 0.8,
             "use_fuzzy_matching": True,
             "max_fuzzy_distance": 2,
+        }
+
+    def _load_filler_words(self) -> dict[str, set[str]]:
+        """Load filler words from i18n JSON file."""
+        try:
+            i18n_path = Path(__file__).parent.parent / "i18n" / "filler_words.json"
+            if not i18n_path.exists():
+                return self._get_default_filler_words()
+
+            with open(i18n_path, encoding="utf-8") as f:
+                data = json.load(f)
+
+            # Flatten all categories into a single set per language
+            filler_words = {}
+            for lang, categories in data.items():
+                if lang.startswith("$"):  # Skip JSON schema fields
+                    continue
+                words = set()
+                for category_words in categories.values():
+                    words.update(category_words)
+                filler_words[lang] = words
+
+            return filler_words
+        except Exception:
+            return self._get_default_filler_words()
+
+    def _get_default_filler_words(self) -> dict[str, set[str]]:
+        """Return default English filler words as fallback."""
+        return {
+            "en": {
+                "go", "open", "click", "navigate", "visit", "access",
+                "show", "display", "view", "see", "find", "get",
+                "take", "bring", "load", "press",
+                "the", "a", "an", "to", "on", "at", "in", "of", "for", "with", "from", "by",
+                "my", "me", "i", "want", "need",
+                "page", "button", "link", "image", "icon", "field", "form", "input", "menu", "tab", "section", "area",
+                "please", "now", "then", "next", "first", "also", "just", "only",
+            }
         }
 
     def _init_database(self):
@@ -112,88 +151,46 @@ class ActionCache:
         """Check if caching is enabled."""
         return self.config.get("enabled", True)
 
-    def normalize_action(self, action: str) -> str:
+    def normalize_action(self, action: str, languages: list[str] | None = None) -> str:
         """
         Normalize action text by removing filler words and punctuation.
 
+        Supports multiple languages. If languages not specified, uses English + common European languages.
+
+        Args:
+            action: The action text to normalize
+            languages: List of language codes to use for filler word removal (e.g., ['nl', 'en'])
+
         Examples:
             "Please click the login button" → "login"
-            "Go to the About Us page" → "about us"
-            "Navigate to my settings" → "settings"
+            "Ga naar de About Us pagina" → "about us"
+            "Navigeer naar mijn instellingen" → "instellingen"
         """
         # Convert to lowercase
         action = action.lower()
 
         # Remove punctuation
         import string
-
         action = action.translate(str.maketrans("", "", string.punctuation))
 
-        # Filler words to remove
-        filler_words = {
-            # Action verbs
-            "go",
-            "open",
-            "click",
-            "navigate",
-            "visit",
-            "access",
-            "show",
-            "display",
-            "view",
-            "see",
-            "find",
-            "get",
-            "take",
-            "bring",
-            "load",
-            "press",
-            # Articles & prepositions
-            "the",
-            "a",
-            "an",
-            "to",
-            "on",
-            "at",
-            "in",
-            "of",
-            "for",
-            "with",
-            "from",
-            "by",
-            # Possessives
-            "my",
-            "me",
-            "i",
-            "want",
-            "need",
-            # UI element types
-            "page",
-            "button",
-            "link",
-            "image",
-            "icon",
-            "field",
-            "form",
-            "input",
-            "menu",
-            "tab",
-            "section",
-            "area",
-            # Common modifiers
-            "please",
-            "now",
-            "then",
-            "next",
-            "first",
-            "also",
-            "just",
-            "only",
-        }
+        # Determine which languages to use for filtering
+        if languages is None:
+            # Default: try common European languages + English
+            languages = ["en", "nl", "fr", "de", "es"]
+
+        # Combine filler words from all specified languages
+        combined_filler_words = set()
+        for lang in languages:
+            if lang in self.filler_words:
+                combined_filler_words.update(self.filler_words[lang])
+
+        # Fallback to English if no filler words found
+        if not combined_filler_words and "en" in self.filler_words:
+            combined_filler_words = self.filler_words["en"]
 
         # Split into words and filter
         words = action.split()
-        filtered_words = [w for w in words if w not in filler_words]
+        filtered_words = [w for w in words if w not in combined_filler_words]
 
         return " ".join(filtered_words)
 

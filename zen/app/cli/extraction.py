@@ -424,11 +424,20 @@ def do(instruction, debug, no_execute, force_ai):
         cache = ActionCache()
         matcher = ActionMatcher(cache.config)
 
-        # Get current URL
+        # Get current URL and detect page language
         current_url = page_data.get("pageUrl", "")
+        page_lang = page_data.get("language", "en")
 
-        # Normalize the action
-        action_normalized = cache.normalize_action(instruction)
+        # Determine languages to use for matching (prioritize page language)
+        if page_lang and page_lang != "unknown":
+            # Use page language + English as fallback
+            languages = [page_lang, "en"] if page_lang != "en" else ["en"]
+        else:
+            # Default to common European languages + English
+            languages = ["en", "nl", "fr", "de", "es"]
+
+        # Normalize the action (with language support)
+        action_normalized = cache.normalize_action(instruction, languages)
 
         # Variables to track matching method and result
         matched_element = None
@@ -468,7 +477,7 @@ def do(instruction, debug, no_execute, force_ai):
 
             # 3. TRY COMMON ACTIONS
             if not matched_element:
-                common_match = matcher.find_common_action_match(action_normalized, actionable_elements)
+                common_match = matcher.find_common_action_match(action_normalized, actionable_elements, languages)
                 if common_match:
                     matched_element = common_match["element"]
                     match_method = "COMMON"

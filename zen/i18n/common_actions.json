@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "Common web actions with multilingual support. Each action has URL patterns and localized text matches.",
+
+  "home": {
+    "href_patterns": ["/", "/home", "/index", "/homepage", "/index.html", "/index.php"],
+    "texts": {
+      "en": ["home", "homepage", "main page"],
+      "nl": ["thuis", "thuispagina", "hoofdpagina", "home", "startpagina"],
+      "fr": ["accueil", "page d'accueil", "home"],
+      "de": ["startseite", "hauptseite", "home", "anfang"],
+      "es": ["inicio", "página principal", "home", "portada"]
+    }
+  },
+
+  "login": {
+    "href_patterns": ["/login", "/signin", "/sign-in", "/auth", "/authenticate"],
+    "texts": {
+      "en": ["login", "sign in", "signin", "log in"],
+      "nl": ["inloggen", "aanmelden", "login", "log in"],
+      "fr": ["connexion", "se connecter", "login", "s'identifier"],
+      "de": ["anmelden", "einloggen", "login", "sich anmelden"],
+      "es": ["iniciar sesión", "entrar", "login", "acceder"]
+    }
+  },
+
+  "logout": {
+    "href_patterns": ["/logout", "/signout", "/sign-out"],
+    "texts": {
+      "en": ["logout", "sign out", "signout", "log out"],
+      "nl": ["uitloggen", "afmelden", "logout", "log uit"],
+      "fr": ["déconnexion", "se déconnecter", "logout", "sortir"],
+      "de": ["abmelden", "ausloggen", "logout", "sich abmelden"],
+      "es": ["cerrar sesión", "salir", "logout", "desconectar"]
+    }
+  },
+
+  "search": {
+    "href_patterns": ["/search", "/find", "/query"],
+    "texts": {
+      "en": ["search", "find", "look for"],
+      "nl": ["zoeken", "zoek", "vinden", "opzoeken"],
+      "fr": ["rechercher", "recherche", "chercher", "trouver"],
+      "de": ["suchen", "suche", "finden"],
+      "es": ["buscar", "búsqueda", "encontrar", "search"]
+    }
+  },
+
+  "about": {
+    "href_patterns": ["/about", "/about-us", "/about_us", "/over-ons", "/a-propos", "/uber-uns", "/acerca-de"],
+    "texts": {
+      "en": ["about", "about us", "about this"],
+      "nl": ["over", "over ons", "wie zijn wij", "about"],
+      "fr": ["à propos", "a propos", "qui sommes-nous", "about"],
+      "de": ["über uns", "ueber uns", "über", "about"],
+      "es": ["acerca de", "sobre nosotros", "quiénes somos", "about"]
+    }
+  },
+
+  "contact": {
+    "href_patterns": ["/contact", "/contact-us", "/contact_us", "/contacteer-ons", "/nous-contacter", "/kontakt"],
+    "texts": {
+      "en": ["contact", "contact us", "get in touch"],
+      "nl": ["contact", "contacteer ons", "neem contact op", "bereikbaarheid"],
+      "fr": ["contact", "nous contacter", "contactez-nous"],
+      "de": ["kontakt", "kontaktieren", "kontakt aufnehmen"],
+      "es": ["contacto", "contáctenos", "contactar"]
+    }
+  },
+
+  "help": {
+    "href_patterns": ["/help", "/support", "/faq", "/aide", "/hilfe", "/ayuda"],
+    "texts": {
+      "en": ["help", "support", "assistance", "faq"],
+      "nl": ["help", "hulp", "ondersteuning", "veelgestelde vragen"],
+      "fr": ["aide", "support", "assistance", "faq"],
+      "de": ["hilfe", "support", "unterstützung", "faq"],
+      "es": ["ayuda", "soporte", "asistencia", "preguntas frecuentes"]
+    }
+  },
+
+  "settings": {
+    "href_patterns": ["/settings", "/preferences", "/config", "/configuration", "/instellingen", "/parametres", "/einstellungen", "/configuracion"],
+    "texts": {
+      "en": ["settings", "preferences", "options", "configuration"],
+      "nl": ["instellingen", "voorkeuren", "opties", "configuratie"],
+      "fr": ["paramètres", "préférences", "options", "configuration"],
+      "de": ["einstellungen", "vorlieben", "optionen", "konfiguration"],
+      "es": ["configuración", "ajustes", "preferencias", "opciones"]
+    }
+  },
+
+  "profile": {
+    "href_patterns": ["/profile", "/account", "/my-account", "/profiel", "/profil", "/perfil"],
+    "texts": {
+      "en": ["profile", "my profile", "account", "my account"],
+      "nl": ["profiel", "mijn profiel", "account", "mijn account"],
+      "fr": ["profil", "mon profil", "compte", "mon compte"],
+      "de": ["profil", "mein profil", "konto", "mein konto"],
+      "es": ["perfil", "mi perfil", "cuenta", "mi cuenta"]
+    }
+  },
+
+  "register": {
+    "href_patterns": ["/register", "/signup", "/sign-up", "/join", "/registreren", "/s-inscrire", "/registrieren", "/registrarse"],
+    "texts": {
+      "en": ["register", "sign up", "signup", "join", "create account"],
+      "nl": ["registreren", "aanmelden", "inschrijven", "account aanmaken"],
+      "fr": ["s'inscrire", "inscription", "créer un compte", "rejoindre"],
+      "de": ["registrieren", "anmelden", "konto erstellen", "beitreten"],
+      "es": ["registrarse", "crear cuenta", "inscribirse", "unirse"]
+    }
+  },
+
+  "cart": {
+    "href_patterns": ["/cart", "/basket", "/shopping-cart", "/winkelwagen", "/panier", "/warenkorb", "/carrito"],
+    "texts": {
+      "en": ["cart", "shopping cart", "basket", "bag"],
+      "nl": ["winkelwagen", "mandje", "winkelmand", "cart"],
+      "fr": ["panier", "chariot", "mon panier", "cart"],
+      "de": ["warenkorb", "einkaufswagen", "korb", "cart"],
+      "es": ["carrito", "cesta", "bolsa", "cart"]
+    }
+  },
+
+  "checkout": {
+    "href_patterns": ["/checkout", "/purchase", "/order", "/afrekenen", "/commander", "/kasse", "/pagar"],
+    "texts": {
+      "en": ["checkout", "proceed to checkout", "buy now", "purchase"],
+      "nl": ["afrekenen", "bestellen", "kopen", "checkout"],
+      "fr": ["commander", "passer commande", "acheter", "checkout"],
+      "de": ["zur kasse", "bestellen", "kaufen", "checkout"],
+      "es": ["pagar", "finalizar compra", "comprar", "checkout"]
+    }
+  },
+
+  "news": {
+    "href_patterns": ["/news", "/blog", "/articles", "/nieuws", "/actualites", "/nachrichten", "/noticias"],
+    "texts": {
+      "en": ["news", "blog", "articles", "updates"],
+      "nl": ["nieuws", "blog", "artikelen", "updates"],
+      "fr": ["actualités", "blog", "articles", "nouvelles"],
+      "de": ["nachrichten", "neuigkeiten", "blog", "artikel"],
+      "es": ["noticias", "blog", "artículos", "novedades"]
+    }
+  },
+
+  "privacy": {
+    "href_patterns": ["/privacy", "/privacy-policy", "/privacybeleid", "/confidentialite", "/datenschutz", "/privacidad"],
+    "texts": {
+      "en": ["privacy", "privacy policy", "data protection"],
+      "nl": ["privacy", "privacybeleid", "gegevensbescherming"],
+      "fr": ["confidentialité", "politique de confidentialité", "protection des données"],
+      "de": ["datenschutz", "datenschutzerklärung", "privatsphäre"],
+      "es": ["privacidad", "política de privacidad", "protección de datos"]
+    }
+  }
+}

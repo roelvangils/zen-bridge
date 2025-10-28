@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "Filler words to remove during action normalization for multiple languages",
+
+  "en": {
+    "action_verbs": [
+      "go", "open", "click", "navigate", "visit", "access",
+      "show", "display", "view", "see", "find", "get",
+      "take", "bring", "load", "press"
+    ],
+    "articles": ["the", "a", "an"],
+    "prepositions": ["to", "on", "at", "in", "of", "for", "with", "from", "by"],
+    "possessives": ["my", "me", "i", "want", "need"],
+    "ui_elements": [
+      "page", "button", "link", "image", "icon",
+      "field", "form", "input", "menu", "tab",
+      "section", "area"
+    ],
+    "modifiers": ["please", "now", "then", "next", "first", "also", "just", "only"]
+  },
+
+  "nl": {
+    "action_verbs": [
+      "ga", "gaan", "open", "klik", "navigeer", "bezoek", "bekijk",
+      "toon", "laat", "zie", "zoek", "vind", "haal",
+      "neem", "laad", "druk"
+    ],
+    "articles": ["de", "het", "een"],
+    "prepositions": ["naar", "op", "bij", "in", "van", "voor", "met", "uit", "door"],
+    "possessives": ["mijn", "me", "ik", "wil", "moet"],
+    "ui_elements": [
+      "pagina", "knop", "link", "afbeelding", "icoon",
+      "veld", "formulier", "invoer", "menu", "tabblad",
+      "sectie", "gebied"
+    ],
+    "modifiers": ["alsjeblieft", "nu", "dan", "volgende", "eerste", "ook", "gewoon", "alleen"]
+  },
+
+  "fr": {
+    "action_verbs": [
+      "aller", "ouvrir", "cliquer", "naviguer", "visiter", "accéder",
+      "afficher", "montrer", "voir", "trouver", "obtenir",
+      "prendre", "charger", "appuyer"
+    ],
+    "articles": ["le", "la", "les", "un", "une", "des"],
+    "prepositions": ["à", "sur", "dans", "de", "pour", "avec", "par"],
+    "possessives": ["mon", "ma", "mes", "je", "veux", "dois"],
+    "ui_elements": [
+      "page", "bouton", "lien", "image", "icône",
+      "champ", "formulaire", "entrée", "menu", "onglet",
+      "section", "zone"
+    ],
+    "modifiers": ["s'il vous plaît", "maintenant", "puis", "suivant", "premier", "aussi", "juste", "seulement"]
+  },
+
+  "de": {
+    "action_verbs": [
+      "gehen", "öffnen", "klicken", "navigieren", "besuchen", "zugreifen",
+      "zeigen", "anzeigen", "sehen", "finden", "holen",
+      "nehmen", "laden", "drücken"
+    ],
+    "articles": ["der", "die", "das", "ein", "eine"],
+    "prepositions": ["zu", "auf", "bei", "in", "von", "für", "mit", "aus", "durch"],
+    "possessives": ["mein", "meine", "ich", "will", "muss"],
+    "ui_elements": [
+      "seite", "schaltfläche", "button", "link", "bild", "symbol",
+      "feld", "formular", "eingabe", "menü", "tab",
+      "abschnitt", "bereich"
+    ],
+    "modifiers": ["bitte", "jetzt", "dann", "nächste", "erste", "auch", "nur"]
+  },
+
+  "es": {
+    "action_verbs": [
+      "ir", "abrir", "hacer clic", "navegar", "visitar", "acceder",
+      "mostrar", "ver", "encontrar", "obtener",
+      "tomar", "cargar", "pulsar", "presionar"
+    ],
+    "articles": ["el", "la", "los", "las", "un", "una"],
+    "prepositions": ["a", "en", "de", "para", "con", "por"],
+    "possessives": ["mi", "mis", "yo", "quiero", "necesito"],
+    "ui_elements": [
+      "página", "botón", "enlace", "imagen", "icono",
+      "campo", "formulario", "entrada", "menú", "pestaña",
+      "sección", "área"
+    ],
+    "modifiers": ["por favor", "ahora", "luego", "siguiente", "primero", "también", "solo", "solamente"]
+  }
+}

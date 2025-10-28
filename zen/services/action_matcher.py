@@ -11,14 +11,16 @@ This module provides multiple strategies for matching user actions to page eleme
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
 from typing import Any
 
 
 class ActionMatcher:
     """Intelligent action matcher that finds elements without AI."""
 
-    # Common action patterns
-    COMMON_ACTIONS = {
+    # Legacy common actions - kept for reference, now loaded from JSON
+    COMMON_ACTIONS_LEGACY = {
         "home": {
             "href_patterns": ["/", "/home", "/index", "/homepage"],
             "texts": ["home", "homepage", "main page"],
@@ -100,6 +102,22 @@ class ActionMatcher:
     def __init__(self, config: dict[str, Any] | None = None):
         """Initialize action matcher with configuration."""
         self.config = config or {}
+        self.common_actions = self._load_common_actions()
+
+    def _load_common_actions(self) -> dict[str, Any]:
+        """Load common actions from i18n JSON file."""
+        try:
+            i18n_path = Path(__file__).parent.parent / "i18n" / "common_actions.json"
+            if not i18n_path.exists():
+                return {}
+
+            with open(i18n_path, encoding="utf-8") as f:
+                data = json.load(f)
+
+            # Filter out JSON schema fields
+            return {k: v for k, v in data.items() if not k.startswith("$")}
+        except Exception:
+            return {}
 
     def find_literal_match(
         self, action_normalized: str, actionable_elements: list[dict]
@@ -154,24 +172,47 @@ class ActionMatcher:
         return None
 
     def find_common_action_match(
-        self, action_normalized: str, actionable_elements: list[dict]
+        self, action_normalized: str, actionable_elements: list[dict], languages: list[str] | None = None
     ) -> dict | None:
         """
         Find element using common action patterns.
 
         Checks if action matches a known pattern (like "login", "home", etc.)
-        and looks for elements matching those patterns.
+        and looks for elements matching those patterns. Supports multiple languages.
+
+        Args:
+            action_normalized: The normalized action text
+            actionable_elements: List of actionable elements
+            languages: List of language codes to check (e.g., ['nl', 'en'])
         """
+        if not self.common_actions:
+            return None
+
+        # Default: try common European languages + English
+        if languages is None:
+            languages = ["en", "nl", "fr", "de", "es"]
+
         # Check if action matches a common pattern
-        for pattern_name, patterns in self.COMMON_ACTIONS.items():
+        for pattern_name, patterns in self.common_actions.items():
+            # Check if pattern name matches action
             if pattern_name in action_normalized or action_normalized in pattern_name:
-                # Found a common pattern, look for matching elements
-                return self._find_by_pattern(patterns, actionable_elements)
+                return self._find_by_pattern(patterns, actionable_elements, languages)
+
+            # Check if any text in any language matches the action
+            if "texts" in patterns:
+                for lang in languages:
+                    if lang in patterns["texts"]:
+                        for text in patterns["texts"][lang]:
+                            if text.lower() in action_normalized or action_normalized in text.lower():
+                                return self._find_by_pattern(patterns, actionable_elements, languages)
 
         return None
 
-    def _find_by_pattern(self, patterns: dict, actionable_elements: list[dict]) -> dict | None:
-        """Find element matching a common action pattern."""
+    def _find_by_pattern(self, patterns: dict, actionable_elements: list[dict], languages: list[str] | None = None) -> dict | None:
+        """Find element matching a common action pattern. Supports multilingual text patterns."""
+        if languages is None:
+            languages = ["en", "nl", "fr", "de", "es"]
+
         matches = []
 
         for element in actionable_elements:
@@ -185,12 +226,26 @@ class ActionMatcher:
                         score = 1.0
                         break
 
-            # Check text patterns
+            # Check text patterns (now multilingual)
             if "texts" in patterns:
                 element_text = self._normalize_text(element.get("text", ""))
-                for text_pattern in patterns["texts"]:
-                    if text_pattern in element_text or element_text in text_pattern:
-                        score = max(score, 0.9)
+
+                # Handle both old format (list) and new format (dict with language keys)
+                if isinstance(patterns["texts"], dict):
+                    # New multilingual format
+                    for lang in languages:
+                        if lang in patterns["texts"]:
+                            for text_pattern in patterns["texts"][lang]:
+                                if text_pattern.lower() in element_text or element_text in text_pattern.lower():
+                                    score = max(score, 0.9)
+                                    break
+                            if score >= 0.9:
+                                break
+                else:
+                    # Legacy format (simple list)
+                    for text_pattern in patterns["texts"]:
+                        if text_pattern in element_text or element_text in text_pattern:
+                            score = max(score, 0.9)
 
             # Check types
             if "types" in patterns and element.get("type"):
