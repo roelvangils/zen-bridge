@@ -57,7 +57,22 @@ async function executeWithCSPBypass(tabId, code, requestId) {
         console.log('[Zen Bridge] Executing code in tab', tabId, 'with CSP bypass');
 
         // Wrap user code in a function that returns the result
-        const wrappedCode = `
+        // Handle both expressions and complete statements/IIFEs
+        const trimmedCode = code.trim();
+        const isIIFE = trimmedCode.startsWith('(function') || trimmedCode.startsWith('(async function');
+
+        const wrappedCode = isIIFE
+            ? `
+            (async function() {
+                try {
+                    const result = await (async () => { return ${code} })();
+                    return { ok: true, result, error: null };
+                } catch (e) {
+                    return { ok: false, result: null, error: String(e.stack || e) };
+                }
+            })();
+            `
+            : `
             (async function() {
                 try {
                     const result = await (async () => { return (${code}); })();
@@ -66,7 +81,7 @@ async function executeWithCSPBypass(tabId, code, requestId) {
                     return { ok: false, result: null, error: String(e.stack || e) };
                 }
             })();
-        `;
+            `;
 
         // Execute with CSP bypass
         const results = await browser.tabs.executeScript(tabId, {
