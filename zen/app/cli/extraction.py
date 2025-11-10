@@ -1166,7 +1166,11 @@ def summarize(format, language, debug, force_refresh):
             click.echo(f"Error: {result.get('error')}", err=True)
             sys.exit(1)
 
-        article = result.get("result", {})
+        article = result.get("result") or {}
+
+        if not article:
+            click.echo("Error: No content extracted. The page may not be an article or may have restricted access.", err=True)
+            sys.exit(1)
 
         if article.get("error"):
             click.echo(f"Error: {article['error']}", err=True)
