@@ -126,6 +126,7 @@ nav:
   - Home: index.md
   - Getting Started:
       - Installation: getting-started/installation.md
+      - Browser Extensions: extensions/README.md
       - Quick Start: getting-started/quick-start.md
       - Configuration: getting-started/configuration.md
       - Updating: getting-started/updating.md

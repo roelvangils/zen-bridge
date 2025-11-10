@@ -121,11 +121,57 @@ zen --help
 
 ---
 
-## Step 2: Install the Browser Userscript
+## Step 2: Install the Browser Component
 
-The browser needs a userscript to receive commands from the CLI. This userscript establishes a WebSocket connection to the server.
+The browser needs a component to receive commands from the CLI and establish a WebSocket connection to the server.
 
-### 2.1 Install a Userscript Manager
+**Choose one installation method:**
+
+- **[Extension (Recommended)](#extension-installation)** - Works on ALL websites including GitHub, Gmail, banking sites. Bypasses CSP restrictions.
+- **[Userscript (Quick Setup)](#userscript-installation)** - One-click installation, but may be blocked by CSP on some sites.
+
+### Extension Installation
+
+The Firefox extension provides **full compatibility** with all websites, including those with strict Content Security Policy (CSP) like GitHub, Gmail, and banking sites.
+
+#### 2.1a Install Firefox Extension
+
+1. **Download the extension files** from the repository:
+   ```bash
+   cd /path/to/zen-bridge
+   cd extensions/firefox
+   ```
+
+2. **Open Firefox** and navigate to:
+   ```
+   about:debugging#/runtime/this-firefox
+   ```
+
+3. **Load the extension**:
+   - Click "Load Temporary Add-on..."
+   - Select the `manifest.json` file from `extensions/firefox/`
+
+4. **Verify installation**:
+   - Look for the ⚡ icon in your toolbar
+   - Click it to see the status panel
+
+!!! success "Extension Installed"
+    The extension will now work on all websites! Continue to [Step 3: Start the Bridge Server](#step-3-start-the-bridge-server).
+
+!!! tip "Why Use the Extension?"
+    The extension bypasses Content Security Policy (CSP) restrictions that block the userscript on important sites:
+
+    - ✅ Works on GitHub, Gmail, banking sites
+    - ✅ Built-in settings panel with connection status
+    - ✅ No CSP limitations
+
+    [Read more about extensions →](../../extensions/)
+
+### Userscript Installation
+
+The userscript is quick to install but may be blocked by CSP on some websites. If you encounter issues on GitHub, Gmail, or banking sites, use the [extension instead](#extension-installation).
+
+#### 2.1b Install a Userscript Manager
 
 First, install a userscript manager extension in your browser:
 
@@ -154,7 +200,18 @@ First, install a userscript manager extension in your browser:
 !!! note "Browser Compatibility"
     Zen Bridge works with any browser that supports userscript managers and WebSockets. This includes all modern browsers.
 
-### 2.2 Get the Userscript Code
+!!! warning "CSP Limitations"
+    The userscript may be blocked by Content Security Policy on sites like:
+
+    - GitHub, GitLab
+    - Gmail, Outlook
+    - Banking and government sites
+
+    If you encounter CSP issues, use the [Firefox extension](#extension-installation) instead for full compatibility.
+
+    [Read CSP troubleshooting guide →](../troubleshooting/csp-issues/)
+
+#### 2.2b Get the Userscript Code
 
 Display the userscript code using the CLI:
 
@@ -164,7 +221,7 @@ zen userscript
 
 This will output the complete userscript code to your terminal. The userscript is located at `/Users/roelvangils/zen_bridge/userscript_ws.js` in the repository.
 
-### 2.3 Create the Userscript
+#### 2.3b Create the Userscript
 
 Now create a new userscript in your userscript manager:
 
@@ -187,7 +244,7 @@ The userscript will automatically enable itself.
     zen userscript > my-userscript.js
     ```
 
-### 2.4 Verify Userscript is Active
+#### 2.4b Verify Userscript is Active
 
 To verify the userscript is running:
 
