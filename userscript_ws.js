@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Zen Browser Bridge (WebSocket)
 // @namespace    zen-bridge
-// @version      3.4
+// @version      3.5
 // @description  Execute JavaScript in the active tab via Zen CLI (WebSocket version)
 // @match        *://*/*
 // @run-at       document-idle
@@ -14,12 +14,15 @@
     'use strict';
 
     // Expose version for CLI to read
-    window.__ZEN_BRIDGE_VERSION__ = '3.4';
+    window.__ZEN_BRIDGE_VERSION__ = '3.5';
+    window.__ZEN_BRIDGE_CSP_BLOCKED__ = false;
 
     const WS_URL = 'ws://127.0.0.1:8766/ws'; // WebSocket URL
     let ws = null;
     let reconnectTimer = null;
     const RECONNECT_DELAY = 3000; // 3 seconds
+    let cspDetected = false; // Track if CSP is blocking us
+    let connectionAttempts = 0;
 
     // Store WebSocket globally so it persists across page navigations
     window.__zen_ws__ = null;
@@ -29,9 +32,60 @@
         return document.visibilityState === 'visible' && window === window.top;
     }
 
+    function detectCSP() {
+        // Check for CSP meta tags
+        const cspMeta = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+        if (cspMeta) {
+            const content = cspMeta.getAttribute('content') || '';
+            if (content.includes('connect-src') && !content.includes('ws://') && !content.includes('localhost')) {
+                return 'meta-tag';
+            }
+        }
+        return null;
+    }
+
+    function showCSPWarning(reason) {
+        if (cspDetected) return; // Already warned
+        cspDetected = true;
+
+        console.group('%c⚠️ Zen Bridge: CSP Detected', 'color: #ff6600; font-weight: bold; font-size: 14px');
+        console.log('%cThis website has Content Security Policy (CSP) restrictions that block Zen Bridge.', 'color: #ff6600');
+        console.log('');
+        console.log('%cWhat this means:', 'font-weight: bold');
+        console.log('• WebSocket connections to localhost are blocked');
+        console.log('• Zen commands will not work on this page');
+        console.log('');
+        console.log('%cWhy this happens:', 'font-weight: bold');
+        console.log('• High-security sites (GitHub, banking, government) use CSP');
+        console.log('• CSP prevents unauthorized scripts and connections');
+        console.log('• This is a security feature, not a bug');
+        console.log('');
+        console.log('%cWhat you can do:', 'font-weight: bold');
+        console.log('• Test Zen Bridge on other websites');
+        console.log('• Check documentation: https://roelvangils.github.io/zen-bridge/');
+        console.log('• Report CSP issues: https://github.com/roelvangils/zen-bridge/issues');
+        console.log('');
+        console.log('%cTechnical details:', 'color: #666');
+        console.log('• Detection reason:', reason);
+        console.log('• Current URL:', window.location.hostname);
+        console.groupEnd();
+
+        // Store CSP detection in window for CLI to check
+        window.__ZEN_BRIDGE_CSP_BLOCKED__ = true;
+    }
+
     function connect() {
         if (ws && ws.readyState === WebSocket.OPEN) {
             return; // Already connected
+        }
+
+        connectionAttempts++;
+
+        // Check for CSP before attempting connection
+        const cspCheck = detectCSP();
+        if (cspCheck) {
+            showCSPWarning(cspCheck);
+            return; // Don't attempt connection
         }
 
         console.log('[Zen Bridge] Connecting to WebSocket server...');
@@ -106,11 +160,23 @@
             };
 
             ws.onerror = (error) => {
-                console.error('[Zen Bridge] WebSocket error:', error);
+                // Check if this might be a CSP issue
+                if (connectionAttempts > 2 && !cspDetected) {
+                    // Multiple failed connections might indicate CSP
+                    showCSPWarning('repeated-connection-failures');
+                } else {
+                    console.error('[Zen Bridge] WebSocket error:', error);
+                }
             };
 
         } catch (err) {
-            console.error('[Zen Bridge] Failed to connect:', err);
+            // Check if error message indicates CSP
+            const errMsg = String(err);
+            if (errMsg.includes('CSP') || errMsg.includes('Content Security Policy') || errMsg.includes('connect-src')) {
+                showCSPWarning('connection-error');
+            } else {
+                console.error('[Zen Bridge] Failed to connect:', err);
+            }
             scheduleReconnect();
         }
     }

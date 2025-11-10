@@ -150,6 +150,8 @@ nav:
       - Contributing: development/contributing.md
       - Testing: development/testing.md
       - Security: development/security.md
+  - Troubleshooting:
+      - CSP Issues: troubleshooting/csp-issues.md
   - About:
       - Changelog: about/changelog.md
       - License: about/license.md
