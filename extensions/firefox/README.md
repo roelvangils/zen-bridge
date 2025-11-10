@@ -29,13 +29,22 @@ The Firefox extension for Zen Browser Bridge that **bypasses CSP restrictions** 
    - Look for the ⚡ icon in your toolbar
    - Click it to see the status panel
 
-### Method 2: Permanent Installation (.xpi file)
+### Method 2: Permanent Installation
 
-Coming soon! We'll package this as a signed .xpi file for easier installation.
+For permanent installation that persists across Firefox restarts, see the **[Permanent Installation Guide](INSTALL.md)**.
 
-### Method 3: Firefox Add-ons Store
+Quick options:
+- **For developers**: Use Firefox Developer Edition with unsigned extensions
+- **For distribution**: Sign the extension via Mozilla Add-ons
+- **For public release**: Submit to Firefox Add-ons Store (coming soon)
 
-Coming soon! We plan to submit this to the official Firefox Add-ons store.
+```bash
+# Build the extension
+cd extensions/firefox
+./build.sh
+```
+
+See [INSTALL.md](INSTALL.md) for detailed instructions.
 
 ## Usage
 
