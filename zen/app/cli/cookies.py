@@ -27,26 +27,30 @@ def cookies():
 
 
 @cookies.command(name="list")
-def cookies_list():
+@click.option("--json", "output_json", is_flag=True, help="Output as JSON")
+def cookies_list(output_json):
     """
     List all cookies for the current page.
 
     Example:
         zen cookies list
+        zen cookies list --json
     """
-    _execute_cookie_action("list")
+    _execute_cookie_action("list", output_json=output_json)
 
 
 @cookies.command(name="get")
 @click.argument("name")
-def cookies_get(name):
+@click.option("--json", "output_json", is_flag=True, help="Output as JSON")
+def cookies_get(name, output_json):
     """
     Get the value of a specific cookie.
 
     Example:
         zen cookies get session_id
+        zen cookies get session_id --json
     """
-    _execute_cookie_action("get", cookie_name=name)
+    _execute_cookie_action("get", cookie_name=name, output_json=output_json)
 
 
 @cookies.command(name="set")
@@ -109,7 +113,7 @@ def cookies_clear():
     _execute_cookie_action("clear")
 
 
-def _execute_cookie_action(action, cookie_name="", cookie_value="", options=None):
+def _execute_cookie_action(action, cookie_name="", cookie_value="", options=None, output_json=False):
     """Helper function to execute cookie actions."""
     executor = get_executor()
     loader = ScriptLoader()
@@ -145,7 +149,13 @@ def _execute_cookie_action(action, cookie_name="", cookie_value="", options=None
         cookies_dict = response.get("cookies", {})
         count = response.get("count", 0)
 
-        if count == 0:
+        if output_json:
+            output_data = {
+                "cookies": cookies_dict,
+                "count": count
+            }
+            click.echo(json.dumps(output_data, indent=2))
+        elif count == 0:
             click.echo("No cookies found")
         else:
             click.echo(f"Cookies ({count}):\n")
@@ -159,7 +169,16 @@ def _execute_cookie_action(action, cookie_name="", cookie_value="", options=None
         value = response.get("value")
         exists = response.get("exists")
 
-        if exists:
+        if output_json:
+            output_data = {
+                "name": name,
+                "value": value,
+                "exists": exists
+            }
+            click.echo(json.dumps(output_data, indent=2))
+            if not exists:
+                sys.exit(1)
+        elif exists:
             click.echo(f"{name} = {value}")
         else:
             click.echo(f"Cookie not found: {name}", err=True)
