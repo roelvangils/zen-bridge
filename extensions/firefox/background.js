@@ -60,9 +60,7 @@ async function executeWithCSPBypass(tabId, code, requestId) {
         const wrappedCode = `
             (async function() {
                 try {
-                    const result = await (async () => {
-                        return ${code}
-                    })();
+                    const result = await (async () => { return (${code}); })();
                     return { ok: true, result, error: null };
                 } catch (e) {
                     return { ok: false, result: null, error: String(e.stack || e) };
