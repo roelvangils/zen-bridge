@@ -136,8 +136,17 @@
     // Handle page visibility changes
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
+            // Tab became visible - connect if needed
             if (!ws || ws.readyState !== WebSocket.OPEN) {
                 connect();
+            }
+        } else {
+            // Tab became hidden - disconnect to save resources
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                console.log('[Zen Bridge] Tab hidden, closing connection');
+                ws.close();
+                ws = null;
+                window.__zen_ws__ = null;
             }
         }
     });
