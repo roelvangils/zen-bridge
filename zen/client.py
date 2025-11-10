@@ -207,6 +207,7 @@ class BridgeClient:
         # Poll for result
         start_time = time.time()
         poll_interval = 0.1  # Start with 100ms
+        csp_checked = False
 
         while time.time() - start_time < timeout:
             try:
@@ -220,6 +221,45 @@ class BridgeClient:
                     data = response.json()
 
                     if data.get("status") == "pending":
+                        # Check for CSP blocking (after 2 seconds of waiting)
+                        if not csp_checked and time.time() - start_time > 2.0:
+                            csp_checked = True
+                            try:
+                                # Try to read CSP flag from browser
+                                csp_check = requests.post(
+                                    f"{self.base_url}/run",
+                                    json={"code": "window.__ZEN_BRIDGE_CSP_BLOCKED__"},
+                                    timeout=self.timeout,
+                                )
+                                if csp_check.status_code == 200:
+                                    check_data = csp_check.json()
+                                    check_id = check_data.get("request_id")
+
+                                    # Quick poll for CSP check result
+                                    time.sleep(0.5)
+                                    csp_result = requests.get(
+                                        f"{self.base_url}/result",
+                                        params={"request_id": check_id},
+                                        timeout=self.timeout,
+                                    )
+
+                                    if csp_result.status_code == 200:
+                                        csp_data = csp_result.json()
+                                        if csp_data.get("status") == "completed" and csp_data.get("result") == True:
+                                            raise RuntimeError(
+                                                "Content Security Policy (CSP) is blocking Zen Bridge on this site.\n\n"
+                                                "This website has security restrictions that prevent WebSocket connections "
+                                                "to localhost.\n\n"
+                                                "Common affected sites: GitHub, Gmail, banking sites, government portals.\n\n"
+                                                "Solutions:\n"
+                                                "  • Test Zen Bridge on other websites without strict CSP\n"
+                                                "  • Check browser console (F12) for detailed CSP warnings\n"
+                                                "  • Read troubleshooting guide: https://roelvangils.github.io/zen-bridge/troubleshooting/csp-issues/\n\n"
+                                                f"Current site: {csp_data.get('url', 'unknown')}"
+                                            )
+                            except (requests.RequestException, KeyError):
+                                pass  # CSP check failed, continue with timeout
+
                         # Still waiting for browser
                         time.sleep(poll_interval)
                         poll_interval = min(poll_interval * 1.5, 1.0)  # Exponential backoff
@@ -231,8 +271,16 @@ class BridgeClient:
                 raise ConnectionError(f"Failed to get result: {e}")
 
         raise TimeoutError(
-            f"No response from browser after {timeout} seconds. "
-            "Make sure a browser tab is open with the userscript active."
+            f"No response from browser after {timeout} seconds.\n\n"
+            "Possible causes:\n"
+            "  • No browser tab is open with the userscript active\n"
+            "  • Content Security Policy (CSP) is blocking the connection\n"
+            "  • Browser userscript manager (Tampermonkey/Violentmonkey) is disabled\n\n"
+            "Troubleshooting:\n"
+            "  • Open browser console (F12) and check for Zen Bridge messages\n"
+            "  • Look for CSP warnings in red/orange\n"
+            "  • Verify: zen server status\n"
+            "  • Read: https://roelvangils.github.io/zen-bridge/troubleshooting/csp-issues/"
         )
 
     def execute_file(self, filepath: str, timeout: float = 10.0) -> dict[str, Any]:
