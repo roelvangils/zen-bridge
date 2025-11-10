@@ -8,6 +8,7 @@ This module provides commands for element inspection and screenshot capture:
 """
 
 import base64
+import json
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -90,7 +91,8 @@ def inspect(ctx, selector):
 
 
 @click.command()
-def inspected():
+@click.option("--json", "output_json", is_flag=True, help="Output as JSON")
+def inspected(output_json):
     """
     Get information about the currently inspected element.
 
@@ -126,10 +128,18 @@ def inspected():
 
         response = result.get("result", {})
         if response.get("error"):
-            click.echo(f"Error: {response['error']}", err=True)
-            if response.get("hint"):
-                click.echo(f"Hint: {response['hint']}", err=True)
+            if output_json:
+                click.echo(json.dumps({"error": response['error'], "hint": response.get("hint")}, indent=2))
+            else:
+                click.echo(f"Error: {response['error']}", err=True)
+                if response.get("hint"):
+                    click.echo(f"Hint: {response['hint']}", err=True)
             sys.exit(1)
+
+        # JSON output
+        if output_json:
+            click.echo(json.dumps(response, indent=2))
+            return
 
         # Display info
         click.echo(f"Tag:      <{response['tag']}>")

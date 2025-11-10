@@ -1,5 +1,6 @@
 """Server management commands for the Zen bridge."""
 
+import json
 import subprocess
 import sys
 
@@ -58,21 +59,33 @@ def start(port, daemon):
 
 
 @server.command()
-def status():
+@click.option("--json", "output_json", is_flag=True, help="Output as JSON")
+def status(output_json):
     """Check bridge server status."""
     client = BridgeClient()
 
     if client.is_alive():
         status = client.get_status()
-        if status:
+        if output_json:
+            output_data = {
+                "running": True,
+                "pending": status.get('pending', 0) if status else None,
+                "completed": status.get('completed', 0) if status else None,
+                "status_available": status is not None
+            }
+            click.echo(json.dumps(output_data, indent=2))
+        elif status:
             click.echo("Bridge server is running")
             click.echo(f"  Pending requests:   {status.get('pending', 0)}")
             click.echo(f"  Completed requests: {status.get('completed', 0)}")
         else:
             click.echo("Bridge server is running (status unavailable)")
     else:
-        click.echo("Bridge server is not running")
-        click.echo("Start it with: zen server start")
+        if output_json:
+            click.echo(json.dumps({"running": False}, indent=2))
+        else:
+            click.echo("Bridge server is not running")
+            click.echo("Start it with: zen server start")
         sys.exit(1)
 
 

@@ -1285,8 +1285,9 @@ def userscript():
     help="Output directory (default: ~/Downloads/<domain>)",
 )
 @click.option("--list", "list_only", is_flag=True, help="Only list files without downloading")
+@click.option("--json", "output_json", is_flag=True, help="Output as JSON (requires --list)")
 @click.option("-t", "--timeout", type=float, default=30.0, help="Timeout in seconds (default: 30)")
-def download(output, list_only, timeout):
+def download(output, list_only, output_json, timeout):
     """
     Find and download files from the current page.
 
@@ -1411,10 +1412,19 @@ def download(output, list_only, timeout):
 
         # List only mode
         if list_only:
-            click.echo(f"\nFound {total_files} downloadable files:\n")
-            for option in options:
-                if option_map.get(option, {}).get("type") not in ["separator", "category"]:
-                    click.echo(option)
+            if output_json:
+                # Build JSON output
+                json_output = {
+                    "total": total_files,
+                    "url": page_url,
+                    "files": files_by_category
+                }
+                click.echo(json.dumps(json_output, indent=2))
+            else:
+                click.echo(f"\nFound {total_files} downloadable files:\n")
+                for option in options:
+                    if option_map.get(option, {}).get("type") not in ["separator", "category"]:
+                        click.echo(option)
             return
 
         # Simple numbered list selection
