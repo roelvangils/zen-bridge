@@ -725,7 +725,8 @@ def do(instruction, debug, no_execute, force_ai):
 
 
 @click.command()
-def outline():
+@click.option("--json", "output_json", is_flag=True, help="Output as JSON")
+def outline(output_json):
     """
     Display the page's heading structure as a nested outline.
 
@@ -734,6 +735,7 @@ def outline():
 
     Examples:
         zen outline
+        zen outline --json
     """
     client = BridgeClient()
 
@@ -762,8 +764,21 @@ def outline():
         headings = data.get("headings", [])
 
         if not headings:
-            click.echo("No headings found on this page.", err=True)
+            if output_json:
+                click.echo(json.dumps({"headings": [], "count": 0}, indent=2))
+            else:
+                click.echo("No headings found on this page.", err=True)
             sys.exit(0)
+
+        if output_json:
+            output_data = {
+                "headings": headings,
+                "count": len(headings),
+                "url": data.get("url", ""),
+                "title": data.get("title", "")
+            }
+            click.echo(json.dumps(output_data, indent=2))
+            return
 
         # Display the outline with proper indentation
         for heading in headings:

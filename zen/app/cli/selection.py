@@ -1,5 +1,6 @@
 """Selection command - Get selected text from the browser."""
 
+import json
 import sys
 
 import click
@@ -10,7 +11,8 @@ from zen.services.script_loader import ScriptLoader
 
 @click.command()
 @click.option("--raw", is_flag=True, help="Output only the text without formatting")
-def selected(raw):
+@click.option("--json", "output_json", is_flag=True, help="Output as JSON")
+def selected(raw, output_json):
     """
     Get the current text selection in the browser.
 
@@ -44,12 +46,19 @@ def selected(raw):
         response = result.get("result", {})
 
         if not response.get("hasSelection"):
-            if not raw:
+            if output_json:
+                click.echo(json.dumps({"hasSelection": False, "text": "", "length": 0}, indent=2))
+            elif not raw:
                 click.echo("No text selected")
                 click.echo("Hint: Select some text in the browser first, then run: zen selected")
             sys.exit(0)
 
         text = response.get("text", "")
+
+        # JSON mode: output all data as JSON
+        if output_json:
+            click.echo(json.dumps(response, indent=2))
+            return
 
         # Raw mode: just print the text, nothing else
         if raw:
