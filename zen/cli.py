@@ -716,8 +716,21 @@ def info(extended, output_json):
         if result.get("ok"):
             data = result.get("result", {})
 
-            # Get userscript version
-            userscript_version = client.get_userscript_version() or "unknown"
+            # Get userscript/extension version and type
+            try:
+                version_result = client.execute(
+                    "(window.__ZEN_BRIDGE_VERSION__ || 'unknown') + '|' + (window.__ZEN_BRIDGE_EXTENSION__ ? 'extension' : 'userscript')",
+                    timeout=2.0
+                )
+                if version_result.get("ok"):
+                    version_str = version_result.get("result", "unknown|userscript")
+                    userscript_version, install_type = version_str.split("|") if "|" in version_str else (version_str, "userscript")
+                else:
+                    userscript_version = "unknown"
+                    install_type = "userscript"
+            except Exception:
+                userscript_version = client.get_userscript_version() or "unknown"
+                install_type = "userscript"
 
             # If extended, also run the extended_info.js script
             if extended:
@@ -778,6 +791,7 @@ def info(extended, output_json):
                 import json
 
                 data["userscriptVersion"] = userscript_version
+                data["installType"] = install_type
                 click.echo(json.dumps(data, indent=2))
                 return
 
@@ -1393,7 +1407,10 @@ def info(extended, output_json):
                             click.echo(f"  {meta['http-equiv']}: {meta.get('content', '')}")
 
             click.echo("")
-            click.echo(f"Userscript version: {userscript_version}")
+            if install_type == "extension":
+                click.echo(f"Browser extension: v{userscript_version} (CSP bypass enabled)")
+            else:
+                click.echo(f"Userscript version: {userscript_version}")
         else:
             click.echo(f"Error: {result.get('error')}", err=True)
             sys.exit(1)

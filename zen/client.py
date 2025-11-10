@@ -88,7 +88,7 @@ class BridgeClient:
 
     def check_userscript_version(self, show_warning: bool = True) -> str | None:
         """
-        Check if browser userscript version matches expected version.
+        Check if browser userscript/extension version matches expected version.
 
         Args:
             show_warning: If True, print warning to stderr when versions don't match
@@ -106,11 +106,11 @@ class BridgeClient:
             if not expected_version:
                 return None  # Can't find userscript file, skip check
 
-            # Get installed version directly via requests (avoid recursion)
+            # Get installed version and check if using extension
             try:
                 response = requests.post(
                     f"{self.base_url}/run",
-                    json={"code": "window.__ZEN_BRIDGE_VERSION__ || 'unknown'"},
+                    json={"code": "(window.__ZEN_BRIDGE_VERSION__ || 'unknown') + '|' + (window.__ZEN_BRIDGE_EXTENSION__ ? 'ext' : 'user')"},
                     timeout=self.timeout,
                 )
                 response.raise_for_status()
@@ -127,13 +127,18 @@ class BridgeClient:
                     if result_response.status_code == 200:
                         result = result_response.json()
                         if result.get("ok"):
-                            installed_version = result.get("result")
+                            result_str = result.get("result", "unknown|user")
+                            installed_version, install_type = result_str.split("|") if "|" in result_str else (result_str, "user")
                             break
                     time.sleep(0.1)
                 else:
                     return None  # Timeout getting version
             except Exception:
                 return None  # Failed to get version
+
+            # Extension version 4.x.x is always compatible
+            if install_type == "ext" and installed_version.startswith("4."):
+                return None  # Extension is compatible, no warning needed
 
             if not installed_version or installed_version == "unknown":
                 # Userscript not installed or old version without version variable
