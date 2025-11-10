@@ -66,7 +66,10 @@ async function executeWithCSPBypass(tabId, code, requestId) {
             ? `
             (async function() {
                 try {
-                    const result = await (async () => { return ${code} })();
+                    let result = ${code};
+                    if (result && typeof result.then === 'function') {
+                        result = await result;
+                    }
                     return { ok: true, result, error: null };
                 } catch (e) {
                     return { ok: false, result: null, error: String(e.stack || e) };
