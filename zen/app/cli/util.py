@@ -511,7 +511,11 @@ def info(extended, output_json):
         result = client.execute(code)
 
         if result.get("ok"):
-            data = result.get("result", {})
+            data = result.get("result") or {}
+
+            if not data:
+                click.echo("Error: No data returned from browser.", err=True)
+                sys.exit(1)
 
             # Get userscript version
             userscript_version = client.get_userscript_version() or "unknown"
