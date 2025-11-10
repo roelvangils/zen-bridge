@@ -58,8 +58,9 @@ async function executeWithCSPBypass(tabId, code, requestId) {
 
         // Wrap user code in a function that returns the result
         // Handle both expressions and complete statements/IIFEs
-        const trimmedCode = code.trim();
-        const isIIFE = trimmedCode.startsWith('(function') || trimmedCode.startsWith('(async function');
+        // Check if code contains IIFE pattern (might have comments before it)
+        const isIIFE = /^\s*(\/\/.*\n|\s)*\(function/.test(code) ||
+                       /^\s*(\/\/.*\n|\s)*\(async function/.test(code);
 
         const wrappedCode = isIIFE
             ? `
