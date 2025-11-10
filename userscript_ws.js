@@ -8,6 +8,8 @@
 // @grant        none
 // @connect      127.0.0.1
 // @connect      localhost
+// @updateURL    https://raw.githubusercontent.com/roelvangils/zen-bridge/main/userscript_ws.js
+// @downloadURL  https://raw.githubusercontent.com/roelvangils/zen-bridge/main/userscript_ws.js
 // ==/UserScript==
 
 (function () {
