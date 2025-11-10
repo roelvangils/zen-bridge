@@ -59,23 +59,37 @@
                         const requestId = message.request_id;
                         const code = message.code;
 
-                        // Send to background script for CSP bypass execution
-                        const response = await browser.runtime.sendMessage({
-                            type: 'EXECUTE_CODE',
-                            code: code,
-                            requestId: requestId
-                        });
+                        try {
+                            // Send to background script for CSP bypass execution
+                            const response = await browser.runtime.sendMessage({
+                                type: 'EXECUTE_CODE',
+                                code: code,
+                                requestId: requestId
+                            });
 
-                        // Send result back via WebSocket
-                        ws.send(JSON.stringify({
-                            type: 'result',
-                            request_id: requestId,
-                            ok: response.ok,
-                            result: response.result,
-                            error: response.error,
-                            url: location.href,
-                            title: document.title || ''
-                        }));
+                            // Send result back via WebSocket
+                            ws.send(JSON.stringify({
+                                type: 'result',
+                                request_id: requestId,
+                                ok: response.ok,
+                                result: response.result,
+                                error: response.error,
+                                url: location.href,
+                                title: document.title || ''
+                            }));
+                        } catch (err) {
+                            // If background script fails, send error back
+                            console.error('[Zen Bridge] Background script error:', err);
+                            ws.send(JSON.stringify({
+                                type: 'result',
+                                request_id: requestId,
+                                ok: false,
+                                result: null,
+                                error: `Extension error: ${err.message}`,
+                                url: location.href,
+                                title: document.title || ''
+                            }));
+                        }
 
                     } else if (message.type === 'pong') {
                         // Keepalive response

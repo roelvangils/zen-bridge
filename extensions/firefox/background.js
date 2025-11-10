@@ -61,7 +61,7 @@ async function executeWithCSPBypass(tabId, code, requestId) {
             (async function() {
                 try {
                     const result = await (async () => {
-                        ${code}
+                        return ${code}
                     })();
                     return { ok: true, result, error: null };
                 } catch (e) {
