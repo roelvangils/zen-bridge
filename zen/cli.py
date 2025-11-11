@@ -1904,19 +1904,22 @@ def download(output, list_only, timeout):
         sys.exit(1)
 
 
-@cli.command()
+@cli.command(name="type")
 @click.argument("text")
-@click.option("--selector", "-s", default=None, help="CSS selector of element to type into")
-def send(text, selector):
+@click.option("--selector", "-s", default=None, help="CSS selector to focus before typing")
+@click.option("--speed", default="fastest", help="Typing speed: 'fastest' or characters per second (e.g. 10)")
+def type_text(text, selector, speed):
     """
-    Send text to the browser by typing it character by character.
+    Send text to the browser by typing or pasting it.
 
-    Types the given text into the currently focused input field,
-    or into a specific element if --selector is provided.
+    Types the given text into the currently focused input field by default,
+    or into a specific element if --selector is provided. Typing is the default behavior.
 
     Examples:
-        zen send "Hello World"
-        zen send "test@example.com" --selector "input[type=email]"
+        zen type "Hello World"
+        zen type "test@example.com" --selector "input[type=email]"
+        zen type "Slow typing" --speed 5
+        zen paste "Instant text"
     """
     client = BridgeClient()
 
@@ -1926,11 +1929,13 @@ def send(text, selector):
 
     # Focus the element first if selector provided
     if selector:
+        # Use JSON encoding to properly escape the selector
+        selector_json = json.dumps(selector)
         focus_code = f"""
         (function() {{
-            const el = document.querySelector('{selector}');
+            const el = document.querySelector({selector_json});
             if (!el) {{
-                return {{ error: 'Element not found: {selector}' }};
+                return {{ error: 'Element not found: ' + {selector_json} }};
             }}
             el.focus();
             return {{ ok: true }};
@@ -1942,15 +1947,32 @@ def send(text, selector):
             click.echo(f"Error focusing element: {error}", err=True)
             sys.exit(1)
 
+    # Parse speed parameter
+    # If speed is "fastest", set delay to 0 (instant paste)
+    # Otherwise, parse as characters per second
+    if speed == "fastest":
+        char_delay_ms = 0
+    else:
+        try:
+            chars_per_sec = float(speed)
+            if chars_per_sec <= 0:
+                click.echo("Error: Speed must be a positive number", err=True)
+                sys.exit(1)
+            # Convert characters per second to milliseconds per character
+            char_delay_ms = int(1000 / chars_per_sec)
+        except ValueError:
+            click.echo(f"Error: Invalid speed value '{speed}'. Use 'fastest' or a number (e.g. 10)", err=True)
+            sys.exit(1)
+
     # Load and execute the send_keys script
     script_path = Path(__file__).parent / "scripts" / "send_keys.js"
     with _builtin_open(script_path) as f:
         script = f.read()
 
-    # Replace placeholder with properly escaped text
-    # Escape quotes and backslashes for JavaScript
-    escaped_text = text.replace("\\", "\\\\").replace('"', '\\"').replace("'", "\\'")
-    code = script.replace("TEXT_PLACEHOLDER", f'"{escaped_text}"')
+    # Replace placeholder with properly escaped text using JSON encoding
+    # This handles all special characters including quotes, newlines, etc.
+    code = script.replace("TEXT_PLACEHOLDER", json.dumps(text))
+    code = code.replace("DELAY_PLACEHOLDER", str(char_delay_ms))
 
     try:
         result = client.execute(code, timeout=60.0)
@@ -1971,6 +1993,25 @@ def send(text, selector):
     except (ConnectionError, TimeoutError, RuntimeError) as e:
         click.echo(f"Error: {e}", err=True)
         sys.exit(1)
+
+
+@cli.command(name="paste")
+@click.argument("text")
+@click.option("--selector", "-s", default=None, help="CSS selector to focus before pasting")
+def paste(text, selector):
+    """
+    Paste text instantly to the browser (alias for type --speed fastest).
+
+    Pastes the given text into the currently focused input field instantly,
+    or into a specific element if --selector is provided.
+
+    Examples:
+        zen paste "Hello World"
+        zen paste "test@example.com" --selector "input[type=email]"
+    """
+    # Call type_text with speed="fastest"
+    ctx = click.get_current_context()
+    ctx.invoke(type_text, text=text, selector=selector, speed="fastest")
 
 
 @cli.command()
@@ -2290,10 +2331,10 @@ def _perform_click(selector, click_type):
         click.echo(f"Error: Script not found: {script_path}", err=True)
         sys.exit(1)
 
-    # Replace placeholders
-    escaped_selector = selector.replace("\\", "\\\\").replace('"', '\\"').replace("'", "\\'")
-    code = script.replace("SELECTOR_PLACEHOLDER", escaped_selector)
-    code = code.replace("CLICK_TYPE_PLACEHOLDER", click_type)
+    # Replace placeholders using JSON encoding for proper escaping
+    # Note: json.dumps() adds quotes, so we need to account for that in the script
+    code = script.replace("'SELECTOR_PLACEHOLDER'", json.dumps(selector))
+    code = code.replace("'CLICK_TYPE_PLACEHOLDER'", json.dumps(click_type))
 
     try:
         result = client.execute(code, timeout=60.0)
@@ -2379,14 +2420,12 @@ def wait(selector, timeout, visible, hidden, text):
         click.echo(f"Error: Script not found: {script_path}", err=True)
         sys.exit(1)
 
-    # Replace placeholders
-    escaped_selector = selector.replace("\\", "\\\\").replace('"', '\\"').replace("'", "\\'")
-    escaped_text = (text or "").replace("\\", "\\\\").replace('"', '\\"').replace("'", "\\'")
+    # Replace placeholders using JSON encoding for proper escaping
     timeout_ms = timeout * 1000
 
-    code = script.replace("SELECTOR_PLACEHOLDER", escaped_selector)
-    code = code.replace("WAIT_TYPE_PLACEHOLDER", wait_type)
-    code = code.replace("TEXT_PLACEHOLDER", escaped_text)
+    code = script.replace("'SELECTOR_PLACEHOLDER'", json.dumps(selector))
+    code = code.replace("'WAIT_TYPE_PLACEHOLDER'", json.dumps(wait_type))
+    code = code.replace("'TEXT_PLACEHOLDER'", json.dumps(text or ""))
     code = code.replace("TIMEOUT_PLACEHOLDER", str(timeout_ms))
 
     # Show waiting message
@@ -2949,9 +2988,8 @@ def screenshot(selector, output):
     with _builtin_open(script_path) as f:
         script = f.read()
 
-    # Replace selector placeholder
-    escaped_selector = selector.replace("\\", "\\\\").replace('"', '\\"').replace("'", "\\'")
-    code = script.replace("SELECTOR_PLACEHOLDER", f'"{escaped_selector}"')
+    # Replace selector placeholder using JSON encoding
+    code = script.replace("SELECTOR_PLACEHOLDER", json.dumps(selector))
 
     try:
         click.echo(f"Capturing element: {selector}")

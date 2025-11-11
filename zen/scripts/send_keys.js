@@ -1,27 +1,43 @@
 // Send keys to the active element in the browser
-(function(text) {
-    const activeEl = document.activeElement;
+(function(text, delayMs) {
+    return new Promise(function(resolve) {
+        const activeEl = document.activeElement;
 
-    if (!activeEl) {
-        return { error: 'No active element found' };
-    }
+        if (!activeEl) {
+            resolve({ error: 'No active element found' });
+            return;
+        }
 
-    // Check if element can receive text input
-    const isInput = activeEl.tagName === 'INPUT' ||
-                    activeEl.tagName === 'TEXTAREA' ||
-                    activeEl.isContentEditable;
+        // Check if element can receive text input
+        const isInput = activeEl.tagName === 'INPUT' ||
+                        activeEl.tagName === 'TEXTAREA' ||
+                        activeEl.isContentEditable;
 
-    if (!isInput) {
-        return {
-            error: 'Active element is not an input field',
-            activeElement: activeEl.tagName,
-            hint: 'Click on an input field first'
-        };
-    }
+        if (!isInput) {
+            resolve({
+                error: 'Active element is not an input field',
+                activeElement: activeEl.tagName,
+                hint: 'Click on an input field first'
+            });
+            return;
+        }
 
-    // Type each character
-    for (let i = 0; i < text.length; i++) {
-        const char = text[i];
+        let i = 0;
+
+        function typeNextChar() {
+            if (i >= text.length) {
+                const mode = delayMs === 0 ? 'pasted' : 'typed';
+                resolve({
+                    ok: true,
+                    message: `${mode === 'pasted' ? 'Pasted' : 'Typed'} ${text.length} character(s): "${text}"`,
+                    element: activeEl.tagName,
+                    length: text.length,
+                    mode: mode
+                });
+                return;
+            }
+
+            const char = text[i];
 
         // Create keyboard events for each character
         const keydownEvent = new KeyboardEvent('keydown', {
@@ -80,14 +96,30 @@
             range.collapse(false);
         }
 
-        activeEl.dispatchEvent(inputEvent);
-        activeEl.dispatchEvent(keyupEvent);
-    }
+            activeEl.dispatchEvent(inputEvent);
+            activeEl.dispatchEvent(keyupEvent);
 
-    return {
-        ok: true,
-        message: `Typed ${text.length} character(s): "${text}"`,
-        element: activeEl.tagName,
-        length: text.length
-    };
-})(TEXT_PLACEHOLDER)
+            i++;
+
+            // Add delay between characters if specified
+            if (delayMs > 0 && i < text.length) {
+                setTimeout(typeNextChar, delayMs);
+            } else if (i < text.length) {
+                typeNextChar();
+            } else {
+                // Done typing
+                const mode = delayMs === 0 ? 'pasted' : 'typed';
+                resolve({
+                    ok: true,
+                    message: `${mode === 'pasted' ? 'Pasted' : 'Typed'} ${text.length} character(s): "${text}"`,
+                    element: activeEl.tagName,
+                    length: text.length,
+                    mode: mode
+                });
+            }
+        }
+
+        // Start typing
+        typeNextChar();
+    });
+})(TEXT_PLACEHOLDER, DELAY_PLACEHOLDER)
