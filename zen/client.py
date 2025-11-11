@@ -204,8 +204,11 @@ class BridgeClient:
 
         # Submit code
         try:
+            # Use execution timeout + buffer for HTTP request (not the 5s default)
+            # This allows slow operations to complete
+            http_timeout = timeout + 5
             response = requests.post(
-                f"{self.base_url}/run", json={"code": code}, timeout=self.timeout
+                f"{self.base_url}/run", json={"code": code}, timeout=http_timeout
             )
             response.raise_for_status()
             data = response.json()
@@ -224,10 +227,15 @@ class BridgeClient:
 
         while time.time() - start_time < timeout:
             try:
+                # Calculate remaining timeout for this request
+                # Add buffer to account for network latency
+                remaining_time = timeout - (time.time() - start_time)
+                request_timeout = max(remaining_time + 5, 10)  # At least 10 seconds
+
                 response = requests.get(
                     f"{self.base_url}/result",
                     params={"request_id": request_id},
-                    timeout=self.timeout,
+                    timeout=request_timeout,
                 )
 
                 if response.status_code == 200:
