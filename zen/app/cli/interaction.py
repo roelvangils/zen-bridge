@@ -21,7 +21,7 @@ from zen.services.bridge_executor import BridgeExecutor
 from zen.services.script_loader import ScriptLoader
 
 
-def _send_text(text, selector, delay_ms):
+def _send_text(text, selector, delay_ms, clear=True):
     """Helper function to send text to browser."""
     executor = BridgeExecutor()
     executor.ensure_server_running()
@@ -57,6 +57,7 @@ def _send_text(text, selector, delay_ms):
     escaped_text = text.replace("\\", "\\\\").replace('"', '\\"').replace("'", "\\'")
     code = script.replace("TEXT_PLACEHOLDER", f'"{escaped_text}"')
     code = code.replace("DELAY_PLACEHOLDER", str(delay_ms))
+    code = code.replace("CLEAR_PLACEHOLDER", "true" if clear else "false")
 
     try:
         result = executor.execute(code, timeout=60.0)
@@ -83,21 +84,26 @@ def _send_text(text, selector, delay_ms):
 @click.argument("text")
 @click.option("--selector", "-s", help="CSS selector to focus before typing")
 @click.option("--speed", type=int, help="Typing speed in characters per second (default: fastest)")
-def type_text(text, selector, speed):
+@click.option("--clear/--no-clear", default=True, help="Clear existing text before typing (default: true)")
+def type_text(text, selector, speed, clear):
     """
     Type text character by character into the browser.
 
     Types text into the currently focused input field,
     or into a specific element if --selector is provided.
 
-    By default, types as fast as possible. Use --speed to control typing rate.
+    By default, clears any existing text and types as fast as possible.
+    Use --speed to control typing rate and --no-clear to append instead.
 
     Examples:
-        # Type at maximum speed:
+        # Type at maximum speed (clears existing text):
         zen type "Hello World"
 
         # Type at 10 characters per second:
         zen type "test@example.com" --speed 10
+
+        # Type without clearing existing text:
+        zen type "append this" --no-clear
 
         # Type into a specific field:
         zen type "password123" --selector "input[type=password]"
@@ -108,26 +114,34 @@ def type_text(text, selector, speed):
     else:
         delay_ms = 0  # Fastest (no delay)
 
-    _send_text(text, selector, delay_ms)
+    _send_text(text, selector, delay_ms, clear)
 
 
 @click.command()
 @click.argument("text")
 @click.option("--selector", "-s", help="CSS selector to focus before pasting")
-def paste(text, selector):
+@click.option("--clear/--no-clear", default=True, help="Clear existing text before pasting (default: true)")
+def paste(text, selector, clear):
     """
     Paste text instantly into the browser.
 
     Pastes text into the currently focused input field,
     or into a specific element if --selector is provided.
 
+    By default, clears any existing text before pasting.
     This is equivalent to 'zen type' with maximum speed.
 
     Examples:
+        # Paste (clears existing text):
         zen paste "Hello World"
+
+        # Paste without clearing:
+        zen paste "append this" --no-clear
+
+        # Paste into specific element:
         zen paste "test@example.com" --selector "input[type=email]"
     """
-    _send_text(text, selector, 0)
+    _send_text(text, selector, 0, clear)
 
 
 @click.command()
@@ -144,7 +158,7 @@ def send(text, selector):
         zen paste "test@example.com" --selector "input[type=email]"
     """
     click.echo("Warning: 'zen send' is deprecated. Use 'zen type' or 'zen paste' instead.\n", err=True)
-    _send_text(text, selector, 0)
+    _send_text(text, selector, 0, clear=True)
 
 
 @click.command(name="click")

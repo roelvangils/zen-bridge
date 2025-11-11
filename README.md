@@ -459,14 +459,20 @@ zen selection text --json
 Type text character by character or paste instantly:
 
 ```bash
-# Paste text instantly (fastest)
+# Paste text instantly (fastest, clears existing text)
 zen paste "Hello World"
 
-# Type text at maximum speed
+# Type text at maximum speed (clears existing text)
 zen type "Hello World"
 
 # Type at controlled speed (10 characters per second)
 zen type "test@example.com" --speed 10
+
+# Type without clearing existing text (append mode)
+zen type "append this" --no-clear
+
+# Paste without clearing (append mode)
+zen paste " more text" --no-clear
 
 # Type into specific element
 zen type "password123" --selector "input[type=password]"
@@ -474,6 +480,8 @@ zen type "password123" --selector "input[type=password]"
 # Paste into specific element
 zen paste "username" --selector "#username"
 ```
+
+**Note:** By default, both `type` and `paste` clear any existing text in the input field before inserting new text. Use `--no-clear` to append instead.
 
 ### Take Screenshots
 

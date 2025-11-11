@@ -1,5 +1,5 @@
 // Send keys to the active element in the browser
-(function(text, delayMs) {
+(function(text, delayMs, clearFirst) {
     return new Promise(function(resolve) {
         var activeEl = document.activeElement;
 
@@ -20,6 +20,17 @@
                 hint: 'Click on an input field first'
             });
             return;
+        }
+
+        // Clear existing content if requested
+        if (clearFirst) {
+            if (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA') {
+                activeEl.value = '';
+                activeEl.selectionStart = 0;
+                activeEl.selectionEnd = 0;
+            } else if (activeEl.isContentEditable) {
+                activeEl.textContent = '';
+            }
         }
 
         var i = 0;
@@ -97,4 +108,4 @@
 
         typeNextChar();
     });
-})(TEXT_PLACEHOLDER, DELAY_PLACEHOLDER)
+})(TEXT_PLACEHOLDER, DELAY_PLACEHOLDER, CLEAR_PLACEHOLDER)
