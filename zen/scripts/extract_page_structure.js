@@ -30,15 +30,23 @@
     return { element: largest, size: largestSize };
   }
 
+  // Helper: Escape special characters that could cause issues
+  function escapeText(text) {
+    return text
+      .replace(/\\/g, '\\\\')  // Escape backslashes first
+      .replace(/`/g, '\\`');    // Escape backticks for template literals
+  }
+
   // Helper: Get first sentence from text
   function getFirstSentence(text) {
     text = text.trim();
     const match = text.match(/^[^.!?]+[.!?]+/);
     if (match) {
-      return match[0].trim();
+      return escapeText(match[0].trim());
     }
     // If no sentence ending found, return first 150 chars
-    return text.substring(0, 150) + (text.length > 150 ? '...' : '');
+    const truncated = text.substring(0, 150) + (text.length > 150 ? '...' : '');
+    return escapeText(truncated);
   }
 
   // Helper: Check for importance keywords
@@ -91,7 +99,7 @@
 
     for (let i = 0; i < Math.min(5, items.length); i++) {
       const text = items[i].textContent.trim().replace(/\s+/g, ' ');
-      if (text) result.push(text);
+      if (text) result.push(escapeText(text));
     }
 
     return {
@@ -124,9 +132,9 @@
       processedHeadings.add(heading);
 
       const level = heading.tagName.substring(1);
-      const text = heading.textContent.trim();
+      const text = escapeText(heading.textContent.trim());
       const fontSize = getFontSize(heading);
-      const markers = getImportanceMarkers(text);
+      const markers = getImportanceMarkers(heading.textContent.trim());
 
       let headingLine = `${indent}${'#'.repeat(parseInt(level))} ${text}`;
 
@@ -157,12 +165,12 @@
       if (nextEl) {
         // Check for image in next element
         if (nextEl.tagName === 'IMG' && shouldIncludeImage(nextEl)) {
-          output.push(`${indent}![${nextEl.alt}](image)`);
+          output.push(`${indent}![${escapeText(nextEl.alt)}](image)`);
           output.push('');
         } else {
           const img = nextEl.querySelector('img');
           if (img && shouldIncludeImage(img)) {
-            output.push(`${indent}![${img.alt}](image)`);
+            output.push(`${indent}![${escapeText(img.alt)}](image)`);
             output.push('');
           }
         }
@@ -196,13 +204,13 @@
 
         // Check for blockquotes
         if (nextEl.tagName === 'BLOCKQUOTE') {
-          const text = nextEl.textContent.trim().replace(/\s+/g, ' ');
+          const text = escapeText(nextEl.textContent.trim().replace(/\s+/g, ' '));
           output.push(`${indent}> ${text}`);
           output.push('');
         } else {
           const quote = nextEl.querySelector('blockquote');
           if (quote) {
-            const text = quote.textContent.trim().replace(/\s+/g, ' ');
+            const text = escapeText(quote.textContent.trim().replace(/\s+/g, ' '));
             output.push(`${indent}> ${text}`);
             output.push('');
           }
@@ -212,7 +220,7 @@
   }
 
   // Start building output
-  output.push(`# ${document.title}`);
+  output.push(`# ${escapeText(document.title)}`);
   output.push('');
 
   // URL info
@@ -245,7 +253,7 @@
 
     navElements.forEach((nav, idx) => {
       const links = Array.from(nav.querySelectorAll('a'))
-        .map(a => a.textContent.trim())
+        .map(a => escapeText(a.textContent.trim()))
         .filter(t => t.length > 0 && t.length < 100)
         .slice(0, 10);
 
@@ -286,7 +294,7 @@
     output.push('');
 
     const footerLinks = Array.from(footer.querySelectorAll('a'))
-      .map(a => a.textContent.trim())
+      .map(a => escapeText(a.textContent.trim()))
       .filter(t => t.length > 0 && t.length < 100)
       .slice(0, 8);
 
