@@ -30,11 +30,15 @@
     return { element: largest, size: largestSize };
   }
 
-  // Helper: Escape special characters that could cause issues
-  function escapeText(text) {
+  // Helper: Clean text by removing problematic characters
+  function cleanText(text) {
+    // Replace backslashes with forward slashes to avoid escape sequence issues
+    // Replace other problematic characters
     return text
-      .replace(/\\/g, '\\\\')  // Escape backslashes first
-      .replace(/`/g, '\\`');    // Escape backticks for template literals
+      .replace(/\\/g, '/')     // Convert backslashes to forward slashes
+      .replace(/[\r\n\t]/g, ' ')  // Convert line breaks and tabs to spaces
+      .replace(/\s+/g, ' ')    // Normalize whitespace
+      .trim();
   }
 
   // Helper: Get first sentence from text
@@ -42,11 +46,11 @@
     text = text.trim();
     const match = text.match(/^[^.!?]+[.!?]+/);
     if (match) {
-      return escapeText(match[0].trim());
+      return cleanText(match[0].trim());
     }
     // If no sentence ending found, return first 150 chars
     const truncated = text.substring(0, 150) + (text.length > 150 ? '...' : '');
-    return escapeText(truncated);
+    return cleanText(truncated);
   }
 
   // Helper: Check for importance keywords
@@ -99,7 +103,7 @@
 
     for (let i = 0; i < Math.min(5, items.length); i++) {
       const text = items[i].textContent.trim().replace(/\s+/g, ' ');
-      if (text) result.push(escapeText(text));
+      if (text) result.push(cleanText(text));
     }
 
     return {
@@ -132,7 +136,7 @@
       processedHeadings.add(heading);
 
       const level = heading.tagName.substring(1);
-      const text = escapeText(heading.textContent.trim());
+      const text = cleanText(heading.textContent.trim());
       const fontSize = getFontSize(heading);
       const markers = getImportanceMarkers(heading.textContent.trim());
 
@@ -165,12 +169,12 @@
       if (nextEl) {
         // Check for image in next element
         if (nextEl.tagName === 'IMG' && shouldIncludeImage(nextEl)) {
-          output.push(`${indent}![${escapeText(nextEl.alt)}](image)`);
+          output.push(`${indent}![${cleanText(nextEl.alt)}](image)`);
           output.push('');
         } else {
           const img = nextEl.querySelector('img');
           if (img && shouldIncludeImage(img)) {
-            output.push(`${indent}![${escapeText(img.alt)}](image)`);
+            output.push(`${indent}![${cleanText(img.alt)}](image)`);
             output.push('');
           }
         }
@@ -204,13 +208,13 @@
 
         // Check for blockquotes
         if (nextEl.tagName === 'BLOCKQUOTE') {
-          const text = escapeText(nextEl.textContent.trim().replace(/\s+/g, ' '));
+          const text = cleanText(nextEl.textContent.trim().replace(/\s+/g, ' '));
           output.push(`${indent}> ${text}`);
           output.push('');
         } else {
           const quote = nextEl.querySelector('blockquote');
           if (quote) {
-            const text = escapeText(quote.textContent.trim().replace(/\s+/g, ' '));
+            const text = cleanText(quote.textContent.trim().replace(/\s+/g, ' '));
             output.push(`${indent}> ${text}`);
             output.push('');
           }
@@ -220,7 +224,7 @@
   }
 
   // Start building output
-  output.push(`# ${escapeText(document.title)}`);
+  output.push(`# ${cleanText(document.title)}`);
   output.push('');
 
   // URL info
@@ -253,7 +257,7 @@
 
     navElements.forEach((nav, idx) => {
       const links = Array.from(nav.querySelectorAll('a'))
-        .map(a => escapeText(a.textContent.trim()))
+        .map(a => cleanText(a.textContent.trim()))
         .filter(t => t.length > 0 && t.length < 100)
         .slice(0, 10);
 
@@ -294,7 +298,7 @@
     output.push('');
 
     const footerLinks = Array.from(footer.querySelectorAll('a'))
-      .map(a => escapeText(a.textContent.trim()))
+      .map(a => cleanText(a.textContent.trim()))
       .filter(t => t.length > 0 && t.length < 100)
       .slice(0, 8);
 
