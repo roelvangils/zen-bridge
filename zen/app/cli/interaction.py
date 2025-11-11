@@ -59,8 +59,24 @@ def _send_text(text, selector, delay_ms, clear=True):
     code = code.replace("DELAY_PLACEHOLDER", str(delay_ms))
     code = code.replace("CLEAR_PLACEHOLDER", "true" if clear else "false")
 
+    # Calculate timeout based on text length and delay
+    # For human mode (-1), estimate ~300ms per character (including pauses)
+    # For other modes, estimate based on actual delay
+    if delay_ms == -1:
+        # Human mode: estimate 300ms per char (base 240ms + pauses)
+        estimated_time = len(text) * 0.3
+    elif delay_ms == 0:
+        # Fast mode: minimal time
+        estimated_time = len(text) * 0.05
+    else:
+        # Custom speed: calculate from delay
+        estimated_time = len(text) * delay_ms / 1000.0
+
+    # Add buffer and enforce minimum
+    timeout = max(estimated_time + 10, 60.0)
+
     try:
-        result = executor.execute(code, timeout=60.0)
+        result = executor.execute(code, timeout=timeout)
 
         if not result.get("ok"):
             click.echo(f"Error: {result.get('error')}", err=True)
@@ -83,7 +99,7 @@ def _send_text(text, selector, delay_ms, clear=True):
 @click.command()
 @click.argument("text")
 @click.option("--selector", "-s", help="CSS selector to focus before typing")
-@click.option("--speed", type=int, help="Typing speed in characters per second (default: fastest)")
+@click.option("--speed", type=int, help="Typing speed in characters per second (default: fastest, 0: human-like)")
 @click.option("--clear/--no-clear", default=True, help="Clear existing text before typing (default: true)")
 def type_text(text, selector, speed, clear):
     """
@@ -99,6 +115,9 @@ def type_text(text, selector, speed, clear):
         # Type at maximum speed (clears existing text):
         zen type "Hello World"
 
+        # Type with human-like random delays (~50 WPM):
+        zen type "Hello, how are you?" --speed 0
+
         # Type at 10 characters per second:
         zen type "test@example.com" --speed 10
 
@@ -109,7 +128,10 @@ def type_text(text, selector, speed, clear):
         zen type "password123" --selector "input[type=password]"
     """
     # Calculate delay in milliseconds from speed (chars/sec)
-    if speed:
+    if speed == 0:
+        # Special case: 0 means human-like typing with random delays
+        delay_ms = -1  # Signal to JavaScript to use human mode
+    elif speed:
         delay_ms = int(1000 / speed)
     else:
         delay_ms = 0  # Fastest (no delay)

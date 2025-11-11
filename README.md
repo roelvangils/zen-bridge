@@ -465,6 +465,9 @@ zen paste "Hello World"
 # Type text at maximum speed (clears existing text)
 zen type "Hello World"
 
+# Type with human-like random delays (~50 WPM)
+zen type "Hello, how are you?" --speed 0
+
 # Type at controlled speed (10 characters per second)
 zen type "test@example.com" --speed 10
 
@@ -479,6 +482,32 @@ zen type "password123" --selector "input[type=password]"
 
 # Paste into specific element
 zen paste "username" --selector "#username"
+```
+
+#### Human-like Typing (`--speed 0`)
+
+The `--speed 0` option simulates realistic human typing with random variations:
+
+**Why it's useful:**
+- **Bot detection bypass**: Many websites detect automation by analyzing typing patterns. Human-like typing makes your automation look more natural.
+- **Form testing**: Test how forms behave with realistic user input timing.
+- **Demo recordings**: Create more believable demonstrations or tutorials.
+- **Rate limiting**: Some services rate-limit based on input speed; human-like typing avoids triggering these limits.
+
+**How it works:**
+- **Base speed**: ~50 WPM (words per minute), similar to average casual typing
+- **Random variation**: Each character has ±50% timing variation (120-360ms per character)
+- **Contextual pauses**:
+  - Longer pauses after punctuation (`.!?` = +300-700ms)
+  - Slight pauses after commas (`,` = +100-250ms)
+  - Occasional thinking pauses after spaces (20% chance = +200-500ms)
+  - Slower on numbers and special characters (+30%)
+
+**Example:**
+```bash
+# Simulate human filling out a form
+zen type "john.doe@example.com" --speed 0 --selector "#email"
+zen type "My name is John, and I'm interested in your product." --speed 0 --selector "#message"
 ```
 
 **Note:** By default, both `type` and `paste` clear any existing text in the input field before inserting new text. Use `--no-clear` to append instead.
