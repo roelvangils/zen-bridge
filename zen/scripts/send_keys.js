@@ -58,7 +58,7 @@
                 delay += 200 + Math.random() * 300;  // 200-500ms extra
             }
             // Slower on numbers and special characters
-            else if (/[0-9!@#$%^&*()_+={}\[\]:;"'<>?/\\|`~]/.test(char)) {
+            else if (/[0-9!@#$%^&*()_+={}\[\]:;"'<>?\/\\|`~]/.test(char)) {
                 delay *= 1.3;  // 30% slower
             }
 

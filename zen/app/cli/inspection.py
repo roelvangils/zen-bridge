@@ -290,9 +290,8 @@ def screenshot(selector, output):
         click.echo(f"Error: {e}", err=True)
         sys.exit(1)
 
-    # Replace selector placeholder
-    escaped_selector = selector.replace("\\", "\\\\").replace('"', '\\"').replace("'", "\\'")
-    code = script.replace("SELECTOR_PLACEHOLDER", f'"{escaped_selector}"')
+    # Replace selector placeholder with properly escaped value
+    code = script.replace("SELECTOR_PLACEHOLDER", json.dumps(selector))
 
     try:
         click.echo(f"Capturing element: {selector}")

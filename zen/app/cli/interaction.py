@@ -12,6 +12,7 @@ This module provides commands for browser interaction:
 
 from __future__ import annotations
 
+import json
 import sys
 
 import click
@@ -52,10 +53,9 @@ def _send_text(text, selector, delay_ms, clear=True):
         click.echo(f"Error: {e}", err=True)
         sys.exit(1)
 
-    # Replace placeholder with properly escaped text
-    # Escape quotes and backslashes for JavaScript
-    escaped_text = text.replace("\\", "\\\\").replace('"', '\\"').replace("'", "\\'")
-    code = script.replace("TEXT_PLACEHOLDER", f'"{escaped_text}"')
+    # Replace placeholders with properly escaped values
+    # Use JSON encoding for proper JavaScript string escaping
+    code = script.replace("TEXT_PLACEHOLDER", json.dumps(text))
     code = code.replace("DELAY_PLACEHOLDER", str(delay_ms))
     code = code.replace("CLEAR_PLACEHOLDER", "true" if clear else "false")
 
@@ -262,10 +262,10 @@ def _perform_click(selector, click_type):
         click.echo(f"Error: {e}", err=True)
         sys.exit(1)
 
-    # Replace placeholders
-    escaped_selector = selector.replace("\\", "\\\\").replace('"', '\\"').replace("'", "\\'")
-    code = script.replace("SELECTOR_PLACEHOLDER", escaped_selector)
-    code = code.replace("CLICK_TYPE_PLACEHOLDER", click_type)
+    # Replace placeholders with properly escaped values
+    # Replace quoted placeholders with JSON-encoded values
+    code = script.replace("'SELECTOR_PLACEHOLDER'", json.dumps(selector))
+    code = code.replace("'CLICK_TYPE_PLACEHOLDER'", json.dumps(click_type))
 
     try:
         result = executor.execute(code, timeout=60.0)
@@ -346,14 +346,12 @@ def wait(selector, timeout, visible, hidden, text):
         click.echo(f"Error: {e}", err=True)
         sys.exit(1)
 
-    # Replace placeholders
-    escaped_selector = selector.replace("\\", "\\\\").replace('"', '\\"').replace("'", "\\'")
-    escaped_text = (text or "").replace("\\", "\\\\").replace('"', '\\"').replace("'", "\\'")
+    # Replace placeholders with properly escaped values
     timeout_ms = timeout * 1000
 
-    code = script.replace("SELECTOR_PLACEHOLDER", escaped_selector)
-    code = code.replace("WAIT_TYPE_PLACEHOLDER", wait_type)
-    code = code.replace("TEXT_PLACEHOLDER", escaped_text)
+    code = script.replace("'SELECTOR_PLACEHOLDER'", json.dumps(selector))
+    code = code.replace("'WAIT_TYPE_PLACEHOLDER'", json.dumps(wait_type))
+    code = code.replace("'TEXT_PLACEHOLDER'", json.dumps(text or ""))
     code = code.replace("TIMEOUT_PLACEHOLDER", str(timeout_ms))
 
     # Show waiting message
