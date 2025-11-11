@@ -56,33 +56,33 @@ async function executeWithCSPBypass(tabId, code, requestId) {
     try {
         console.log('[Zen Bridge] Executing code in tab', tabId, 'with CSP bypass');
 
-        // Wrap user code in a function that returns the result
-        // Handle both expressions and complete statements/IIFEs
-        // Check if code contains IIFE pattern (might have comments before it)
-        const isIIFE = /^\s*(\/\/.*\n|\s)*\(function/.test(code) ||
-                       /^\s*(\/\/.*\n|\s)*\(async function/.test(code);
+        // UNIVERSAL APPROACH: No detection, no branching
+        // Works for expressions, statements, IIFEs, promises, everything
+        // Strategy:
+        // 1. Execute the code and assign to variable
+        // 2. Check if result is a promise and await if needed
+        // 3. Return the final result
+        //
+        // This avoids ALL parentheses matching issues!
 
-        const wrappedCode = isIIFE
-            ? `
-            (async function() {
-                try {
-                    let result = await (${code});
-                    return { ok: true, result, error: null };
-                } catch (e) {
-                    return { ok: false, result: null, error: String(e.stack || e) };
-                }
-            })();
-            `
-            : `
-            (async function() {
-                try {
-                    const result = await (async () => { return (${code}); })();
-                    return { ok: true, result, error: null };
-                } catch (e) {
-                    return { ok: false, result: null, error: String(e.stack || e) };
-                }
-            })();
-            `;
+        const wrappedCode = `
+(async function() {
+    try {
+        // Execute code - use eval to ensure proper scoping
+        const __zenEval = eval;
+        let __zenResult = __zenEval(\`${code.replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/\\/g, '\\\\')}\`);
+
+        // If it's a promise, await it
+        if (__zenResult && typeof __zenResult.then === 'function') {
+            __zenResult = await __zenResult;
+        }
+
+        return { ok: true, result: __zenResult, error: null };
+    } catch (e) {
+        return { ok: false, result: null, error: String(e.stack || e) };
+    }
+})();
+        `;
 
         // Execute with CSP bypass
         const results = await browser.tabs.executeScript(tabId, {

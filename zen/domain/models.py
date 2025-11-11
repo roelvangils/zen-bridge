@@ -97,9 +97,24 @@ class PongMessage(BaseModel):
     model_config = {"extra": "forbid"}
 
 
+class BrowserInfoMessage(BaseModel):
+    """Browser information message.
+
+    Sent from browser to server when connection is established.
+    """
+
+    type: Literal["browser_info"] = "browser_info"
+    userAgent: str = Field(..., description="Browser user agent string")
+    browserName: str = Field(..., description="Browser name")
+    url: str = Field(..., description="Current page URL")
+    title: str = Field(..., description="Page title")
+
+    model_config = {"extra": "forbid"}
+
+
 # Union type for all incoming WebSocket messages (browser → server)
 IncomingMessage = (
-    ExecuteResult | ReinitControlRequest | RefocusNotification | PingMessage
+    ExecuteResult | ReinitControlRequest | RefocusNotification | PingMessage | BrowserInfoMessage
 )
 
 # Union type for all outgoing WebSocket messages (server → browser)
@@ -371,6 +386,8 @@ def parse_incoming_message(data: dict[str, Any]) -> IncomingMessage:
         return RefocusNotification(**data)
     elif msg_type == "ping":
         return PingMessage(**data)
+    elif msg_type == "browser_info":
+        return BrowserInfoMessage(**data)
     else:
         raise ValueError(f"Unknown message type: {msg_type}")
 

@@ -150,28 +150,27 @@
     return null;
   }
 
+  // Helper: Score element for content likelihood
+  function scoreElement(el) {
+    var textLen = getTextLength(el);
+    var density = getTextDensity(el);
+    var paragraphs = countParagraphs(el);
+    return textLen * 0.5 + density * 1000 + paragraphs * 10;
+  }
+
   // Find the main content element
   function findMainContent() {
     // Try semantic HTML5 elements first
     var article = document.querySelector('article');
-    if (article && getTextLength(article) > 500) {
-      return article;
-    }
+    if (article && getTextLength(article) > 500) return article;
 
     var main = document.querySelector('main, [role="main"]');
-    if (main && getTextLength(main) > 500) {
-      return main;
-    }
+    if (main && getTextLength(main) > 500) return main;
 
-    // Look for common article container classes
+    // Look for common article container patterns
     var contentPatterns = [
-      '[class*="article"]',
-      '[class*="content"]',
-      '[class*="post"]',
-      '[class*="entry"]',
-      '[id*="article"]',
-      '[id*="content"]',
-      '[id*="post"]'
+      '[class*="article"]', '[class*="content"]', '[class*="post"]', '[class*="entry"]',
+      '[id*="article"]', '[id*="content"]', '[id*="post"]'
     ];
 
     var bestCandidate = null;
@@ -179,45 +178,30 @@
 
     for (var i = 0; i < contentPatterns.length; i++) {
       var candidates = document.querySelectorAll(contentPatterns[i]);
-
       for (var j = 0; j < candidates.length; j++) {
         var candidate = candidates[j];
-
         if (!isContentElement(candidate)) continue;
 
-        // Score based on text length, density, and paragraph count
-        var textLen = getTextLength(candidate);
-        var density = getTextDensity(candidate);
-        var paragraphs = countParagraphs(candidate);
-
-        var score = textLen * 0.5 + density * 1000 + paragraphs * 10;
-
-        if (score > bestScore && textLen > 200) {
+        var score = scoreElement(candidate);
+        if (score > bestScore && getTextLength(candidate) > 200) {
           bestScore = score;
           bestCandidate = candidate;
         }
       }
     }
 
-    if (bestCandidate) {
-      return bestCandidate;
-    }
+    if (bestCandidate) return bestCandidate;
 
-    // Last resort: find the element with most text content
-    var allDivs = document.querySelectorAll('div, section, article');
-    bestScore = 0;
+    // Last resort: scan all major containers
+    var allContainers = document.querySelectorAll('div, section, article');
+    for (var k = 0; k < allContainers.length; k++) {
+      var container = allContainers[k];
+      if (!isContentElement(container)) continue;
 
-    for (var k = 0; k < allDivs.length; k++) {
-      var div = allDivs[k];
-
-      if (!isContentElement(div)) continue;
-
-      var len = getTextLength(div);
-      var pCount = countParagraphs(div);
-
-      if (len > bestScore && pCount > 3) {
+      var len = getTextLength(container);
+      if (len > bestScore && countParagraphs(container) > 3) {
         bestScore = len;
-        bestCandidate = div;
+        bestCandidate = container;
       }
     }
 

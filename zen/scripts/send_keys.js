@@ -1,7 +1,7 @@
 // Send keys to the active element in the browser
 (function(text, delayMs) {
     return new Promise(function(resolve) {
-        const activeEl = document.activeElement;
+        var activeEl = document.activeElement;
 
         if (!activeEl) {
             resolve({ error: 'No active element found' });
@@ -9,9 +9,9 @@
         }
 
         // Check if element can receive text input
-        const isInput = activeEl.tagName === 'INPUT' ||
-                        activeEl.tagName === 'TEXTAREA' ||
-                        activeEl.isContentEditable;
+        var isInput = activeEl.tagName === 'INPUT' ||
+                      activeEl.tagName === 'TEXTAREA' ||
+                      activeEl.isContentEditable;
 
         if (!isInput) {
             resolve({
@@ -22,14 +22,27 @@
             return;
         }
 
-        let i = 0;
+        var i = 0;
+
+        function createKeyEvent(type, char) {
+            var charCode = char.charCodeAt(0);
+            return new KeyboardEvent(type, {
+                key: char,
+                code: 'Key' + char.toUpperCase(),
+                charCode: charCode,
+                keyCode: charCode,
+                which: charCode,
+                bubbles: true,
+                cancelable: true
+            });
+        }
 
         function typeNextChar() {
             if (i >= text.length) {
-                const mode = delayMs === 0 ? 'pasted' : 'typed';
+                var mode = delayMs === 0 ? 'pasted' : 'typed';
                 resolve({
                     ok: true,
-                    message: `${mode === 'pasted' ? 'Pasted' : 'Typed'} ${text.length} character(s): "${text}"`,
+                    message: (mode === 'pasted' ? 'Pasted' : 'Typed') + ' ' + text.length + ' character(s): "' + text + '"',
                     element: activeEl.tagName,
                     length: text.length,
                     mode: mode
@@ -37,89 +50,51 @@
                 return;
             }
 
-            const char = text[i];
+            var char = text[i];
 
-        // Create keyboard events for each character
-        const keydownEvent = new KeyboardEvent('keydown', {
-            key: char,
-            code: `Key${char.toUpperCase()}`,
-            charCode: char.charCodeAt(0),
-            keyCode: char.charCodeAt(0),
-            which: char.charCodeAt(0),
-            bubbles: true,
-            cancelable: true
-        });
+            // Dispatch events
+            activeEl.dispatchEvent(createKeyEvent('keydown', char));
+            activeEl.dispatchEvent(createKeyEvent('keypress', char));
 
-        const keypressEvent = new KeyboardEvent('keypress', {
-            key: char,
-            code: `Key${char.toUpperCase()}`,
-            charCode: char.charCodeAt(0),
-            keyCode: char.charCodeAt(0),
-            which: char.charCodeAt(0),
-            bubbles: true,
-            cancelable: true
-        });
+            // Insert the character
+            if (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA') {
+                var start = activeEl.selectionStart;
+                var end = activeEl.selectionEnd;
+                var value = activeEl.value;
+                activeEl.value = value.substring(0, start) + char + value.substring(end);
+                activeEl.selectionStart = activeEl.selectionEnd = start + 1;
+            } else if (activeEl.isContentEditable) {
+                var selection = window.getSelection();
+                var range = selection.getRangeAt(0);
+                range.deleteContents();
+                range.insertNode(document.createTextNode(char));
+                range.collapse(false);
+            }
 
-        const inputEvent = new InputEvent('input', {
-            data: char,
-            inputType: 'insertText',
-            bubbles: true,
-            cancelable: true
-        });
-
-        const keyupEvent = new KeyboardEvent('keyup', {
-            key: char,
-            code: `Key${char.toUpperCase()}`,
-            charCode: char.charCodeAt(0),
-            keyCode: char.charCodeAt(0),
-            which: char.charCodeAt(0),
-            bubbles: true,
-            cancelable: true
-        });
-
-        // Dispatch events
-        activeEl.dispatchEvent(keydownEvent);
-        activeEl.dispatchEvent(keypressEvent);
-
-        // Insert the character
-        if (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA') {
-            const start = activeEl.selectionStart;
-            const end = activeEl.selectionEnd;
-            const value = activeEl.value;
-            activeEl.value = value.substring(0, start) + char + value.substring(end);
-            activeEl.selectionStart = activeEl.selectionEnd = start + 1;
-        } else if (activeEl.isContentEditable) {
-            const selection = window.getSelection();
-            const range = selection.getRangeAt(0);
-            range.deleteContents();
-            range.insertNode(document.createTextNode(char));
-            range.collapse(false);
-        }
-
-            activeEl.dispatchEvent(inputEvent);
-            activeEl.dispatchEvent(keyupEvent);
+            // Dispatch input and keyup events
+            activeEl.dispatchEvent(new InputEvent('input', {
+                data: char,
+                inputType: 'insertText',
+                bubbles: true,
+                cancelable: true
+            }));
+            activeEl.dispatchEvent(createKeyEvent('keyup', char));
 
             i++;
 
-            // Add delay between characters if specified
-            if (delayMs > 0 && i < text.length) {
-                setTimeout(typeNextChar, delayMs);
-            } else if (i < text.length) {
-                typeNextChar();
+            // Continue to next character
+            if (i < text.length) {
+                if (delayMs > 0) {
+                    setTimeout(typeNextChar, delayMs);
+                } else {
+                    typeNextChar();
+                }
             } else {
-                // Done typing
-                const mode = delayMs === 0 ? 'pasted' : 'typed';
-                resolve({
-                    ok: true,
-                    message: `${mode === 'pasted' ? 'Pasted' : 'Typed'} ${text.length} character(s): "${text}"`,
-                    element: activeEl.tagName,
-                    length: text.length,
-                    mode: mode
-                });
+                // All done
+                typeNextChar();
             }
         }
 
-        // Start typing
         typeNextChar();
     });
 })(TEXT_PLACEHOLDER, DELAY_PLACEHOLDER)

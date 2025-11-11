@@ -24,6 +24,7 @@
         'color: #0066ff; font-weight: bold', 'color: inherit');
 
     function isFrontTab() {
+        // Only consider a tab "front" if it's visible AND the top-level window
         return document.visibilityState === 'visible' && window === window.top;
     }
 
@@ -45,6 +46,16 @@
                     reconnectTimer = null;
                 }
                 window.__zen_ws__ = ws;
+
+                // Send browser info to server
+                const browserInfo = {
+                    type: 'browser_info',
+                    userAgent: navigator.userAgent,
+                    browserName: navigator.userAgentData?.brands?.[0]?.brand || 'Firefox',
+                    url: window.location.href,
+                    title: document.title
+                };
+                ws.send(JSON.stringify(browserInfo));
             };
 
             ws.onmessage = async (event) => {
@@ -133,14 +144,14 @@
         }
     }, 30000);
 
-    // Handle page visibility changes
+    // Handle visibility changes to connect/disconnect appropriately
     document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') {
+        if (document.visibilityState === 'visible' && window === window.top) {
             // Tab became visible - connect if needed
             if (!ws || ws.readyState !== WebSocket.OPEN) {
                 connect();
             }
-        } else {
+        } else if (document.visibilityState === 'hidden') {
             // Tab became hidden - disconnect to save resources
             if (ws && ws.readyState === WebSocket.OPEN) {
                 console.log('[Zen Bridge] Tab hidden, closing connection');
@@ -182,7 +193,7 @@
             'color: #0066ff; font-weight: bold', 'color: #00aa00; font-weight: bold');
     }
 
-    // Initial connection
+    // Initial connection - only connect if this is a visible top-level tab
     if (isFrontTab()) {
         connect();
     }

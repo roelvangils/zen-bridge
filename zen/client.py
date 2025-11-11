@@ -57,6 +57,7 @@ class BridgeClient:
         self.base_url = f"http://{host}:{port}"
         self.timeout = 5
         self._version_checked = False  # Track if we've already shown version warning
+        self._cached_version = None  # Cache the version to avoid multiple requests
 
     def is_alive(self) -> bool:
         """Check if bridge server is running."""
@@ -78,10 +79,15 @@ class BridgeClient:
 
     def get_userscript_version(self) -> str | None:
         """Get installed userscript version from browser."""
+        # Return cached version if available
+        if self._cached_version:
+            return self._cached_version
+
         try:
             result = self.execute("window.__ZEN_BRIDGE_VERSION__ || 'unknown'", timeout=2.0)
             if result.get("ok"):
-                return result.get("result")
+                self._cached_version = result.get("result")
+                return self._cached_version
         except Exception:
             pass
         return None
@@ -129,6 +135,8 @@ class BridgeClient:
                         if result.get("ok"):
                             result_str = result.get("result", "unknown|user")
                             installed_version, install_type = result_str.split("|") if "|" in result_str else (result_str, "user")
+                            # Cache the version
+                            self._cached_version = installed_version
                             break
                     time.sleep(0.1)
                 else:

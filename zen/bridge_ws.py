@@ -35,6 +35,12 @@ PORT = 8765
 # Store active WebSocket connections (browser clients)
 active_connections: set = set()
 
+# Track the most recently active connection
+most_recent_connection = None
+
+# Store browser info for each connection
+browser_info: dict = {}
+
 # Pending requests from CLI
 pending_requests: dict[str, dict[str, Any]] = {}
 
@@ -73,11 +79,14 @@ def cleanup_old_requests():
 
 async def websocket_handler(request):
     """Handle WebSocket connection from browser (userscript)."""
+    global most_recent_connection
     ws = web.WebSocketResponse()
     await ws.prepare(request)
 
     active_connections.add(ws)
-    print("Browser connected via WebSocket")
+    # Set this as the most recent connection
+    most_recent_connection = ws
+    print("Browser tab connected via WebSocket")
     print(f"Active connections: {len(active_connections)}")
 
     # Resend any pending requests to the newly connected browser
@@ -109,8 +118,15 @@ async def websocket_handler(request):
 
                     message_type = validated_msg.type
 
+                    # Mark this connection as most recent when it sends any message (except ping)
+                    if message_type != "ping":
+                        most_recent_connection = ws
+
                     if message_type == "result":
                         # Browser sending back result of executed code
+                        # This connection is responding, so it's the active one
+                        most_recent_connection = ws
+
                         request_id = data.get("request_id")
                         if request_id and request_id in pending_requests:
                             del pending_requests[request_id]
@@ -168,6 +184,18 @@ async def websocket_handler(request):
                         # Browser keepalive
                         await ws.send_str(json.dumps({"type": "pong"}))
 
+                    elif message_type == "browser_info":
+                        # Store browser information
+                        browser_info[ws] = {
+                            "userAgent": data.get("userAgent", "Unknown"),
+                            "browserName": data.get("browserName", "Unknown"),
+                            "url": data.get("url", ""),
+                            "title": data.get("title", "")
+                        }
+                        browser_name = data.get("browserName", "Unknown")
+                        page_title = data.get("title", "")[:50]
+                        print(f"Browser info received: {browser_name} - {page_title}")
+
                 except json.JSONDecodeError:
                     print(f"Invalid JSON from browser: {msg.data}")
                 except Exception as e:
@@ -178,30 +206,49 @@ async def websocket_handler(request):
 
     finally:
         active_connections.discard(ws)
-        print("Browser disconnected")
-        print(f"Active connections after disconnect: {len(active_connections)}")
+        browser_info.pop(ws, None)
+        if most_recent_connection == ws:
+            most_recent_connection = None
+        print("Browser tab disconnected")
+        print(f"Active connections: {len(active_connections)}")
 
     return ws
 
 
 async def send_code_to_browser(code: str) -> str:
     """Send code to browser for execution. Returns request_id."""
+    global most_recent_connection
     request_id = str(uuid.uuid4())
     pending_requests[request_id] = {"code": code, "timestamp": time.time()}
 
-    # Send to all connected browsers
+    # Send to most recent active browser only
     message = json.dumps({"type": "execute", "request_id": request_id, "code": code})
 
-    if active_connections:
-        sent_count = 0
-        for ws in list(active_connections):
-            try:
-                await ws.send_str(message)
-                sent_count += 1
-            except Exception as e:
-                print(f"Error sending to browser: {e}")
-                active_connections.discard(ws)
-        print(f"[Server] Sent request {request_id[:8]} to {sent_count} browser(s)")
+    # Use most recent connection if available, otherwise use any active connection
+    target_ws = most_recent_connection if most_recent_connection in active_connections else None
+
+    if not target_ws and active_connections:
+        # Fallback to first available connection
+        target_ws = next(iter(active_connections))
+        most_recent_connection = target_ws
+
+    if target_ws:
+        try:
+            await target_ws.send_str(message)
+            # Get browser info if available
+            info = browser_info.get(target_ws, {})
+            browser_name = info.get("browserName", "Unknown browser")
+            page_title = info.get("title", "")
+            if page_title:
+                print(f"[Server] Sent request {request_id[:8]} to {browser_name} - {page_title[:50]}")
+            else:
+                print(f"[Server] Sent request {request_id[:8]} to {browser_name}")
+        except Exception as e:
+            print(f"Error sending to browser: {e}")
+            active_connections.discard(target_ws)
+            browser_info.pop(target_ws, None)
+            if most_recent_connection == target_ws:
+                most_recent_connection = None
     else:
         print(f"[Server] WARNING: No browsers connected for request {request_id[:8]}")
 
