@@ -95,14 +95,14 @@
 
             // Continue to next character
             if (i < text.length) {
-                if (delayMs > 0) {
-                    setTimeout(typeNextChar, delayMs);
-                } else {
-                    typeNextChar();
-                }
+                // Always use setTimeout to ensure browser has time to process events
+                // Even with 0 delay, this makes the operation async and prevents race conditions
+                // Use a minimum of 1ms to ensure event loop can process DOM updates
+                var actualDelay = Math.max(delayMs, 1);
+                setTimeout(typeNextChar, actualDelay);
             } else {
-                // All done
-                typeNextChar();
+                // All done - use setTimeout to ensure last character is processed
+                setTimeout(typeNextChar, 1);
             }
         }
 
