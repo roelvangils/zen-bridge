@@ -70,7 +70,8 @@ async function executeWithCSPBypass(tabId, code, requestId) {
     try {
         // Execute code - use eval to ensure proper scoping
         const __zenEval = eval;
-        let __zenResult = __zenEval(\`${code.replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/\\/g, '\\\\')}\`);
+        // IMPORTANT: Escape backslashes FIRST to avoid double-escaping
+        let __zenResult = __zenEval(\`${code.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`);
 
         // If it's a promise, await it
         if (__zenResult && typeof __zenResult.then === 'function') {

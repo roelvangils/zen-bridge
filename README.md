@@ -465,7 +465,7 @@ zen paste "Hello World"
 # Type text at maximum speed (clears existing text)
 zen type "Hello World"
 
-# Type with human-like random delays (~50 WPM)
+# Type with human-like random delays (~100 WPM with realistic typos)
 zen type "Hello, how are you?" --speed 0
 
 # Type at controlled speed (10 characters per second)
@@ -495,12 +495,13 @@ The `--speed 0` option simulates realistic human typing with random variations:
 - **Rate limiting**: Some services rate-limit based on input speed; human-like typing avoids triggering these limits.
 
 **How it works:**
-- **Base speed**: ~50 WPM (words per minute), similar to average casual typing
-- **Random variation**: Each character has ±50% timing variation (120-360ms per character)
+- **Base speed**: ~100 WPM (words per minute), similar to fast casual typing
+- **Random variation**: Each character has ±50% timing variation (60-180ms per character)
+- **Realistic typos**: 3% chance to type wrong adjacent key, then backspace and correct (QWERTY layout)
 - **Contextual pauses**:
-  - Longer pauses after punctuation (`.!?` = +300-700ms)
-  - Slight pauses after commas (`,` = +100-250ms)
-  - Occasional thinking pauses after spaces (20% chance = +200-500ms)
+  - Longer pauses after punctuation (`.!?` = +150-350ms)
+  - Slight pauses after commas (`,` = +50-125ms)
+  - Occasional thinking pauses after spaces (15% chance = +100-250ms)
   - Slower on numbers and special characters (+30%)
 
 **Example:**
