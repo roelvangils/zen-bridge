@@ -140,10 +140,10 @@
       const fontSize = getFontSize(heading);
       const markers = getImportanceMarkers(heading.textContent.trim());
 
-      let headingLine = `${indent}${'#'.repeat(parseInt(level))} ${text}`;
+      let headingLine = indent + '#'.repeat(parseInt(level)) + ' ' + text;
 
       // Add font size
-      headingLine += ` (${Math.round(fontSize)}px)`;
+      headingLine += ' (' + Math.round(fontSize) + 'px)';
 
       // Mark if largest
       if (heading === largestInfo.element) {
@@ -152,7 +152,7 @@
 
       // Add importance markers
       if (markers.length > 0) {
-        headingLine += ` **[${markers.join(', ')}]**`;
+        headingLine += ' **[' + markers.join(', ') + ']**';
       }
 
       output.push(headingLine);
@@ -160,7 +160,7 @@
       // Try to find first paragraph after heading
       const para = getNextParagraph(heading);
       if (para) {
-        output.push(`${indent}${para}`);
+        output.push(indent + para);
       }
       output.push('');
 
@@ -169,12 +169,12 @@
       if (nextEl) {
         // Check for image in next element
         if (nextEl.tagName === 'IMG' && shouldIncludeImage(nextEl)) {
-          output.push(`${indent}![${cleanText(nextEl.alt)}](image)`);
+          output.push(indent + "![" + cleanText(nextEl.alt) + "](image)");
           output.push('');
         } else {
           const img = nextEl.querySelector('img');
           if (img && shouldIncludeImage(img)) {
-            output.push(`${indent}![${cleanText(img.alt)}](image)`);
+            output.push(indent + "![" + cleanText(img.alt) + "](image)");
             output.push('');
           }
         }
@@ -183,11 +183,11 @@
         if (nextEl.tagName === 'UL' || nextEl.tagName === 'OL') {
           const listData = getListItems(nextEl);
           listData.items.forEach((item, idx) => {
-            const bullet = listData.type === 'ol' ? `${idx + 1}.` : '-';
-            output.push(`${indent}${bullet} ${item}`);
+            const bullet = listData.type === 'ol' ? (idx + 1) + '.' : '-';
+            output.push(indent + bullet + ' ' + item);
           });
           if (listData.total > listData.items.length) {
-            output.push(`${indent}  _(${listData.total - listData.items.length} more items)_`);
+            output.push(indent + '  _(' + (listData.total - listData.items.length) + ' more items)_');
           }
           output.push('');
         } else {
@@ -196,11 +196,11 @@
           if (list) {
             const listData = getListItems(list);
             listData.items.forEach((item, idx) => {
-              const bullet = listData.type === 'ol' ? `${idx + 1}.` : '-';
-              output.push(`${indent}${bullet} ${item}`);
+              const bullet = listData.type === 'ol' ? (idx + 1) + '.' : '-';
+              output.push(indent + bullet + ' ' + item);
             });
             if (listData.total > listData.items.length) {
-              output.push(`${indent}  _(${listData.total - listData.items.length} more items)_`);
+              output.push(indent + '  _(' + (listData.total - listData.items.length) + ' more items)_');
             }
             output.push('');
           }
@@ -209,13 +209,13 @@
         // Check for blockquotes
         if (nextEl.tagName === 'BLOCKQUOTE') {
           const text = cleanText(nextEl.textContent.trim().replace(/\s+/g, ' '));
-          output.push(`${indent}> ${text}`);
+          output.push(indent + '> ' + text);
           output.push('');
         } else {
           const quote = nextEl.querySelector('blockquote');
           if (quote) {
             const text = cleanText(quote.textContent.trim().replace(/\s+/g, ' '));
-            output.push(`${indent}> ${text}`);
+            output.push(indent + '> ' + text);
             output.push('');
           }
         }
@@ -223,12 +223,12 @@
     });
   }
 
-  // Start building output
-  output.push(`# ${cleanText(document.title)}`);
+  // Start building output - use string concatenation to avoid template literal issues
+  output.push('# ' + cleanText(document.title));
   output.push('');
 
   // URL info
-  output.push(`**URL:** ${window.location.href}`);
+  output.push('**URL:** ' + window.location.href);
   output.push('');
 
   // Language info
@@ -241,9 +241,9 @@
     .slice(0, 5);
 
   if (altLangs.length > 0) {
-    output.push(`**Language:** ${lang} (also available: ${altLangs.join(', ')})`);
+    output.push('**Language:** ' + lang + ' (also available: ' + altLangs.join(', ') + ')');
   } else {
-    output.push(`**Language:** ${lang}`);
+    output.push('**Language:** ' + lang);
   }
   output.push('');
   output.push('---');
@@ -307,7 +307,7 @@
 
       const totalFooterLinks = footer.querySelectorAll('a').length;
       if (totalFooterLinks > footerLinks.length) {
-        output.push(`_(${totalFooterLinks} links total)_`);
+        output.push('_(' + totalFooterLinks + ' links total)_');
       }
     }
 
