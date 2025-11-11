@@ -435,26 +435,44 @@ zen control
 
 ```bash
 # Get selected text with metadata
-zen selected
+zen selection text
 
-# Raw text only
-zen selected --raw
+# Get as HTML
+zen selection html
+
+# Get as Markdown
+zen selection markdown
+
+# Raw text only (no formatting)
+zen selection text --raw
 
 # Use in scripts
-zen selected --raw | pbcopy
-zen selected --raw > selection.txt
+zen selection text --raw | pbcopy
+zen selection markdown --raw > selection.md
+
+# Get as JSON (includes markdown)
+zen selection text --json
 ```
 
-### Send Text to Browser
+### Type or Paste Text
 
-Type text character by character:
+Type text character by character or paste instantly:
 
 ```bash
-# Type into focused field
-zen send "Hello World"
+# Paste text instantly (fastest)
+zen paste "Hello World"
+
+# Type text at maximum speed
+zen type "Hello World"
+
+# Type at controlled speed (10 characters per second)
+zen type "test@example.com" --speed 10
 
 # Type into specific element
-zen send "test@example.com" --selector "input[type=email]"
+zen type "password123" --selector "input[type=password]"
+
+# Paste into specific element
+zen paste "username" --selector "#username"
 ```
 
 ### Take Screenshots

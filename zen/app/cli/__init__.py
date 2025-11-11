@@ -53,7 +53,9 @@ cli.add_command(navigation_module.refresh, name="refresh")  # hidden alias for r
 cli.add_command(cookies_module.cookies, name="cookies")  # group
 
 # Interaction commands (from interaction.py)
-cli.add_command(interaction_module.send, name="send")
+cli.add_command(interaction_module.type_text, name="type")
+cli.add_command(interaction_module.paste, name="paste")
+cli.add_command(interaction_module.send, name="send")  # deprecated, kept for backward compatibility
 cli.add_command(interaction_module.click_element, name="click")
 cli.add_command(interaction_module.double_click, name="double-click")
 cli.add_command(interaction_module.doubleclick_alias, name="doubleclick")  # hidden alias
@@ -67,7 +69,8 @@ cli.add_command(inspection_module.inspected, name="inspected")
 cli.add_command(inspection_module.screenshot, name="screenshot")
 
 # Selection commands (from selection.py)
-cli.add_command(selection_module.selected, name="selected")
+cli.add_command(selection_module.selection, name="selection")  # group with text/html/markdown subcommands
+cli.add_command(selection_module.selected, name="selected")  # deprecated, kept for backward compatibility
 
 # Server management commands (from server.py)
 cli.add_command(server_module.server, name="server")  # group

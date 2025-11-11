@@ -50,6 +50,9 @@ completed_requests: dict[str, dict[str, Any]] = {}
 # Pending notifications (for control mode messages)
 pending_notifications: list = []
 
+# Events for long polling - notifies waiting HTTP requests when results arrive
+pending_events: dict[str, asyncio.Event] = {}
+
 # Cleanup old requests after 5 minutes
 MAX_REQUEST_AGE = 300
 
@@ -67,6 +70,8 @@ def cleanup_old_requests():
     ]
     for req_id in expired:
         del pending_requests[req_id]
+        # Clean up any associated events
+        pending_events.pop(req_id, None)
 
     expired = [
         req_id
@@ -75,6 +80,8 @@ def cleanup_old_requests():
     ]
     for req_id in expired:
         del completed_requests[req_id]
+        # Clean up any associated events
+        pending_events.pop(req_id, None)
 
 
 async def websocket_handler(request):
@@ -139,6 +146,11 @@ async def websocket_handler(request):
                                 "timestamp": time.time(),
                             }
                             print(f"Received result for request {request_id}")
+
+                            # Notify any waiting HTTP long-poll requests
+                            if request_id in pending_events:
+                                pending_events[request_id].set()
+                                print(f"Notified waiting HTTP request for {request_id}")
 
                     elif message_type == "reinit_control":
                         # Browser requesting automatic reinitialization after page reload
@@ -275,24 +287,64 @@ async def handle_http_run(request):
 
 
 async def handle_http_result(request):
-    """HTTP endpoint: Get result of request."""
+    """HTTP endpoint: Get result of request (with long polling support)."""
     request_id = request.query.get("request_id")
 
     if not request_id:
         return web.json_response({"ok": False, "error": "missing request_id"}, status=400)
 
+    # If already completed, return immediately
     if request_id in completed_requests:
         return web.json_response(completed_requests[request_id])
+
+    # If pending, wait for result with long polling
     elif request_id in pending_requests:
-        # Check if request is too old (>60 seconds) and no connections available
+        # Create event for this request if it doesn't exist
+        if request_id not in pending_events:
+            pending_events[request_id] = asyncio.Event()
+
+        event = pending_events[request_id]
+
+        # Calculate timeout based on request age
         req_age = time.time() - pending_requests[request_id]["timestamp"]
-        if req_age > 60 and len(active_connections) == 0:
-            # Request timed out with no browser connected
+        remaining_timeout = max(60.0 - req_age, 0.1)  # At least 100ms
+
+        # Check if no browser connected
+        if len(active_connections) == 0:
+            # Don't wait, return error immediately
             del pending_requests[request_id]
+            pending_events.pop(request_id, None)
             return web.json_response(
                 {"ok": False, "error": "Request timeout: No browser connected"}
             )
-        return web.json_response({"ok": False, "status": "pending"})
+
+        try:
+            # Wait for result with timeout (long polling)
+            await asyncio.wait_for(event.wait(), timeout=remaining_timeout)
+
+            # Event was set, result should be ready
+            if request_id in completed_requests:
+                # Clean up event
+                pending_events.pop(request_id, None)
+                return web.json_response(completed_requests[request_id])
+            else:
+                # Edge case: event set but no result (shouldn't happen)
+                pending_events.pop(request_id, None)
+                return web.json_response({"ok": False, "status": "pending"})
+
+        except asyncio.TimeoutError:
+            # Timeout waiting for result
+            pending_events.pop(request_id, None)
+
+            # Check if still pending or if it completed during cleanup
+            if request_id in completed_requests:
+                return web.json_response(completed_requests[request_id])
+            elif request_id in pending_requests:
+                # Still pending after timeout
+                return web.json_response({"ok": False, "status": "pending"})
+            else:
+                return web.json_response({"ok": False, "error": "Request timeout"})
+
     else:
         return web.json_response({"ok": False, "error": "unknown request_id"}, status=404)
 

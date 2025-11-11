@@ -2,7 +2,8 @@
 Interaction commands for the Zen Browser Bridge CLI.
 
 This module provides commands for browser interaction:
-- send: Send keyboard input to elements
+- type: Type text character by character
+- paste: Paste text instantly
 - click: Click on elements
 - double-click: Double-click on elements
 - right-click: Right-click (context menu) on elements
@@ -20,20 +21,8 @@ from zen.services.bridge_executor import BridgeExecutor
 from zen.services.script_loader import ScriptLoader
 
 
-@click.command()
-@click.argument("text")
-@click.option("--selector", "-s", help="CSS selector to focus before typing")
-def send(text, selector):
-    """
-    Send text to the browser by typing it character by character.
-
-    Types the given text into the currently focused input field,
-    or into a specific element if --selector is provided.
-
-    Examples:
-        zen send "Hello World"
-        zen send "test@example.com" --selector "input[type=email]"
-    """
+def _send_text(text, selector, delay_ms):
+    """Helper function to send text to browser."""
     executor = BridgeExecutor()
     executor.ensure_server_running()
 
@@ -67,6 +56,7 @@ def send(text, selector):
     # Escape quotes and backslashes for JavaScript
     escaped_text = text.replace("\\", "\\\\").replace('"', '\\"').replace("'", "\\'")
     code = script.replace("TEXT_PLACEHOLDER", f'"{escaped_text}"')
+    code = code.replace("DELAY_PLACEHOLDER", str(delay_ms))
 
     try:
         result = executor.execute(code, timeout=60.0)
@@ -87,6 +77,74 @@ def send(text, selector):
     except (ConnectionError, TimeoutError, RuntimeError) as e:
         click.echo(f"Error: {e}", err=True)
         sys.exit(1)
+
+
+@click.command()
+@click.argument("text")
+@click.option("--selector", "-s", help="CSS selector to focus before typing")
+@click.option("--speed", type=int, help="Typing speed in characters per second (default: fastest)")
+def type_text(text, selector, speed):
+    """
+    Type text character by character into the browser.
+
+    Types text into the currently focused input field,
+    or into a specific element if --selector is provided.
+
+    By default, types as fast as possible. Use --speed to control typing rate.
+
+    Examples:
+        # Type at maximum speed:
+        zen type "Hello World"
+
+        # Type at 10 characters per second:
+        zen type "test@example.com" --speed 10
+
+        # Type into a specific field:
+        zen type "password123" --selector "input[type=password]"
+    """
+    # Calculate delay in milliseconds from speed (chars/sec)
+    if speed:
+        delay_ms = int(1000 / speed)
+    else:
+        delay_ms = 0  # Fastest (no delay)
+
+    _send_text(text, selector, delay_ms)
+
+
+@click.command()
+@click.argument("text")
+@click.option("--selector", "-s", help="CSS selector to focus before pasting")
+def paste(text, selector):
+    """
+    Paste text instantly into the browser.
+
+    Pastes text into the currently focused input field,
+    or into a specific element if --selector is provided.
+
+    This is equivalent to 'zen type' with maximum speed.
+
+    Examples:
+        zen paste "Hello World"
+        zen paste "test@example.com" --selector "input[type=email]"
+    """
+    _send_text(text, selector, 0)
+
+
+@click.command()
+@click.argument("text")
+@click.option("--selector", "-s", help="CSS selector to focus before typing")
+def send(text, selector):
+    """
+    [DEPRECATED] Send text to the browser by typing it character by character.
+
+    Please use 'zen type' or 'zen paste' instead.
+
+    Examples:
+        zen type "Hello World"
+        zen paste "test@example.com" --selector "input[type=email]"
+    """
+    click.echo("Warning: 'zen send' is deprecated. Use 'zen type' or 'zen paste' instead.\n", err=True)
+    _send_text(text, selector, 0)
 
 
 @click.command(name="click")
