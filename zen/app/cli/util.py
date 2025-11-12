@@ -1222,7 +1222,7 @@ def repl():
     client = BridgeClient()
 
     if not client.is_alive():
-        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        click.echo("Error: Bridge server is not running. Start it with: inspekt server start", err=True)
         sys.exit(1)
 
     click.echo("Zen Browser REPL - Type JavaScript code, 'exit' to quit")
@@ -1316,7 +1316,7 @@ def download(output, list_only, output_json, timeout):
     client = BridgeClient()
 
     if not client.is_alive():
-        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        click.echo("Error: Bridge server is not running. Start it with: inspekt server start", err=True)
         sys.exit(1)
 
     # Execute the find_downloads script

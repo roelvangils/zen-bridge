@@ -409,7 +409,7 @@ async def handle_http_health(request):
 
 async def main():
     """Start HTTP and WebSocket server."""
-    print("Zen Bridge WebSocket Server (aiohttp)")
+    print("Inspekt WebSocket Server (aiohttp)")
     print(f"WebSocket: ws://{HOST}:{PORT + 1}/ws")
     print(f"HTTP API: http://{HOST}:{PORT}")
     print("")

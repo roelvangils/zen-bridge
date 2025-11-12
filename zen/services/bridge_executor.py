@@ -71,7 +71,7 @@ class BridgeExecutor:
         """
         if not self.is_server_running():
             click.echo(
-                "Error: Bridge server is not running. Start it with: zen server start",
+                "Error: Bridge server is not running. Start it with: inspekt server start",
                 err=True,
             )
             sys.exit(1)

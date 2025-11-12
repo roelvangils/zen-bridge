@@ -75,17 +75,17 @@ def status(output_json):
             }
             click.echo(json.dumps(output_data, indent=2))
         elif status:
-            click.echo("Bridge server is running")
+            click.echo("Inspekt Server Status (Running)")
             click.echo(f"  Pending requests:   {status.get('pending', 0)}")
             click.echo(f"  Completed requests: {status.get('completed', 0)}")
         else:
-            click.echo("Bridge server is running (status unavailable)")
+            click.echo("Inspekt Server Status (Running, status unavailable)")
     else:
         if output_json:
             click.echo(json.dumps({"running": False}, indent=2))
         else:
-            click.echo("Bridge server is not running")
-            click.echo("Start it with: zen server start")
+            click.echo("Inspekt Server Status (Not Running)")
+            click.echo("Start it with: inspekt server start")
         sys.exit(1)
 
 

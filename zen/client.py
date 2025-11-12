@@ -200,7 +200,7 @@ class BridgeClient:
             RuntimeError: If code execution fails in browser
         """
         if not self.is_alive():
-            raise ConnectionError("Bridge server is not running. Start it with: zen server start")
+            raise ConnectionError("Bridge server is not running. Start it with: inspekt server start")
 
         # Check userscript version on first execute (only once per client instance)
         if not self._version_checked:

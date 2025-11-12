@@ -70,24 +70,28 @@ function setupEventListeners() {
 
     // Server callout copy button
     btnCopyServerCommand.addEventListener('click', () => {
-        copyToClipboard('inspekt server start', 'Server start command');
-        btnCopyServerCommand.textContent = '✓';
-        setTimeout(() => {
-            btnCopyServerCommand.textContent = '📋';
-        }, 2000);
+        navigator.clipboard.writeText('inspekt server start').then(() => {
+            console.log('[Inspekt Panel] Server start command copied to clipboard');
+            btnCopyServerCommand.textContent = '✓';
+            setTimeout(() => {
+                btnCopyServerCommand.textContent = '📋';
+            }, 2000);
+        }).catch(err => {
+            console.error('[Inspekt Panel] Failed to copy:', err);
+        });
     });
 
     // Action buttons
     btnPickElement.addEventListener('click', activateElementPicker);
-    btnInspected.addEventListener('click', () => copyToClipboard('inspekt inspected', 'Command'));
-    btnCopySelector.addEventListener('click', () => {
+    btnInspected.addEventListener('click', (e) => copyToClipboard(e, 'inspekt inspected', 'Command'));
+    btnCopySelector.addEventListener('click', (e) => {
         if (currentElement && currentElement.selector) {
-            copyToClipboard(currentElement.selector, 'Selector');
+            copyToClipboard(e, currentElement.selector, 'Selector');
         }
     });
-    btnCopyCommand.addEventListener('click', () => {
+    btnCopyCommand.addEventListener('click', (e) => {
         if (currentElement && currentElement.selector) {
-            copyToClipboard(`inspekt click "${currentElement.selector}"`, 'Click command');
+            copyToClipboard(e, `inspekt click "${currentElement.selector}"`, 'Click command');
         }
     });
     btnShowInElements.addEventListener('click', showInElementsPanel);
@@ -599,7 +603,7 @@ function highlightCurrentElement(forceNew = false) {
 }
 
 // Copy to clipboard
-function copyToClipboard(text, label) {
+function copyToClipboard(event, text, label) {
     navigator.clipboard.writeText(text).then(() => {
         console.log(`[Inspekt Panel] ${label} copied to clipboard:`, text);
 
@@ -617,6 +621,8 @@ function copyToClipboard(text, label) {
                     'color: #0066ff; font-weight: bold', 'color: #00aa00')`
             );
         }
+    }).catch(err => {
+        console.error('[Inspekt Panel] Failed to copy:', err);
     });
 }
 

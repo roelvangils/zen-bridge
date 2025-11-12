@@ -1484,7 +1484,7 @@ def status():
             click.echo("Bridge server is running (status unavailable)")
     else:
         click.echo("Bridge server is not running")
-        click.echo("Start it with: zen server start")
+        click.echo("Start it with: inspekt server start")
         sys.exit(1)
 
 
@@ -1505,7 +1505,7 @@ def repl():
     client = BridgeClient()
 
     if not client.is_alive():
-        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        click.echo("Error: Bridge server is not running. Start it with: inspekt server start", err=True)
         sys.exit(1)
 
     click.echo("Zen Browser REPL - Type JavaScript code, 'exit' to quit")
@@ -1569,7 +1569,7 @@ def highlight(selector, color, clear):
     client = BridgeClient()
 
     if not client.is_alive():
-        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        click.echo("Error: Bridge server is not running. Start it with: inspekt server start", err=True)
         sys.exit(1)
 
     if clear:
@@ -1670,7 +1670,7 @@ def download(output, list_only, timeout):
     client = BridgeClient()
 
     if not client.is_alive():
-        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        click.echo("Error: Bridge server is not running. Start it with: inspekt server start", err=True)
         sys.exit(1)
 
     # Execute the find_downloads script
@@ -1924,7 +1924,7 @@ def type_text(text, selector, speed):
     client = BridgeClient()
 
     if not client.is_alive():
-        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        click.echo("Error: Bridge server is not running. Start it with: inspekt server start", err=True)
         sys.exit(1)
 
     # Focus the element first if selector provided
@@ -2031,7 +2031,7 @@ def inspect(selector):
     client = BridgeClient()
 
     if not client.is_alive():
-        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        click.echo("Error: Bridge server is not running. Start it with: inspekt server start", err=True)
         sys.exit(1)
 
     # If no selector provided, just show the currently marked element
@@ -2103,7 +2103,7 @@ def inspected():
     client = BridgeClient()
 
     if not client.is_alive():
-        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        click.echo("Error: Bridge server is not running. Start it with: inspekt server start", err=True)
         sys.exit(1)
 
     # Load the get_inspected.js script
@@ -2318,7 +2318,7 @@ def _perform_click(selector, click_type):
     client = BridgeClient()
 
     if not client.is_alive():
-        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        click.echo("Error: Bridge server is not running. Start it with: inspekt server start", err=True)
         sys.exit(1)
 
     # Load the click script
@@ -2397,7 +2397,7 @@ def wait(selector, timeout, visible, hidden, text):
     client = BridgeClient()
 
     if not client.is_alive():
-        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        click.echo("Error: Bridge server is not running. Start it with: inspekt server start", err=True)
         sys.exit(1)
 
     # Determine wait type
@@ -2495,7 +2495,7 @@ def open(url, wait, timeout):
     client = BridgeClient()
 
     if not client.is_alive():
-        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        click.echo("Error: Bridge server is not running. Start it with: inspekt server start", err=True)
         sys.exit(1)
 
     # Basic navigation code
@@ -2570,7 +2570,7 @@ def back():
     client = BridgeClient()
 
     if not client.is_alive():
-        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        click.echo("Error: Bridge server is not running. Start it with: inspekt server start", err=True)
         sys.exit(1)
 
     code = "window.history.back(); true;"
@@ -2607,7 +2607,7 @@ def forward():
     client = BridgeClient()
 
     if not client.is_alive():
-        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        click.echo("Error: Bridge server is not running. Start it with: inspekt server start", err=True)
         sys.exit(1)
 
     code = "window.history.forward(); true;"
@@ -2649,7 +2649,7 @@ def reload(hard):
     client = BridgeClient()
 
     if not client.is_alive():
-        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        click.echo("Error: Bridge server is not running. Start it with: inspekt server start", err=True)
         sys.exit(1)
 
     if hard:
@@ -2785,7 +2785,7 @@ def _execute_cookie_action(action, cookie_name="", cookie_value="", options=None
     client = BridgeClient()
 
     if not client.is_alive():
-        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        click.echo("Error: Bridge server is not running. Start it with: inspekt server start", err=True)
         sys.exit(1)
 
     # Load the cookies script
@@ -2876,7 +2876,7 @@ def selected(raw):
     client = BridgeClient()
 
     if not client.is_alive():
-        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        click.echo("Error: Bridge server is not running. Start it with: inspekt server start", err=True)
         sys.exit(1)
 
     # Load the get_selection.js script
@@ -2980,7 +2980,7 @@ def screenshot(selector, output):
     client = BridgeClient()
 
     if not client.is_alive():
-        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        click.echo("Error: Bridge server is not running. Start it with: inspekt server start", err=True)
         sys.exit(1)
 
     # Load screenshot script
@@ -3069,7 +3069,7 @@ def input():
     client = BridgeClient()
 
     if not client.is_alive():
-        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        click.echo("Error: Bridge server is not running. Start it with: inspekt server start", err=True)
         sys.exit(1)
 
     # Start watching keyboard
@@ -3164,7 +3164,7 @@ def control():
     client = BridgeClient()
 
     if not client.is_alive():
-        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        click.echo("Error: Bridge server is not running. Start it with: inspekt server start", err=True)
         sys.exit(1)
 
     # Load configuration
@@ -3417,7 +3417,7 @@ def all():
     client = BridgeClient()
 
     if not client.is_alive():
-        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        click.echo("Error: Bridge server is not running. Start it with: inspekt server start", err=True)
         sys.exit(1)
 
     # Load watch_all script
@@ -3514,7 +3514,7 @@ def describe(language, debug):
     client = BridgeClient()
 
     if not client.is_alive():
-        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        click.echo("Error: Bridge server is not running. Start it with: inspekt server start", err=True)
         sys.exit(1)
 
     # Check if mods is available
@@ -3623,7 +3623,7 @@ def outline():
     client = BridgeClient()
 
     if not client.is_alive():
-        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        click.echo("Error: Bridge server is not running. Start it with: inspekt server start", err=True)
         sys.exit(1)
 
     # Load and execute the extract_outline script
@@ -3863,7 +3863,7 @@ def links(only_internal, only_external, alphabetically, only_urls, output_json, 
     client = BridgeClient()
 
     if not client.is_alive():
-        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        click.echo("Error: Bridge server is not running. Start it with: inspekt server start", err=True)
         sys.exit(1)
 
     # Check for conflicting flags
@@ -4026,7 +4026,7 @@ def summarize(format, language, debug):
     client = BridgeClient()
 
     if not client.is_alive():
-        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        click.echo("Error: Bridge server is not running. Start it with: inspekt server start", err=True)
         sys.exit(1)
 
     # Check if mods is available

@@ -104,7 +104,7 @@ def describe(language, debug, force_refresh):
     client = BridgeClient()
 
     if not client.is_alive():
-        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        click.echo("Error: Bridge server is not running. Start it with: inspekt server start", err=True)
         sys.exit(1)
 
     # Check if mods is available
@@ -379,7 +379,7 @@ def do(instruction, debug, no_execute, force_ai):
     client = BridgeClient()
 
     if not client.is_alive():
-        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        click.echo("Error: Bridge server is not running. Start it with: inspekt server start", err=True)
         sys.exit(1)
 
     # Check if mods is available
@@ -741,7 +741,7 @@ def outline(output_json):
     client = BridgeClient()
 
     if not client.is_alive():
-        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        click.echo("Error: Bridge server is not running. Start it with: inspekt server start", err=True)
         sys.exit(1)
 
     # Load and execute the extract_outline script
@@ -990,7 +990,7 @@ def links(only_internal, only_external, alphabetically, only_urls, output_json, 
     client = BridgeClient()
 
     if not client.is_alive():
-        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        click.echo("Error: Bridge server is not running. Start it with: inspekt server start", err=True)
         sys.exit(1)
 
     # Check for conflicting flags
@@ -1152,7 +1152,7 @@ def summarize(format, language, debug, force_refresh):
     client = BridgeClient()
 
     if not client.is_alive():
-        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        click.echo("Error: Bridge server is not running. Start it with: inspekt server start", err=True)
         sys.exit(1)
 
     # Check if mods is available
@@ -1345,7 +1345,7 @@ def index(no_cache, output):
     client = BridgeClient()
 
     if not client.is_alive():
-        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        click.echo("Error: Bridge server is not running. Start it with: inspekt server start", err=True)
         sys.exit(1)
 
     # Load and execute the index_page script
@@ -1519,7 +1519,7 @@ def ask(question, debug, no_cache):
     client = BridgeClient()
 
     if not client.is_alive():
-        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        click.echo("Error: Bridge server is not running. Start it with: inspekt server start", err=True)
         sys.exit(1)
 
     # Check if mods is available
