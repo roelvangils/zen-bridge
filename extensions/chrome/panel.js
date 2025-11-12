@@ -16,6 +16,8 @@ let settings = {
 // DOM elements
 const statusIndicator = document.getElementById('statusIndicator');
 const statusText = document.getElementById('statusText');
+const serverCallout = document.getElementById('serverCallout');
+const btnCopyServerCommand = document.getElementById('copyServerCommand');
 const inspectedElement = document.getElementById('inspectedElement');
 const elementHistoryContainer = document.getElementById('elementHistory');
 const btnPickElement = document.getElementById('btnPickElement');
@@ -59,6 +61,15 @@ function updateSettingsUI() {
 
 // Setup event listeners
 function setupEventListeners() {
+    // Server callout copy button
+    btnCopyServerCommand.addEventListener('click', () => {
+        copyToClipboard('inspekt server start', 'Server start command');
+        btnCopyServerCommand.textContent = '✓';
+        setTimeout(() => {
+            btnCopyServerCommand.textContent = '📋';
+        }, 2000);
+    });
+
     // Action buttons
     btnPickElement.addEventListener('click', activateElementPicker);
     btnInspected.addEventListener('click', () => copyToClipboard('inspekt inspected', 'Command'));
@@ -115,9 +126,11 @@ function updateConnectionStatus(connected) {
     if (connected) {
         statusIndicator.className = 'status-indicator connected';
         statusText.textContent = 'Connected';
+        serverCallout.style.display = 'none';
     } else {
         statusIndicator.className = 'status-indicator disconnected';
         statusText.textContent = 'Disconnected';
+        serverCallout.style.display = 'flex';
     }
 }
 

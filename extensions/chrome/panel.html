@@ -22,6 +22,24 @@
             </div>
         </div>
 
+        <!-- Server Disconnected Callout -->
+        <div id="serverCallout" class="server-callout" style="display: none;">
+            <div class="callout-icon">⚠️</div>
+            <div class="callout-content">
+                <div class="callout-title">Server Not Running</div>
+                <div class="callout-message">
+                    Start the Inspekt server to enable CLI commands:
+                </div>
+                <div class="callout-command">
+                    <code>inspekt server start</code>
+                    <button class="copy-btn" id="copyServerCommand" title="Copy command">📋</button>
+                </div>
+                <div class="callout-hint">
+                    Run this command in your terminal, then refresh this page.
+                </div>
+            </div>
+        </div>
+
         <!-- Main Content -->
         <div class="panel-content">
 
