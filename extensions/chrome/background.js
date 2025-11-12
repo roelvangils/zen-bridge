@@ -47,11 +47,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     if (message.type === 'WS_STATUS_UPDATE') {
         // Update connection status and inject into main world
+        // status can be: 'connecting', true (connected), or false (disconnected)
         const tabId = sender.tab.id;
-        const connected = message.connected;
-        tabConnectionStatus.set(tabId, connected);
+        const status = message.connected;
+        tabConnectionStatus.set(tabId, status);
 
-        updateConnectionStatusInMainWorld(tabId, connected)
+        updateConnectionStatusInMainWorld(tabId, status)
             .then(() => sendResponse({ ok: true }))
             .catch(error => sendResponse({ ok: false, error: String(error) }));
         return true;
@@ -85,15 +86,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 /**
  * Update WebSocket connection status in main world
  */
-async function updateConnectionStatusInMainWorld(tabId, connected) {
+async function updateConnectionStatusInMainWorld(tabId, status) {
     try {
         await chrome.scripting.executeScript({
             target: { tabId: tabId },
             world: 'MAIN',
-            func: (isConnected) => {
-                window.__INSPEKT_WS_CONNECTED__ = isConnected;
+            func: (connectionStatus) => {
+                // Status can be: 'connecting', true (connected), or false (disconnected)
+                window.__INSPEKT_WS_CONNECTED__ = connectionStatus;
             },
-            args: [connected]
+            args: [status]
         });
     } catch (error) {
         console.error('[Inspekt] Failed to update connection status:', error);

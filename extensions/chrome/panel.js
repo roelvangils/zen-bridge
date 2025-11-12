@@ -115,13 +115,20 @@ function setupEventListeners() {
 // Check WebSocket connection status
 function checkConnectionStatus() {
     chrome.devtools.inspectedWindow.eval(
-        `window.__INSPEKT_WS_CONNECTED__ === true`,
+        `window.__INSPEKT_WS_CONNECTED__`,
         (result, error) => {
             if (error) {
                 console.error('[Inspekt Panel] Error checking connection:', error);
-                updateConnectionStatus(false);
+                updateConnectionStatus('disconnected');
             } else {
-                updateConnectionStatus(result === true);
+                // result can be: 'connecting', true (connected), or false (disconnected)
+                if (result === true) {
+                    updateConnectionStatus('connected');
+                } else if (result === 'connecting') {
+                    updateConnectionStatus('connecting');
+                } else {
+                    updateConnectionStatus('disconnected');
+                }
             }
         }
     );
@@ -131,10 +138,15 @@ function checkConnectionStatus() {
 }
 
 // Update connection status UI
-function updateConnectionStatus(connected) {
-    if (connected) {
+function updateConnectionStatus(status) {
+    // status can be: 'connected', 'connecting', or 'disconnected'
+    if (status === 'connected') {
         statusIndicator.className = 'status-indicator connected';
         statusText.textContent = 'Connected';
+        serverCallout.style.display = 'none';
+    } else if (status === 'connecting') {
+        statusIndicator.className = 'status-indicator connecting';
+        statusText.textContent = 'Connecting…';
         serverCallout.style.display = 'none';
     } else {
         statusIndicator.className = 'status-indicator disconnected';

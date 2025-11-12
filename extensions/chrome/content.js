@@ -48,6 +48,14 @@
         try {
             ws = new WebSocket(WS_URL);
 
+            // Notify background script that we're connecting
+            chrome.runtime.sendMessage({
+                type: 'WS_STATUS_UPDATE',
+                connected: 'connecting'
+            }).catch(() => {
+                // Background script might not be ready
+            });
+
             ws.onopen = () => {
                 console.log('%c[Inspekt]%c Connected via WebSocket',
                     'color: #0066ff; font-weight: bold', 'color: inherit');
