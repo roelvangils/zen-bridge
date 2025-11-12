@@ -93,7 +93,7 @@ function setupEventListeners() {
 // Check WebSocket connection status
 function checkConnectionStatus() {
     chrome.devtools.inspectedWindow.eval(
-        `fetch('http://localhost:8765', { method: 'GET' })
+        `fetch('http://localhost:8766', { method: 'GET' })
             .then(() => true)
             .catch(() => false)`,
         (result, error) => {
