@@ -612,28 +612,46 @@ function highlightCurrentElement(forceNew = false) {
     );
 }
 
-// Copy to clipboard
+// Copy to clipboard (DevTools panel compatible)
 function copyToClipboard(event, text, label) {
-    navigator.clipboard.writeText(text).then(() => {
-        console.log(`[Inspekt Panel] ${label} copied to clipboard:`, text);
+    // Create a temporary textarea element (works in DevTools panels)
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
 
-        // Show visual feedback
-        const btn = event.target.closest('.action-btn');
-        if (btn) {
-            btn.classList.add('success-flash');
-            setTimeout(() => btn.classList.remove('success-flash'), 500);
-        }
+    try {
+        textarea.select();
+        textarea.setSelectionRange(0, 99999); // For mobile devices
 
-        // Show notification in console if enabled
-        if (settings.showNotifications) {
-            chrome.devtools.inspectedWindow.eval(
-                `console.log('%c[Inspekt]%c ✓ ${label} copied to clipboard',
-                    'color: #0066ff; font-weight: bold', 'color: #00aa00')`
-            );
+        const success = document.execCommand('copy');
+
+        if (success) {
+            console.log(`[Inspekt Panel] ${label} copied to clipboard:`, text);
+
+            // Show visual feedback
+            const btn = event.target.closest('.action-btn');
+            if (btn) {
+                btn.classList.add('success-flash');
+                setTimeout(() => btn.classList.remove('success-flash'), 500);
+            }
+
+            // Show notification in console if enabled
+            if (settings.showNotifications) {
+                chrome.devtools.inspectedWindow.eval(
+                    `console.log('%c[Inspekt]%c ✓ ${label} copied to clipboard',
+                        'color: #0066ff; font-weight: bold', 'color: #00aa00')`
+                );
+            }
+        } else {
+            console.error('[Inspekt Panel] Failed to copy:', label);
         }
-    }).catch(err => {
-        console.error('[Inspekt Panel] Failed to copy:', err);
-    });
+    } catch (err) {
+        console.error('[Inspekt Panel] Copy error:', err);
+    } finally {
+        document.body.removeChild(textarea);
+    }
 }
 
 // Get time ago string
