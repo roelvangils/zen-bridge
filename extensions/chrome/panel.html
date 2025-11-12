@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Inspekt Panel</title>
+    <link rel="stylesheet" href="panel.css">
+</head>
+<body>
+    <div class="zen-panel">
+        <!-- Header -->
+        <div class="panel-header">
+            <div class="panel-title">
+                <svg class="logo" width="20" height="20" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="#0066ff" stroke-width="8"/>
+                    <path d="M30 50 L50 30 L70 50 L50 70 Z" fill="#0066ff"/>
+                </svg>
+                <h1>Inspekt</h1>
+            </div>
+            <div class="connection-status">
+                <span class="status-indicator" id="statusIndicator"></span>
+                <span class="status-text" id="statusText">Checking...</span>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="panel-content">
+
+            <!-- Currently Inspected Element Section -->
+            <section class="panel-section">
+                <h2>🔍 Currently Inspected Element</h2>
+                <div id="inspectedElement" class="inspected-element">
+                    <p class="placeholder">No element selected. Right-click an element and select "Inspect".</p>
+                </div>
+            </section>
+
+            <!-- Quick Actions Section -->
+            <section class="panel-section">
+                <h2>⚡ Quick Actions</h2>
+                <div class="actions-grid">
+                    <button class="action-btn" id="btnPickElement">
+                        <span class="btn-icon">🎯</span>
+                        <span class="btn-label">Pick Element</span>
+                        <span class="btn-hint">Select element on page</span>
+                    </button>
+                    <button class="action-btn" id="btnInspected" disabled>
+                        <span class="btn-icon">🔍</span>
+                        <span class="btn-label">inspekt inspected</span>
+                        <span class="btn-hint">Show element details</span>
+                    </button>
+                    <button class="action-btn" id="btnCopySelector" disabled>
+                        <span class="btn-icon">📋</span>
+                        <span class="btn-label">Copy Selector</span>
+                        <span class="btn-hint">Copy CSS selector</span>
+                    </button>
+                    <button class="action-btn" id="btnCopyCommand" disabled>
+                        <span class="btn-icon">💻</span>
+                        <span class="btn-label">Copy Click Command</span>
+                        <span class="btn-hint">inspekt click "selector"</span>
+                    </button>
+                    <button class="action-btn" id="btnShowInElements" disabled>
+                        <span class="btn-icon">📍</span>
+                        <span class="btn-label">Show in Elements</span>
+                        <span class="btn-hint">Switch to Elements tab</span>
+                    </button>
+                    <button class="action-btn" id="btnHighlight" disabled>
+                        <span class="btn-icon">✨</span>
+                        <span class="btn-label">Highlight Element</span>
+                        <span class="btn-hint">Flash element briefly</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Element History Section -->
+            <section class="panel-section">
+                <h2>📜 Recent Elements</h2>
+                <div id="elementHistory" class="element-history">
+                    <p class="placeholder">No recent elements.</p>
+                </div>
+            </section>
+
+            <!-- Quick Reference Section -->
+            <section class="panel-section">
+                <h2>📚 Quick Reference</h2>
+                <div class="quick-ref">
+                    <div class="ref-group">
+                        <h3>Essential Commands</h3>
+                        <div class="ref-item">
+                            <code>inspekt inspect "selector"</code>
+                            <p>Select element by CSS selector</p>
+                        </div>
+                        <div class="ref-item">
+                            <code>inspekt inspected</code>
+                            <p>Show details of current element</p>
+                        </div>
+                        <div class="ref-item">
+                            <code>inspekt click "selector"</code>
+                            <p>Click on an element</p>
+                        </div>
+                        <div class="ref-item">
+                            <code>inspekt type "text"</code>
+                            <p>Type text into focused element</p>
+                        </div>
+                    </div>
+
+                    <div class="ref-group">
+                        <h3>Page Analysis</h3>
+                        <div class="ref-item">
+                            <code>inspekt index</code>
+                            <p>Create comprehensive page index</p>
+                        </div>
+                        <div class="ref-item">
+                            <code>inspekt describe</code>
+                            <p>AI-powered page description</p>
+                        </div>
+                        <div class="ref-item">
+                            <code>inspekt ask "question"</code>
+                            <p>Ask questions about the page</p>
+                        </div>
+                    </div>
+
+                    <div class="ref-group">
+                        <h3>Navigation</h3>
+                        <div class="ref-item">
+                            <code>inspekt open "url"</code>
+                            <p>Navigate to URL</p>
+                        </div>
+                        <div class="ref-item">
+                            <code>inspekt back</code>
+                            <p>Go back in history</p>
+                        </div>
+                        <div class="ref-item">
+                            <code>inspekt forward</code>
+                            <p>Go forward in history</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section class="panel-section">
+                <h2>⚙️ Settings</h2>
+                <div class="settings">
+                    <label class="setting-item">
+                        <input type="checkbox" id="autoStorage" checked>
+                        <span>Automatically store inspected elements</span>
+                    </label>
+                    <label class="setting-item">
+                        <input type="checkbox" id="showNotifications" checked>
+                        <span>Show console notifications</span>
+                    </label>
+                    <label class="setting-item">
+                        <input type="checkbox" id="trackHistory" checked>
+                        <span>Track element history</span>
+                    </label>
+                </div>
+            </section>
+
+            <!-- Footer -->
+            <div class="panel-footer">
+                <a href="https://github.com/anthropics/claude-code" target="_blank" class="footer-link">
+                    Documentation
+                </a>
+                <span class="separator">•</span>
+                <a href="https://github.com/anthropics/claude-code/issues" target="_blank" class="footer-link">
+                    Report Issue
+                </a>
+                <span class="separator">•</span>
+                <span class="version">v4.2.1</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="panel.js"></script>
+</body>
+</html>
