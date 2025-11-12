@@ -1,13 +1,13 @@
 # AI Features
 
-Master AI-powered features in Zen Bridge. Learn how to generate article summaries, create page descriptions for accessibility, and configure AI integration with mods.
+Master AI-powered features in Inspekt. Learn how to generate article summaries, create page descriptions for accessibility, and configure AI integration with mods.
 
 ## Overview
 
-Zen Bridge integrates with AI through [mods](https://github.com/charmbracelet/mods) to provide two powerful features:
+Inspekt integrates with AI through [mods](https://github.com/charmbracelet/mods) to provide two powerful features:
 
-- `zen summarize` - Generate concise article summaries
-- `zen describe` - Create accessible page descriptions for screen readers
+- `inspekt summarize` - Generate concise article summaries
+- `inspekt describe` - Create accessible page descriptions for screen readers
 
 Both commands extract page content and use AI to generate natural-language output.
 
@@ -57,12 +57,12 @@ mods --settings
 
 ## Article Summarization
 
-The `zen summarize` command extracts article content and generates a concise summary.
+The `inspekt summarize` command extracts article content and generates a concise summary.
 
 ### Basic Usage
 
 ```bash
-zen summarize
+inspekt summarize
 ```
 
 **Example output:**
@@ -84,7 +84,7 @@ disabilities, by improving usability and SEO.
 ### Show Full Article
 
 ```bash
-zen summarize --format full
+inspekt summarize --format full
 ```
 
 Displays the extracted article content without summarizing:
@@ -104,14 +104,14 @@ Override the output language:
 
 ```bash
 # Summarize in French
-zen summarize --language fr
-zen summarize --lang fr
+inspekt summarize --language fr
+inspekt summarize --lang fr
 
 # Summarize in Spanish
-zen summarize --language es
+inspekt summarize --language es
 
 # Summarize in German
-zen summarize --lang de
+inspekt summarize --lang de
 ```
 
 ### Language Detection Flow
@@ -126,7 +126,7 @@ zen summarize --lang de
 See the full prompt sent to AI:
 
 ```bash
-zen summarize --debug
+inspekt summarize --debug
 ```
 
 **Output:**
@@ -174,12 +174,12 @@ Variables:
 
 ## Page Descriptions for Screen Readers
 
-The `zen describe` command generates natural-language page descriptions perfect for blind users.
+The `inspekt describe` command generates natural-language page descriptions perfect for blind users.
 
 ### Basic Usage
 
 ```bash
-zen describe
+inspekt describe
 ```
 
 **Example output:**
@@ -209,16 +209,16 @@ The `describe` command extracts:
 
 ```bash
 # Describe in French
-zen describe --language fr
+inspekt describe --language fr
 
 # Describe in Spanish
-zen describe --lang es
+inspekt describe --lang es
 ```
 
 ### Debug Mode
 
 ```bash
-zen describe --debug
+inspekt describe --debug
 ```
 
 See the extracted page structure and full prompt.
@@ -298,33 +298,33 @@ mods --model ollama:llama2
 
 ```bash
 # Quickly understand article
-zen summarize
+inspekt summarize
 
 # Compare summaries
-zen summarize > summary1.txt
+inspekt summarize > summary1.txt
 # Navigate to another article
-zen summarize > summary2.txt
+inspekt summarize > summary2.txt
 ```
 
 ### Accessibility Testing
 
 ```bash
 # Generate page description
-zen describe
+inspekt describe
 
 # Test with actual screen reader
-zen describe | say  # macOS text-to-speech
+inspekt describe | say  # macOS text-to-speech
 ```
 
 ### Multi-language Content
 
 ```bash
 # Summarize in original language
-zen summarize
+inspekt summarize
 
 # Translate summary
-zen summarize --language es
-zen summarize --language fr
+inspekt summarize --language es
+inspekt summarize --language fr
 ```
 
 ### Content Curation
@@ -341,8 +341,8 @@ URLS=(
 
 for url in "${URLS[@]}"; do
   echo "=== $url ===" >> summaries.txt
-  zen open "$url" --wait
-  zen summarize >> summaries.txt
+  inspekt open "$url" --wait
+  inspekt summarize >> summaries.txt
   echo "" >> summaries.txt
 done
 ```
@@ -351,13 +351,13 @@ done
 
 ```bash
 # Summarize documentation page
-zen summarize
+inspekt summarize
 
 # Get page overview
-zen describe
+inspekt describe
 
 # Extract key sections
-zen outline
+inspekt outline
 ```
 
 ---
@@ -371,13 +371,13 @@ zen outline
 # Research workflow with translations
 
 # Navigate to French article
-zen open "https://example.fr/article"
+inspekt open "https://example.fr/article"
 
 # Get English summary
-zen summarize --language en > summary-en.txt
+inspekt summarize --language en > summary-en.txt
 
 # Get French summary
-zen summarize --language fr > summary-fr.txt
+inspekt summarize --language fr > summary-fr.txt
 
 # Compare
 diff summary-en.txt summary-fr.txt
@@ -397,19 +397,19 @@ PAGES=(
 
 for page in "${PAGES[@]}"; do
   echo "Auditing: $page"
-  zen open "$page" --wait
+  inspekt open "$page" --wait
 
   # Get description
   echo "Description:" >> audit.txt
-  zen describe >> audit.txt
+  inspekt describe >> audit.txt
 
   # Get outline
   echo "Outline:" >> audit.txt
-  zen outline >> audit.txt
+  inspekt outline >> audit.txt
 
   # Get link analysis
   echo "Links:" >> audit.txt
-  zen links --only-internal >> audit.txt
+  inspekt links --only-internal >> audit.txt
 
   echo "---" >> audit.txt
 done
@@ -424,8 +424,8 @@ done
 URL="https://example.com/article"
 
 while true; do
-  zen open "$URL" --wait
-  SUMMARY=$(zen summarize)
+  inspekt open "$URL" --wait
+  SUMMARY=$(inspekt summarize)
 
   if [[ "$SUMMARY" != "$LAST_SUMMARY" ]]; then
     echo "Article updated: $URL"
@@ -486,9 +486,9 @@ Error: Could not extract article content
 - Page uses non-standard structure
 
 **Solution:**
-Use `zen eval` to extract manually:
+Use `inspekt eval` to extract manually:
 ```bash
-zen eval "document.querySelector('article')?.textContent"
+inspekt eval "document.querySelector('article')?.textContent"
 ```
 
 ### Rate Limiting
@@ -512,8 +512,8 @@ Error: Rate limit exceeded
 AI features consume tokens:
 
 **Typical usage:**
-- `zen summarize` - 500-2000 tokens (depending on article length)
-- `zen describe` - 300-800 tokens (depending on page complexity)
+- `inspekt summarize` - 500-2000 tokens (depending on article length)
+- `inspekt describe` - 300-800 tokens (depending on page complexity)
 
 **Cost estimates (OpenAI GPT-3.5-Turbo):**
 - ~$0.001 per summary
@@ -545,8 +545,8 @@ ollama pull llama2
 mods --model ollama:llama2
 
 # Use normally
-zen summarize
-zen describe
+inspekt summarize
+inspekt describe
 ```
 
 ---
@@ -559,8 +559,8 @@ Always review AI-generated content:
 
 ```bash
 # Compare with full article
-zen summarize
-zen summarize --format full
+inspekt summarize
+inspekt summarize --format full
 ```
 
 ### 2. Use Appropriate Languages
@@ -569,10 +569,10 @@ Match output language to use case:
 
 ```bash
 # English summary for English-speaking users
-zen summarize --language en
+inspekt summarize --language en
 
 # Native language for accessibility
-zen describe --language fr  # For French site
+inspekt describe --language fr  # For French site
 ```
 
 ### 3. Customize Prompts
@@ -610,13 +610,13 @@ mods --model ollama:llama2
 
 | Command | Purpose | Example |
 |---------|---------|---------|
-| `zen summarize` | Summarize article | `zen summarize` |
-| `zen summarize --format full` | Show full article | `zen summarize --format full` |
-| `zen summarize --language es` | Summarize in Spanish | `zen summarize --lang es` |
-| `zen summarize --debug` | Show AI prompt | `zen summarize --debug` |
-| `zen describe` | Describe page for screen readers | `zen describe` |
-| `zen describe --language fr` | Describe in French | `zen describe --lang fr` |
-| `zen describe --debug` | Show extracted structure | `zen describe --debug` |
+| `inspekt summarize` | Summarize article | `inspekt summarize` |
+| `inspekt summarize --format full` | Show full article | `inspekt summarize --format full` |
+| `inspekt summarize --language es` | Summarize in Spanish | `inspekt summarize --lang es` |
+| `inspekt summarize --debug` | Show AI prompt | `inspekt summarize --debug` |
+| `inspekt describe` | Describe page for screen readers | `inspekt describe` |
+| `inspekt describe --language fr` | Describe in French | `inspekt describe --lang fr` |
+| `inspekt describe --debug` | Show extracted structure | `inspekt describe --debug` |
 
 ---
 

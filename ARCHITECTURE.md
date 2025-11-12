@@ -1,4 +1,4 @@
-# Zen Bridge Architecture
+# Inspekt Architecture
 
 **Version**: 2.0.0 (Refactored - Phase 0-2 Complete)
 **Status**: ✅ Updated to reflect 4-layer architecture
@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-Zen Bridge is a command-line tool that enables execution of JavaScript code in a browser from the terminal. It bridges the gap between terminal-based workflows and browser automation, providing developers with powerful capabilities for testing, debugging, data extraction, and accessibility features.
+Inspekt is a command-line tool that enables execution of JavaScript code in a browser from the terminal. It bridges the gap between terminal-based workflows and browser automation, providing developers with powerful capabilities for testing, debugging, data extraction, and accessibility features.
 
 ### Key Architectural Principles
 
@@ -55,7 +55,7 @@ Zen Bridge is a command-line tool that enables execution of JavaScript code in a
 │           │                                  │                      │
 └───────────┼──────────────────────────────────┼──────────────────────┘
             │                                  │
-            │ zen CLI commands                 │ Tampermonkey userscript
+            │ inspekt CLI commands                 │ Tampermonkey userscript
             │ (33+ commands)                   │ (WebSocket client)
             │                                  │
 ┌───────────▼──────────────────────────────────▼──────────────────────┐
@@ -225,7 +225,7 @@ Rule: Higher layers can import lower layers, but NOT vice versa
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
 │ 1. USER EXECUTES COMMAND                                            │
-│    $ zen eval "document.title"                                      │
+│    $ inspekt eval "document.title"                                      │
 └────────────────────────┬─────────────────────────────────────────────┘
                          │
 ┌────────────────────────▼─────────────────────────────────────────────┐
@@ -876,7 +876,7 @@ from zen.services.script_loader import ScriptLoader
 from zen.services.ai_integration import get_ai_service
 from zen.services.control_manager import get_control_manager
 from zen.domain.models import ControlConfig, ZenConfig
-from zen import config
+from inspekt import config
 
 # No CLI module imports from other CLI modules (flat structure)
 ```
@@ -1041,7 +1041,7 @@ async def websocket_handler(request) -> web.WebSocketResponse:
 │   User   │    │   CLI    │    │  Server  │    │ Browser  │
 └────┬─────┘    └────┬─────┘    └────┬─────┘    └────┬─────┘
      │               │               │               │
-     │ zen eval      │               │               │
+     │ inspekt eval      │               │               │
      ├──────────────>│               │               │
      │               │ POST /run     │               │
      │               ├──────────────>│               │
@@ -1074,7 +1074,7 @@ async def websocket_handler(request) -> web.WebSocketResponse:
 │   User   │    │   CLI    │    │  Server  │    │ Browser  │
 └────┬─────┘    └────┬─────┘    └────┬─────┘    └────┬─────┘
      │               │               │               │
-     │ zen control   │               │               │
+     │ inspekt control   │               │               │
      ├──────────────>│               │               │
      │               │ POST /run     │               │
      │               │ (control.js)  │               │
@@ -1117,7 +1117,7 @@ async def websocket_handler(request) -> web.WebSocketResponse:
 │   User   │    │   CLI    │    │  Server  │    │ Browser  │    │   Mods   │
 └────┬─────┘    └────┬─────┘    └────┬─────┘    └────┬─────┘    └────┬─────┘
      │               │               │               │               │
-     │ zen summarize │               │               │               │
+     │ inspekt summarize │               │               │               │
      ├──────────────>│               │               │               │
      │               │ POST /run     │               │               │
      │               │ (extract_     │               │               │
@@ -1703,7 +1703,7 @@ script = loader.load_script_sync("control.js")  # Cached automatically
 
 1. **CLI flags** (runtime)
    ```bash
-   zen eval "code" --timeout 30
+   inspekt eval "code" --timeout 30
    ```
 
 2. **Environment variables** (planned - Phase 3)
@@ -1957,14 +1957,14 @@ import subprocess
 
 @pytest.fixture
 def zen_server():
-    """Start zen server in background."""
+    """Start inspekt server in background."""
     proc = subprocess.Popen(['zen', 'server', 'start'])
     yield
     proc.terminate()
 
 @pytest.mark.e2e
 def test_eval_command(zen_server):
-    """Test zen eval command in real browser."""
+    """Test inspekt eval command in real browser."""
     with sync_playwright() as p:
         browser = p.chromium.launch()
 
@@ -1996,10 +1996,10 @@ def test_eval_command(zen_server):
 
 ```bash
 # All tests
-pytest tests/ --cov=zen --cov-report=html --cov-report=term
+pytest tests/ --cov=inspekt --cov-report=html --cov-report=term
 
 # Unit tests only
-pytest tests/unit/ --cov=zen --cov-report=html
+pytest tests/unit/ --cov=inspekt --cov-report=html
 
 # Integration tests
 pytest tests/integration/ -m integration --cov=zen
@@ -2187,7 +2187,7 @@ zen_bridge/
 
 - **Adapter**: Layer that abstracts external I/O (filesystem, network, etc.)
 - **Bridge**: The WebSocket server that connects CLI to browser
-- **CLI**: Command-line interface (zen commands)
+- **CLI**: Command-line interface (inspekt commands)
 - **Control Mode**: Keyboard navigation feature for accessibility
 - **Domain**: Core layer with pure data models and validation
 - **Executor**: Service that coordinates code execution with retry logic

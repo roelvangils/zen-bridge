@@ -1,28 +1,28 @@
-# zen do - Smart Action Matching
+# inspekt do - Smart Action Matching
 
-The `zen do` command provides intelligent action matching for web automation using natural language. It uses a multi-layered waterfall approach to match your intent with page elements, minimizing AI calls and maximizing speed.
+The `inspekt do` command provides intelligent action matching for web automation using natural language. It uses a multi-layered waterfall approach to match your intent with page elements, minimizing AI calls and maximizing speed.
 
 ## Quick Start
 
 ```bash
 # Navigate to a page
-zen do "go to homepage"
+inspekt do "go to homepage"
 
 # Click a button
-zen do "click login button"
+inspekt do "click login button"
 
 # Search
-zen do "search"
+inspekt do "search"
 
 # With flags
-zen do "about us" --force-ai  # Force AI matching
-zen do "contact" --no-execute  # Show match without executing
-zen do "help" --debug  # Show AI prompt instead of executing
+inspekt do "about us" --force-ai  # Force AI matching
+inspekt do "contact" --no-execute  # Show match without executing
+inspekt do "help" --debug  # Show AI prompt instead of executing
 ```
 
 ## How It Works
 
-The `zen do` command uses an intelligent **waterfall approach** that tries multiple strategies before falling back to AI:
+The `inspekt do` command uses an intelligent **waterfall approach** that tries multiple strategies before falling back to AI:
 
 ```
 User Action
@@ -54,10 +54,10 @@ EXECUTE ACTION & CACHE RESULT
 **Example**:
 ```bash
 # First time - uses AI
-zen do "go to about page"  # → [AI] matches and caches
+inspekt do "go to about page"  # → [AI] matches and caches
 
 # Second time - uses cache
-zen do "go to about page"  # → [CACHED] instant!
+inspekt do "go to about page"  # → [CACHED] instant!
 ```
 
 **Cache validation**:
@@ -128,27 +128,27 @@ zen do "go to about page"  # → [CACHED] instant!
 **Example**:
 ```bash
 # These all match the same action
-zen do "login"
-zen do "sign in"
-zen do "log in"
-zen do "authenticate"
+inspekt do "login"
+inspekt do "sign in"
+inspekt do "log in"
+inspekt do "authenticate"
 ```
 
 ### Phase 4: Advanced Matching
 
 **Fuzzy Matching**: Handles typos and variations.
 ```bash
-zen do "abuot us"  # Matches "about us" (Levenshtein distance)
-zen do "contct"    # Matches "contact"
+inspekt do "abuot us"  # Matches "about us" (Levenshtein distance)
+inspekt do "contct"    # Matches "contact"
 ```
 
 **Synonym Matching**: Expands action with synonyms.
 ```bash
 # "catalog" is synonym of "products"
-zen do "catalog"   # Finds "Products" link
+inspekt do "catalog"   # Finds "Products" link
 
 # "main page" is synonym of "home"
-zen do "main page" # Finds "Home" link
+inspekt do "main page" # Finds "Home" link
 ```
 
 **Synonyms**:
@@ -174,7 +174,7 @@ zen do "main page" # Finds "Home" link
 
 **Example output**:
 ```
-zen do "I want to learn about their long-term strategy"
+inspekt do "I want to learn about their long-term strategy"
 
 Interpretation: User wants information about long-term strategy
 Found 2 matching action(s):
@@ -191,7 +191,7 @@ High confidence match! Executing action... [AI]
 
 ## Multilingual Support
 
-The `zen do` command supports **5 languages** with automatic language detection:
+The `inspekt do` command supports **5 languages** with automatic language detection:
 
 - 🇬🇧 **English** (en)
 - 🇳🇱 **Dutch** (nl)
@@ -210,28 +210,28 @@ The `zen do` command supports **5 languages** with automatic language detection:
 
 **Dutch Page:**
 ```bash
-zen do "Ga naar de inloggen pagina"
+inspekt do "Ga naar de inloggen pagina"
 # Normalizes: "inloggen"
 # Matches: Dutch "inloggen" pattern → finds login link
 ```
 
 **French Page:**
 ```bash
-zen do "Aller à la page de connexion"
+inspekt do "Aller à la page de connexion"
 # Normalizes: "connexion"
 # Matches: French "connexion" pattern → finds login link
 ```
 
 **German Page:**
 ```bash
-zen do "Gehen Sie zur Anmeldeseite"
+inspekt do "Gehen Sie zur Anmeldeseite"
 # Normalizes: "anmeldeseite"
 # Matches: German "anmelden" pattern → finds login link
 ```
 
 **Spanish Page:**
 ```bash
-zen do "Ir a la página de inicio de sesión"
+inspekt do "Ir a la página de inicio de sesión"
 # Normalizes: "inicio sesión"
 # Matches: Spanish "iniciar sesión" pattern → finds login link
 ```
@@ -239,9 +239,9 @@ zen do "Ir a la página de inicio de sesión"
 **English Works Everywhere:**
 ```bash
 # Even on non-English pages, English commands work!
-zen do "login"
-zen do "go to homepage"
-zen do "click search"
+inspekt do "login"
+inspekt do "go to homepage"
+inspekt do "click search"
 ```
 
 ### Supported Actions (Multilingual)
@@ -270,7 +270,7 @@ See the [i18n README](https://github.com/roelvangils/zen-bridge/tree/main/zen/i1
 Perfect matches execute immediately:
 
 ```bash
-zen do "about us"
+inspekt do "about us"
 
 ✓ Found literal match (score: 100%) [LITERAL]
 Perfect match! Executing action... [LITERAL]
@@ -284,7 +284,7 @@ Perfect match! Executing action... [LITERAL]
 Good matches ask for confirmation:
 
 ```bash
-zen do "help page"
+inspekt do "help page"
 
 ✓ Found literal match (score: 85%) [LITERAL]
 Found match (confidence: 85%) [LITERAL]
@@ -344,7 +344,7 @@ Edit `config.json` to customize cache behavior:
 Force AI matching, bypassing cache and automatic matching.
 
 ```bash
-zen do "about us" --force-ai
+inspekt do "about us" --force-ai
 ```
 
 **Use when**:
@@ -357,7 +357,7 @@ zen do "about us" --force-ai
 Show matches without executing actions.
 
 ```bash
-zen do "contact" --no-execute
+inspekt do "contact" --no-execute
 ```
 
 **Use for**:
@@ -370,7 +370,7 @@ zen do "contact" --no-execute
 Show the full AI prompt instead of executing.
 
 ```bash
-zen do "help" --debug
+inspekt do "help" --debug
 ```
 
 **Use for**:
@@ -383,48 +383,48 @@ zen do "help" --debug
 ### Basic Navigation
 
 ```bash
-zen do "go home"           # Navigate to homepage
-zen do "about page"        # Go to about page
-zen do "contact us"        # Find contact page
-zen do "pricing"           # View pricing
+inspekt do "go home"           # Navigate to homepage
+inspekt do "about page"        # Go to about page
+inspekt do "contact us"        # Find contact page
+inspekt do "pricing"           # View pricing
 ```
 
 ### Authentication
 
 ```bash
-zen do "login"             # Click login button/link
-zen do "sign in"           # Same as login
-zen do "logout"            # Sign out
-zen do "register"          # Sign up
+inspekt do "login"             # Click login button/link
+inspekt do "sign in"           # Same as login
+inspekt do "logout"            # Sign out
+inspekt do "register"          # Sign up
 ```
 
 ### Search & Forms
 
 ```bash
-zen do "search"            # Focus search field
-zen do "submit form"       # Submit current form
-zen do "apply now"         # Click apply button
+inspekt do "search"            # Focus search field
+inspekt do "submit form"       # Submit current form
+inspekt do "apply now"         # Click apply button
 ```
 
 ### Complex Actions
 
 ```bash
-zen do "learn more about their services"  # Uses AI
-zen do "I want to contact support"        # Uses AI
-zen do "show me the documentation"        # Uses AI
+inspekt do "learn more about their services"  # Uses AI
+inspekt do "I want to contact support"        # Uses AI
+inspekt do "show me the documentation"        # Uses AI
 ```
 
 ### With Options
 
 ```bash
 # Force AI even if cached
-zen do "about us" --force-ai
+inspekt do "about us" --force-ai
 
 # Preview without executing
-zen do "checkout" --no-execute
+inspekt do "checkout" --no-execute
 
 # Debug mode
-zen do "complex action" --debug
+inspekt do "complex action" --debug
 ```
 
 ## Execution Methods
@@ -456,14 +456,14 @@ rm ~/.config/zen-bridge/action_cache.db
 
 Or programmatically (coming soon):
 ```bash
-zen cache clear
+inspekt cache clear
 ```
 
 ### Cache Statistics
 
 View cache hit rate and statistics (coming soon):
 ```bash
-zen cache stats
+inspekt cache stats
 ```
 
 ## Tips & Best Practices
@@ -479,7 +479,7 @@ zen cache stats
 ### Action Not Found
 
 If no match is found:
-1. Check page has loaded (`zen info`)
+1. Check page has loaded (`inspekt info`)
 2. Verify element is visible/clickable
 3. Try more specific text
 4. Use `--debug` to see what AI receives
@@ -502,7 +502,7 @@ If cached action is outdated:
 
 If command is slow:
 1. Check if `mods` is responding (AI fallback)
-2. Verify server is running (`zen server status`)
+2. Verify server is running (`inspekt server status`)
 3. Check network connection
 4. Consider disabling cache temporarily
 
@@ -548,6 +548,6 @@ Two tables store cache data:
 
 ## See Also
 
-- [zen click](/commands/click) - Click elements by CSS selector
-- [zen inspect](/commands/inspect) - Inspect page elements
-- [zen links](/commands/links) - Extract all links from page
+- [inspekt click](/commands/click) - Click elements by CSS selector
+- [inspekt inspect](/commands/inspect) - Inspect page elements
+- [inspekt links](/commands/links) - Extract all links from page

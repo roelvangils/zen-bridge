@@ -18,6 +18,7 @@ import sys
 import click
 
 from zen.app.cli.base import builtin_open
+from zen.config import get_typing_config
 from zen.services.bridge_executor import BridgeExecutor
 from zen.services.script_loader import ScriptLoader
 
@@ -53,11 +54,16 @@ def _send_text(text, selector, delay_ms, clear=True):
         click.echo(f"Error: {e}", err=True)
         sys.exit(1)
 
+    # Get typing configuration
+    typing_config = get_typing_config()
+    typo_rate = typing_config['human-like-typo-rate']
+
     # Replace placeholders with properly escaped values
     # Use JSON encoding for proper JavaScript string escaping
     code = script.replace("TEXT_PLACEHOLDER", json.dumps(text))
     code = code.replace("DELAY_PLACEHOLDER", str(delay_ms))
     code = code.replace("CLEAR_PLACEHOLDER", "true" if clear else "false")
+    code = code.replace("TYPO_RATE_PLACEHOLDER", str(typo_rate))
 
     # Calculate timeout based on text length and delay
     # For human mode (-1), estimate ~300ms per character (including pauses)

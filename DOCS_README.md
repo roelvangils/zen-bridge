@@ -1,6 +1,6 @@
 # Documentation Guide
 
-MkDocs documentation for Zen Bridge has been set up with Material theme.
+MkDocs documentation for Inspekt has been set up with Material theme.
 
 ## Quick Start
 
@@ -113,7 +113,7 @@ def example():
 \`\`\`
 
 \`\`\`bash
-zen-bridge exec "document.title"
+inspekt exec "document.title"
 \`\`\`
 ```
 

@@ -1,6 +1,6 @@
 # Quick Start
 
-Get up and running with Zen Browser Bridge in just 5 minutes! This hands-on tutorial will walk you through the basics and show you the power of browser automation from the command line.
+Get up and running with Inspekt in just 5 minutes! This hands-on tutorial will walk you through the basics and show you the power of browser automation from the command line.
 
 !!! note "Prerequisites"
     Make sure you've completed the [Installation](installation.md) guide before starting this tutorial.
@@ -36,7 +36,7 @@ Open your browser and navigate to [https://example.com](https://example.com). Ke
 Run your first command to get the page title:
 
 ```bash
-zen eval "document.title"
+inspekteval "document.title"
 ```
 
 Expected output:
@@ -51,20 +51,20 @@ Congratulations! You just executed JavaScript in your browser from the terminal.
 
 ```bash
 # Get the current URL
-zen eval "location.href"
+inspekteval "location.href"
 # => https://example.com/
 
 # Count paragraphs on the page
-zen eval "document.querySelectorAll('p').length"
+inspekteval "document.querySelectorAll('p').length"
 # => 2
 
 # Get all link URLs
-zen eval "Array.from(document.links).map(a => a.href)"
+inspekteval "Array.from(document.links).map(a => a.href)"
 # => ["https://www.iana.org/domains/example"]
 ```
 
 !!! tip "Quick Tip"
-    The `zen eval` command evaluates JavaScript expressions. For more complex code, use `zen exec` with a file.
+    The `inspekteval` command evaluates JavaScript expressions. For more complex code, use `inspektexec` with a file.
 
 ---
 
@@ -73,7 +73,7 @@ zen eval "Array.from(document.links).map(a => a.href)"
 The REPL (Read-Eval-Print Loop) lets you experiment with JavaScript interactively:
 
 ```bash
-zen repl
+inspektrepl
 ```
 
 Try these commands in the REPL:
@@ -106,7 +106,7 @@ Goodbye!
 Use the `info` command to get comprehensive page details:
 
 ```bash
-zen info
+inspektinfo
 ```
 
 Example output:
@@ -123,7 +123,7 @@ Size:     1280x720
 For extended information including language, meta tags, and cookies:
 
 ```bash
-zen info --extended
+inspektinfo --extended
 ```
 
 ---
@@ -135,7 +135,7 @@ Navigate to a page with more links (like a news site or blog), then:
 ### List All Links
 
 ```bash
-zen links
+inspektlinks
 ```
 
 Example output:
@@ -156,7 +156,7 @@ Total: 15 links (12 internal, 3 external)
 ### Extract External Links Only
 
 ```bash
-zen links --only-external --only-urls
+inspektlinks --only-external --only-urls
 ```
 
 This outputs just the URLs, one per line - perfect for piping to other tools.
@@ -164,13 +164,13 @@ This outputs just the URLs, one per line - perfect for piping to other tools.
 ### Save Links to a File
 
 ```bash
-zen links --only-urls > all-links.txt
+inspektlinks --only-urls > all-links.txt
 ```
 
 ### Get Enriched Link Metadata
 
 ```bash
-zen links --only-external --enrich-external
+inspektlinks --only-external --enrich-external
 ```
 
 This fetches additional metadata like MIME types, file sizes, and HTTP status codes.
@@ -183,13 +183,13 @@ This fetches additional metadata like MIME types, file sizes, and HTTP status co
 
 ```bash
 # Click by CSS selector
-zen click "button#submit"
+inspektclick "button#submit"
 
 # Double-click
-zen double-click "div.editable"
+inspektdouble-click "div.editable"
 
 # Right-click (context menu)
-zen right-click "a.download"
+inspektright-click "a.download"
 ```
 
 ### Highlight Elements
@@ -198,13 +198,13 @@ Useful for visual debugging:
 
 ```bash
 # Highlight all headings
-zen highlight "h1, h2, h3"
+inspekthighlight "h1, h2, h3"
 
 # Custom color
-zen highlight "a" --color blue
+inspekthighlight "a" --color blue
 
 # Clear highlights
-zen highlight --clear
+inspekthighlight --clear
 ```
 
 ### Wait for Elements
@@ -213,19 +213,19 @@ Perfect for automation:
 
 ```bash
 # Wait for element to exist (default: 30s timeout)
-zen wait "button#submit"
+inspektwait "button#submit"
 
 # Wait for element to be visible
-zen wait ".modal-dialog" --visible
+inspektwait ".modal-dialog" --visible
 
 # Wait for element to be hidden
-zen wait ".loading-spinner" --hidden
+inspektwait ".loading-spinner" --hidden
 
 # Wait for text content
-zen wait "div.result" --text "Success"
+inspektwait "div.result" --text "Success"
 
 # Custom timeout (10 seconds)
-zen wait "div.notification" --timeout 10
+inspektwait "div.notification" --timeout 10
 ```
 
 ---
@@ -235,7 +235,7 @@ zen wait "div.notification" --timeout 10
 ### View Heading Hierarchy
 
 ```bash
-zen outline
+inspektoutline
 ```
 
 Example output:
@@ -266,19 +266,19 @@ This is great for:
 ### Extract Table Data
 
 ```bash
-zen exec zen/scripts/extract_table.js --format json > data.json
+inspektexec zen/scripts/extract_table.js --format json > data.json
 ```
 
 ### Extract All Images
 
 ```bash
-zen exec zen/scripts/extract_images.js --format json
+inspektexec zen/scripts/extract_images.js --format json
 ```
 
 ### Get SEO Metadata
 
 ```bash
-zen exec zen/scripts/extract_metadata.js --format json
+inspektexec zen/scripts/extract_metadata.js --format json
 ```
 
 ### Custom Extraction
@@ -286,7 +286,7 @@ zen exec zen/scripts/extract_metadata.js --format json
 Extract product prices (example):
 
 ```bash
-zen eval "
+inspekteval "
   Array.from(document.querySelectorAll('.product')).map(p => ({
     name: p.querySelector('.name').textContent,
     price: p.querySelector('.price').textContent
@@ -309,7 +309,7 @@ zen eval "
 Navigate to a news article or blog post, then:
 
 ```bash
-zen summarize
+inspektsummarize
 ```
 
 This extracts the article content using Mozilla Readability and generates a concise summary.
@@ -317,7 +317,7 @@ This extracts the article content using Mozilla Readability and generates a conc
 ### Describe a Page for Screen Readers
 
 ```bash
-zen describe
+inspektdescribe
 ```
 
 Example output:
@@ -339,19 +339,19 @@ Let's automate filling out a login form:
 
 ```bash
 # Fill email field
-zen eval "document.querySelector('#email').value = 'user@example.com'"
+inspekteval "document.querySelector('#email').value = 'user@example.com'"
 
 # Fill password field
-zen eval "document.querySelector('#password').value = 'mypassword'"
+inspekteval "document.querySelector('#password').value = 'mypassword'"
 
 # Click submit button
-zen click "button[type=submit]"
+inspektclick "button[type=submit]"
 
 # Wait for success message
-zen wait ".success-message" --visible
+inspektwait ".success-message" --visible
 
 # Verify we're logged in
-zen eval "document.querySelector('.user-name').textContent"
+inspekteval "document.querySelector('.user-name').textContent"
 ```
 
 !!! warning "Security Note"
@@ -363,22 +363,22 @@ zen eval "document.querySelector('.user-name').textContent"
 
 ```bash
 # Navigate to a URL
-zen open https://example.com
+inspektopen https://example.com
 
 # Navigate and wait for page load
-zen open https://example.com --wait
+inspektopen https://example.com --wait
 
 # Go back in history
-zen back
+inspektback
 
 # Go forward in history
-zen forward
+inspektforward
 
 # Reload the page
-zen reload
+inspektreload
 
 # Hard reload (bypass cache)
-zen reload --hard
+inspektreload --hard
 ```
 
 ---
@@ -391,13 +391,13 @@ Select some text in the browser, then:
 
 ```bash
 # Get selected text with metadata
-zen selected
+inspektselected
 
 # Raw text only
-zen selected --raw
+inspektselected --raw
 
 # Copy to clipboard (macOS)
-zen selected --raw | pbcopy
+inspektselected --raw | pbcopy
 ```
 
 ### Send Text to Browser
@@ -406,10 +406,10 @@ Type text character by character into focused field:
 
 ```bash
 # Type into currently focused field
-zen send "Hello World"
+inspektsend "Hello World"
 
 # Type into specific field
-zen send "test@example.com" --selector "input[type=email]"
+inspektsend "test@example.com" --selector "input[type=email]"
 ```
 
 ---
@@ -419,7 +419,7 @@ zen send "test@example.com" --selector "input[type=email]"
 Navigate pages entirely with your keyboard:
 
 ```bash
-zen control
+inspektcontrol
 ```
 
 **Controls:**
@@ -447,7 +447,7 @@ zen control
 Monitor keyboard input in real-time:
 
 ```bash
-zen watch input
+inspektwatch input
 ```
 
 Focus any text field in the browser and start typing. The terminal will show each keystroke:
@@ -480,15 +480,15 @@ headings;  // Return value
 Execute it:
 
 ```bash
-zen exec extract-titles.js --format json
+inspektexec extract-titles.js --format json
 ```
 
 Or use the shorthand:
 
 ```bash
-zen exec extract-titles.js --format json
+inspektexec extract-titles.js --format json
 # Same as:
-zen eval --file extract-titles.js --format json
+inspekteval --file extract-titles.js --format json
 ```
 
 ---
@@ -500,7 +500,7 @@ Zen Bridge supports multiple output formats:
 === "Default (Human-Readable)"
 
     ```bash
-    zen eval "({title: document.title, url: location.href})"
+    inspekteval "({title: document.title, url: location.href})"
     ```
 
     Output:
@@ -514,7 +514,7 @@ Zen Bridge supports multiple output formats:
 === "JSON"
 
     ```bash
-    zen eval "({title: document.title, url: location.href})" --format json
+    inspekteval "({title: document.title, url: location.href})" --format json
     ```
 
     Output:
@@ -528,7 +528,7 @@ Zen Bridge supports multiple output formats:
 === "Raw"
 
     ```bash
-    zen eval "document.title" --format raw
+    inspekteval "document.title" --format raw
     ```
 
     Output:
@@ -546,16 +546,16 @@ Zen Bridge plays nicely with standard Unix tools:
 
 ```bash
 # Count external links
-zen links --only-external --only-urls | wc -l
+inspektlinks --only-external --only-urls | wc -l
 
 # Find all PDF links
-zen links --only-urls | grep "\.pdf$"
+inspektlinks --only-urls | grep "\.pdf$"
 
 # Get unique domains from external links
-zen links --only-external --only-urls | sed 's|https\?://\([^/]*\).*|\1|' | sort | uniq
+inspektlinks --only-external --only-urls | sed 's|https\?://\([^/]*\).*|\1|' | sort | uniq
 
 # Export data and process with jq
-zen eval "Array.from(document.querySelectorAll('a')).map(a => ({text: a.textContent, href: a.href}))" --format json | jq '.[0:5]'
+inspekteval "Array.from(document.querySelectorAll('a')).map(a => ({text: a.textContent, href: a.href}))" --format json | jq '.[0:5]'
 ```
 
 ---
@@ -565,31 +565,31 @@ zen eval "Array.from(document.querySelectorAll('a')).map(a => ({text: a.textCont
 ### Check if Element Exists
 
 ```bash
-zen eval "document.querySelector('#element-id') !== null"
+inspekteval "document.querySelector('#element-id') !== null"
 # => true or false
 ```
 
 ### Get Computed Style
 
 ```bash
-zen eval "getComputedStyle(document.querySelector('h1')).color"
+inspekteval "getComputedStyle(document.querySelector('h1')).color"
 # => rgb(0, 0, 0)
 ```
 
 ### Scroll to Bottom
 
 ```bash
-zen eval "window.scrollTo(0, document.body.scrollHeight)"
+inspekteval "window.scrollTo(0, document.body.scrollHeight)"
 ```
 
 ### Take Screenshot of Element
 
 ```bash
 # Screenshot by selector
-zen screenshot --selector "h1" --output screenshot.png
+inspektscreenshot --selector "h1" --output screenshot.png
 
 # Screenshot inspected element (set in DevTools)
-zen screenshot --selector "$0" --output element.png
+inspektscreenshot --selector "$0" --output element.png
 ```
 
 ### Monitor for Changes
@@ -597,7 +597,7 @@ zen screenshot --selector "$0" --output element.png
 ```bash
 # Check element count every 5 seconds
 while true; do
-  zen eval "document.querySelectorAll('.notification').length" --format raw
+  inspekteval "document.querySelectorAll('.notification').length" --format raw
   sleep 5
 done
 ```
@@ -606,13 +606,13 @@ done
 
 ```bash
 # Interactive file finder
-zen download
+inspektdownload
 
 # List all downloadable files
-zen download --list
+inspektdownload --list
 
 # Custom output directory
-zen download --output ~/Downloads
+inspektdownload --output ~/Downloads
 ```
 
 ---
@@ -623,7 +623,7 @@ zen download --output ~/Downloads
 
 ```bash
 # Increase timeout (in seconds)
-zen eval "slowOperation()" --timeout 30
+inspekteval "slowOperation()" --timeout 30
 ```
 
 ### "No response from browser"
@@ -638,13 +638,13 @@ zen eval "slowOperation()" --timeout 30
 ### Check Server Status
 
 ```bash
-zen server status
+inspektserver status
 ```
 
 If server isn't running:
 
 ```bash
-zen server start --daemon
+inspektserver start --daemon
 ```
 
 ---
@@ -706,13 +706,13 @@ Try these exercises to build your skills:
     ??? success "Solution"
         ```bash
         # 1. Count total links
-        zen eval "document.querySelectorAll('a').length"
+        inspekteval "document.querySelectorAll('a').length"
 
         # 2. Extract external links
-        zen links --only-external --only-urls > external.txt
+        inspektlinks --only-external --only-urls > external.txt
 
         # 3. Find privacy/terms links
-        zen links --only-urls | grep -E "(privacy|terms)"
+        inspektlinks --only-urls | grep -E "(privacy|terms)"
 
         # 4. Already saved in step 2!
         ```
@@ -728,18 +728,18 @@ Try these exercises to build your skills:
     ??? success "Solution"
         ```bash
         # 1. Fill fields
-        zen eval "document.querySelector('#name').value = 'John Doe'"
-        zen eval "document.querySelector('#email').value = 'john@example.com'"
-        zen eval "document.querySelector('#message').value = 'Hello!'"
+        inspekteval "document.querySelector('#name').value = 'John Doe'"
+        inspekteval "document.querySelector('#email').value = 'john@example.com'"
+        inspekteval "document.querySelector('#message').value = 'Hello!'"
 
         # 2. Submit
-        zen click "button[type=submit]"
+        inspektclick "button[type=submit]"
 
         # 3. Wait for success
-        zen wait ".success-message" --visible
+        inspektwait ".success-message" --visible
 
         # 4. Extract message
-        zen eval "document.querySelector('.success-message').textContent"
+        inspekteval "document.querySelector('.success-message').textContent"
         ```
 
 !!! example "Challenge 3: Data Extraction"
@@ -753,16 +753,16 @@ Try these exercises to build your skills:
     ??? success "Solution"
         ```bash
         # 1. Get title
-        zen eval "document.querySelector('h1').textContent"
+        inspekteval "document.querySelector('h1').textContent"
 
         # 2. Count sections
-        zen eval "document.querySelectorAll('h2').length"
+        inspekteval "document.querySelectorAll('h2').length"
 
         # 3. Extract images
-        zen eval "Array.from(document.querySelectorAll('img')).map(img => img.src)"
+        inspekteval "Array.from(document.querySelectorAll('img')).map(img => img.src)"
 
         # 4. Create JSON
-        zen eval "{
+        inspekteval "{
           title: document.querySelector('h1').textContent,
           sections: document.querySelectorAll('h2').length,
           images: Array.from(document.querySelectorAll('img')).map(img => img.src)
@@ -775,20 +775,20 @@ Try these exercises to build your skills:
 
 | Task | Command |
 |------|---------|
-| Execute JavaScript | `zen eval "code"` |
-| Interactive REPL | `zen repl` |
-| Page info | `zen info` |
-| Extract links | `zen links` |
-| Click element | `zen click "selector"` |
-| Wait for element | `zen wait "selector" --visible` |
-| Highlight elements | `zen highlight "selector"` |
-| Page outline | `zen outline` |
-| AI summary | `zen summarize` |
-| Page description | `zen describe` |
-| Keyboard control | `zen control` |
-| Watch events | `zen watch input` |
-| Server status | `zen server status` |
-| Get help | `zen --help` |
+| Execute JavaScript | `inspekteval "code"` |
+| Interactive REPL | `inspektrepl` |
+| Page info | `inspektinfo` |
+| Extract links | `inspektlinks` |
+| Click element | `inspektclick "selector"` |
+| Wait for element | `inspektwait "selector" --visible` |
+| Highlight elements | `inspekthighlight "selector"` |
+| Page outline | `inspektoutline` |
+| AI summary | `inspektsummarize` |
+| Page description | `inspektdescribe` |
+| Keyboard control | `inspektcontrol` |
+| Watch events | `inspektwatch input` |
+| Server status | `inspektserver status` |
+| Get help | `inspekt--help` |
 
 ---
 

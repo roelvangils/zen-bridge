@@ -1,6 +1,6 @@
 # Troubleshooting CSP Issues
 
-This guide helps you understand and troubleshoot Content Security Policy (CSP) issues with Zen Bridge.
+This guide helps you understand and troubleshoot Content Security Policy (CSP) issues with Inspekt.
 
 ---
 
@@ -16,13 +16,13 @@ CSP is implemented through HTTP headers or `<meta>` tags and acts as a protectiv
 
 ---
 
-## Why Zen Bridge May Not Work
+## Why Inspekt May Not Work
 
-Zen Bridge requires two things that CSP can block:
+Inspekt requires two things that CSP can block:
 
 ### 1. JavaScript Execution
 
-When you run commands like `zen eval "document.title"`, Zen injects JavaScript into the page. Strict CSP policies may block this.
+When you run commands like `inspekt eval "document.title"`, Zen injects JavaScript into the page. Strict CSP policies may block this.
 
 ### 2. WebSocket Connection
 
@@ -41,14 +41,14 @@ Refused to connect to 'ws://localhost:8766' because it violates the
 following Content Security Policy directive: "connect-src 'self'"
 ```
 
-### Zen Bridge Warning
+### Inspekt Warning
 
-Starting with version 3.5, Zen Bridge automatically detects CSP and shows a warning:
+Starting with version 3.5, Inspekt automatically detects CSP and shows a warning:
 
 ```
-⚠️ Zen Bridge: CSP Detected
+⚠️ Inspekt: CSP Detected
 
-This website has Content Security Policy (CSP) restrictions that block Zen Bridge.
+This website has Content Security Policy (CSP) restrictions that block Inspekt.
 
 What this means:
 • WebSocket connections to localhost are blocked
@@ -81,7 +81,7 @@ This policy blocks WebSocket connections to localhost.
 
 ### High-Security Sites (Usually Blocked)
 
-Sites with strict CSP that typically block Zen Bridge:
+Sites with strict CSP that typically block Inspekt:
 
 - **Code Hosting**: GitHub, GitLab, Bitbucket
 - **Google Services**: Gmail, Drive, Docs, Cloud Console
@@ -105,14 +105,14 @@ Sites with strict CSP that typically block Zen Bridge:
 
 ### ✅ Test on Different Sites
 
-The simplest solution is to use Zen Bridge on sites without strict CSP:
+The simplest solution is to use Inspekt on sites without strict CSP:
 
 ```bash
 # Works on most sites
-zen eval "document.title"
+inspekt eval "document.title"
 
 # Try different domains
-zen eval "window.location.href"
+inspekt eval "window.location.href"
 ```
 
 ### ✅ Verify Server is Running
@@ -121,10 +121,10 @@ Sometimes the issue isn't CSP:
 
 ```bash
 # Check if server is running
-zen server status
+inspekt server status
 
 # Restart if needed
-zen server restart
+inspekt server restart
 ```
 
 ### ✅ Check Browser Console
@@ -133,7 +133,7 @@ Always check the browser console for specific error messages:
 
 1. Open DevTools (F12)
 2. Go to Console tab
-3. Look for Zen Bridge messages or CSP violations
+3. Look for Inspekt messages or CSP violations
 4. Share error messages when reporting issues
 
 ### ❌ What Won't Work
@@ -148,7 +148,7 @@ These approaches **do not work** and are not recommended:
 
 ## Future Solutions
 
-We're exploring ways to make Zen Bridge work with CSP:
+We're exploring ways to make Inspekt work with CSP:
 
 ### Browser Extension (Future)
 
@@ -183,13 +183,13 @@ If you encounter CSP issues on sites where you'd expect Zen to work:
 1. **Check the browser console** for specific CSP errors
 2. **Note the website URL** and any error messages
 3. **Test on a different site** to verify Zen works elsewhere
-4. **Report the issue** at: https://github.com/roelvangils/zen-bridge/issues
+4. **Report the issue** at: https://github.com/roelvangils/inspekt/issues
 
 Include:
 - Website URL (if public)
 - CSP policy (from curl or browser)
 - Error messages from console
-- Zen Bridge version (`zen --version`)
+- Inspekt version (`inspekt --version`)
 
 ---
 
@@ -203,9 +203,9 @@ Include:
 | `script-src` | Blocks injected scripts | `script-src 'self'` |
 | `default-src` | Fallback for other directives | `default-src 'none'` |
 
-### What Zen Bridge Needs
+### What Inspekt Needs
 
-For Zen Bridge to work, the CSP must allow:
+For Inspekt to work, the CSP must allow:
 
 ```
 Content-Security-Policy:
@@ -217,7 +217,7 @@ Most high-security sites will **never** allow this, by design.
 
 ### Detection Methods
 
-Zen Bridge uses multiple methods to detect CSP:
+Inspekt uses multiple methods to detect CSP:
 
 1. **Meta tag detection**: Checks for `<meta http-equiv="Content-Security-Policy">`
 2. **Connection failure patterns**: Multiple failed WebSocket attempts
@@ -234,7 +234,7 @@ $ curl -I https://github.com | grep -i content-security
 Content-Security-Policy: default-src 'none'; connect-src 'self' *.github.com
 ```
 
-**Result**: ❌ Zen Bridge blocked (localhost not in connect-src)
+**Result**: ❌ Inspekt blocked (localhost not in connect-src)
 
 ### Personal Blog (No CSP)
 
@@ -243,7 +243,7 @@ $ curl -I https://example-blog.com | grep -i content-security
 # No CSP header
 ```
 
-**Result**: ✅ Zen Bridge works
+**Result**: ✅ Inspekt works
 
 ### E-commerce Site (Moderate CSP)
 
@@ -252,7 +252,7 @@ $ curl -I https://shop.example.com | grep -i content-security
 Content-Security-Policy: default-src 'self'; connect-src 'self' https:
 ```
 
-**Result**: ❌ Zen Bridge blocked (https: only, no ws://)
+**Result**: ❌ Inspekt blocked (https: only, no ws://)
 
 ---
 
@@ -275,7 +275,7 @@ CSP is a critical security feature. Bypassing it would:
 - Violate browser security policies
 - Put users at risk
 
-Zen Bridge respects web security standards.
+Inspekt respects web security standards.
 
 ### Will this ever be fixed?
 
@@ -308,8 +308,8 @@ This is a common limitation of browser automation tools on high-security sites.
 
 - **CSP is a security feature**, not a bug
 - **High-security sites block Zen by design**
-- **Zen Bridge detects and warns about CSP** (v3.5+)
+- **Inspekt detects and warns about CSP** (v3.5+)
 - **Use Zen on sites without strict CSP**
 - **Report unexpected issues** to help improve detection
 
-For most use cases (development, testing, personal sites), Zen Bridge works great. For high-security production sites, CSP restrictions are intentional and appropriate.
+For most use cases (development, testing, personal sites), Inspekt works great. For high-security production sites, CSP restrictions are intentional and appropriate.

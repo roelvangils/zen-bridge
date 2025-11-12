@@ -56,7 +56,7 @@
 
 #### eval (Line 145)
 ```
-zen eval [CODE] [OPTIONS]
+inspekt eval [CODE] [OPTIONS]
 Options:
   -f, --file TEXT          Execute code from file
   -t, --timeout FLOAT      Timeout in seconds (default: 10)
@@ -65,21 +65,21 @@ Options:
   --title                  Also print page title
 
 Usage Examples:
-  zen eval "document.title"
-  zen eval "alert('Hello!')"
-  zen eval --file script.js
-  echo "console.log('test')" | zen eval
+  inspekt eval "document.title"
+  inspekt eval "alert('Hello!')"
+  inspekt eval --file script.js
+  echo "console.log('test')" | inspekt eval
 ```
 
 #### exec (Line 202)
 ```
-zen exec FILEPATH [OPTIONS]
+inspekt exec FILEPATH [OPTIONS]
 Options:
   -t, --timeout FLOAT      Timeout in seconds (default: 10)
   --format [auto|json|raw] Output format (default: auto)
 
 Usage Examples:
-  zen exec script.js
+  inspekt exec script.js
 ```
 
 **Dependencies:**
@@ -93,38 +93,38 @@ Usage Examples:
 
 #### inspect (Line 1961)
 ```
-zen inspect [SELECTOR]
+inspekt inspect [SELECTOR]
 Arguments:
   selector  Optional CSS selector (if omitted, shows currently selected element)
 
 Usage Examples:
-  zen inspect "h1"
-  zen inspect "#header"
-  zen inspect ".main-content"
-  zen inspect          # Show currently selected element
+  inspekt inspect "h1"
+  inspekt inspect "#header"
+  inspekt inspect ".main-content"
+  inspekt inspect          # Show currently selected element
 ```
 
 #### inspected (Line 2030)
 ```
-zen inspected
+inspekt inspected
 No arguments
 
 Usage Examples:
-  zen inspect "h1"
-  zen inspected        # Show details of inspected element
+  inspekt inspect "h1"
+  inspekt inspected        # Show details of inspected element
 ```
 
 #### screenshot (Line 2909)
 ```
-zen screenshot [OPTIONS]
+inspekt screenshot [OPTIONS]
 Options:
   -s, --selector TEXT  CSS selector of element to screenshot (required)
   -o, --output TEXT    Output file path (optional, auto-generated if omitted)
 
 Usage Examples:
-  zen screenshot --selector "#main"
-  zen screenshot -s ".hero-section" -o hero.png
-  zen screenshot -s "$0" -o inspected.png
+  inspekt screenshot --selector "#main"
+  inspekt screenshot -s ".hero-section" -o hero.png
+  inspekt screenshot -s "$0" -o inspected.png
 ```
 
 **Output:** PNG image file (base64 decoded from canvas)
@@ -141,44 +141,44 @@ Usage Examples:
 
 #### click (Line 2194)
 ```
-zen click [SELECTOR]
+inspekt click [SELECTOR]
 Arguments:
   selector  CSS selector (default: $0 = last inspected element)
 
 Usage Examples:
-  zen inspect "button#submit"
-  zen click
-  zen click "button#submit"
-  zen click ".primary-button"
+  inspekt inspect "button#submit"
+  inspekt click
+  inspekt click "button#submit"
+  inspekt click ".primary-button"
 ```
 
 #### double-click (Line 2214)
 ```
-zen double-click [SELECTOR]
+inspekt double-click [SELECTOR]
 Arguments:
   selector  CSS selector (default: $0)
 
 Usage Examples:
-  zen double-click "div.item"
-  zen inspect "div.item"
-  zen double-click
+  inspekt double-click "div.item"
+  inspekt inspect "div.item"
+  inspekt double-click
 ```
 
 #### right-click (Line 2237)
 ```
-zen right-click [SELECTOR]
+inspekt right-click [SELECTOR]
 Arguments:
   selector  CSS selector (default: $0)
 
 Usage Examples:
-  zen right-click "a.download-link"
-  zen inspect "a.download-link"
-  zen right-click
+  inspekt right-click "a.download-link"
+  inspekt inspect "a.download-link"
+  inspekt right-click
 ```
 
 #### wait (Line 2317)
 ```
-zen wait SELECTOR [OPTIONS]
+inspekt wait SELECTOR [OPTIONS]
 Arguments:
   selector  CSS selector to wait for
 
@@ -189,16 +189,16 @@ Options:
   --text TEXT          Wait for element to contain specific text
 
 Usage Examples:
-  zen wait "button#submit"          # Wait to exist
-  zen wait ".modal" --visible       # Wait to be visible
-  zen wait ".spinner" --hidden      # Wait to be hidden
-  zen wait "h1" --text "Success"    # Wait for text
-  zen wait "div.result" --timeout 10
+  inspekt wait "button#submit"          # Wait to exist
+  inspekt wait ".modal" --visible       # Wait to be visible
+  inspekt wait ".spinner" --hidden      # Wait to be hidden
+  inspekt wait "h1" --text "Success"    # Wait for text
+  inspekt wait "div.result" --timeout 10
 ```
 
 #### send (Line 1893)
 ```
-zen send TEXT [OPTIONS]
+inspekt send TEXT [OPTIONS]
 Arguments:
   text  Text to type
 
@@ -206,8 +206,8 @@ Options:
   -s, --selector TEXT  CSS selector of element to type into
 
 Usage Examples:
-  zen send "Hello World"
-  zen send "test@example.com" --selector "input[type=email]"
+  inspekt send "Hello World"
+  inspekt send "test@example.com" --selector "input[type=email]"
 ```
 
 **Helper Function:** _perform_click(selector, click_type) - abstraction for click types
@@ -224,7 +224,7 @@ Usage Examples:
 
 #### open (Line 2425)
 ```
-zen open URL [OPTIONS]
+inspekt open URL [OPTIONS]
 Arguments:
   url  URL to navigate to
 
@@ -233,32 +233,32 @@ Options:
   -t, --timeout INT   Timeout in seconds (default: 30)
 
 Usage Examples:
-  zen open "https://example.com"
-  zen open "https://example.com" --wait
-  zen open "https://example.com" --wait --timeout 60
+  inspekt open "https://example.com"
+  inspekt open "https://example.com" --wait
+  inspekt open "https://example.com" --wait --timeout 60
 ```
 
 #### back (Line 2507)
 ```
-zen back
+inspekt back
 No options/arguments
 ```
 
 #### forward (Line 2544)
 ```
-zen forward
+inspekt forward
 No options/arguments
 ```
 
 #### reload (Line 2582)
 ```
-zen reload [OPTIONS]
+inspekt reload [OPTIONS]
 Options:
   --hard  Hard reload (bypass cache)
 
 Usage Examples:
-  zen reload
-  zen reload --hard
+  inspekt reload
+  inspekt reload --hard
 ```
 
 #### Aliases (Hidden)
@@ -274,20 +274,20 @@ Usage Examples:
 
 #### cookies list (Line 2645)
 ```
-zen cookies list
+inspekt cookies list
 No options
 ```
 
 #### cookies get (Line 2657)
 ```
-zen cookies get NAME
+inspekt cookies get NAME
 Arguments:
   name  Cookie name
 ```
 
 #### cookies set (Line 2680)
 ```
-zen cookies set NAME VALUE [OPTIONS]
+inspekt cookies set NAME VALUE [OPTIONS]
 Arguments:
   name   Cookie name
   value  Cookie value
@@ -301,21 +301,21 @@ Options:
   --same-site [Strict|Lax|None]  SameSite attribute
 
 Usage Examples:
-  zen cookies set session_id abc123
-  zen cookies set token xyz --max-age 3600
-  zen cookies set user_pref dark --path / --secure
+  inspekt cookies set session_id abc123
+  inspekt cookies set token xyz --max-age 3600
+  inspekt cookies set user_pref dark --path / --secure
 ```
 
 #### cookies delete (Line 2706)
 ```
-zen cookies delete NAME
+inspekt cookies delete NAME
 Arguments:
   name  Cookie name
 ```
 
 #### cookies clear (Line 2717)
 ```
-zen cookies clear
+inspekt cookies clear
 No options/arguments
 ```
 
@@ -330,13 +330,13 @@ No options/arguments
 
 #### selected (Line 2807)
 ```
-zen selected [OPTIONS]
+inspekt selected [OPTIONS]
 Options:
   --raw  Output only the raw text (no metadata)
 
 Usage Examples:
-  zen selected                 # Get selection with metadata
-  zen selected --raw           # Get just the text
+  inspekt selected                 # Get selection with metadata
+  inspekt selected --raw           # Get just the text
 ```
 
 **Output:** Selection text + position info + container element details
@@ -351,20 +351,20 @@ Usage Examples:
 
 #### server start (Line 1415)
 ```
-zen server start [OPTIONS]
+inspekt server start [OPTIONS]
 Options:
   -p, --port INT    Port to run on (default: 8765)
   -d, --daemon      Run in background
 
 Usage Examples:
-  zen server start                # Foreground mode (Ctrl+C to stop)
-  zen server start --daemon       # Background mode
-  zen server start -p 9000        # Custom port
+  inspekt server start                # Foreground mode (Ctrl+C to stop)
+  inspekt server start --daemon       # Background mode
+  inspekt server start -p 9000        # Custom port
 ```
 
 #### server status (Line 1456)
 ```
-zen server status
+inspekt server status
 No options
 ```
 
@@ -377,7 +377,7 @@ Bridge server is running
 
 #### server stop (Line 1475)
 ```
-zen server stop
+inspekt server stop
 No options
 ```
 
@@ -391,7 +391,7 @@ No options
 
 #### control (Line 3087)
 ```
-zen control
+inspekt control
 No options/arguments
 
 Key Features:
@@ -411,7 +411,7 @@ Exit: Ctrl+D
 
 #### watch input (Line 3004)
 ```
-zen watch input
+inspekt watch input
 No options/arguments
 
 Features:
@@ -426,7 +426,7 @@ Output: Character-by-character stream
 
 #### watch all (Line 3347)
 ```
-zen watch all
+inspekt watch all
 No options/arguments
 
 Features:
@@ -447,7 +447,7 @@ Output: Formatted interaction log
 
 #### describe (Line 3448)
 ```
-zen describe [OPTIONS]
+inspekt describe [OPTIONS]
 Options:
   --language, --lang TEXT  Language for AI output (overrides config)
   --debug                  Show full prompt instead of calling AI
@@ -463,7 +463,7 @@ Script: extract_page_structure.js
 
 #### outline (Line 3558)
 ```
-zen outline
+inspekt outline
 No options/arguments
 
 Features:
@@ -476,7 +476,7 @@ Script: extract_outline.js
 
 #### links (Line 3792)
 ```
-zen links [OPTIONS]
+inspekt links [OPTIONS]
 Options:
   --only-internal         Show only internal links (same domain)
   --only-external         Show only external links
@@ -500,7 +500,7 @@ Helper Functions:
 
 #### summarize (Line 3960)
 ```
-zen summarize [OPTIONS]
+inspekt summarize [OPTIONS]
 Options:
   --format [summary|full]        Output format (default: summary)
   --language, --lang TEXT        Language for AI output
@@ -528,7 +528,7 @@ Script: extract_article.js
 
 #### info (Line 426)
 ```
-zen info [OPTIONS]
+inspekt info [OPTIONS]
 Options:
   --extended        Show extended information (language, meta tags, security, a11y)
   --json            Output as JSON
@@ -555,7 +555,7 @@ Helper Functions:
 
 #### repl (Line 1482)
 ```
-zen repl
+inspekt repl
 No options/arguments
 
 Features:
@@ -571,7 +571,7 @@ Prompt: "zen> "
 
 #### userscript (Line 1607)
 ```
-zen userscript
+inspekt userscript
 No options/arguments
 
 Output: Displays installation instructions for browser userscript
@@ -579,7 +579,7 @@ Output: Displays installation instructions for browser userscript
 
 #### download (Line 1635)
 ```
-zen download [OPTIONS]
+inspekt download [OPTIONS]
 Options:
   -o, --output TEXT  Output directory (default: ~/Downloads/<domain>)
   --list             Only list files without downloading
@@ -603,7 +603,7 @@ Dependencies: requests library, urllib.parse, ThreadPoolExecutor
 
 #### highlight (Line 1538)
 ```
-zen highlight SELECTOR [OPTIONS]
+inspekt highlight SELECTOR [OPTIONS]
 Arguments:
   selector  CSS selector
 
@@ -617,9 +617,9 @@ Features:
   - Uses data-zen-highlight attribute tracking
 
 Usage Examples:
-  zen highlight "h1, h2"
-  zen highlight ".error" --color orange
-  zen highlight "a" --clear
+  inspekt highlight "h1, h2"
+  inspekt highlight ".error" --color orange
+  inspekt highlight "a" --clear
 ```
 
 ---

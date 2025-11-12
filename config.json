@@ -1,5 +1,8 @@
 {
   "ai-language": "auto",
+  "typing": {
+    "human-like-typo-rate": 0.05
+  },
   "control": {
     "auto-refocus": "always",
     "focus-outline": "custom",

@@ -1,25 +1,25 @@
 # Data Extraction
 
-Master data extraction with Zen Bridge. Learn how to extract links, generate page outlines, get selected text, download files, and extract structured data from web pages.
+Master data extraction with Inspekt. Learn how to extract links, generate page outlines, get selected text, download files, and extract structured data from web pages.
 
 ## Overview
 
-Zen Bridge provides specialized commands for data extraction:
+Inspekt provides specialized commands for data extraction:
 
-- `zen links` - Extract and analyze links
-- `zen outline` - Display page heading structure
-- `zen selected` - Get selected text
-- `zen download` - Find and download files
-- `zen info` - Get page metadata
+- `inspekt links` - Extract and analyze links
+- `inspekt outline` - Display page heading structure
+- `inspekt selected` - Get selected text
+- `inspekt download` - Find and download files
+- `inspekt info` - Get page metadata
 
 ## Extracting Links
 
-The `zen links` command extracts all links from a page with powerful filtering options.
+The `inspekt links` command extracts all links from a page with powerful filtering options.
 
 ### Basic Usage
 
 ```bash
-zen links
+inspekt links
 ```
 
 **Output:**
@@ -42,7 +42,7 @@ Shows:
 ### Filter to Internal Links
 
 ```bash
-zen links --only-internal
+inspekt links --only-internal
 ```
 
 Shows only links to the same domain.
@@ -50,7 +50,7 @@ Shows only links to the same domain.
 ### Filter to External Links
 
 ```bash
-zen links --only-external
+inspekt links --only-external
 ```
 
 Shows only links to other domains.
@@ -58,7 +58,7 @@ Shows only links to other domains.
 ### URLs Only
 
 ```bash
-zen links --only-urls
+inspekt links --only-urls
 ```
 
 Outputs just URLs (one per line), perfect for piping:
@@ -72,7 +72,7 @@ https://external.com/resource
 ### Alphabetical Sorting
 
 ```bash
-zen links --alphabetically
+inspekt links --alphabetically
 ```
 
 Sorts links alphabetically by URL.
@@ -82,7 +82,7 @@ Sorts links alphabetically by URL.
 Get detailed metadata for external links:
 
 ```bash
-zen links --enrich-external
+inspekt links --enrich-external
 ```
 
 Fetches:
@@ -103,7 +103,7 @@ Fetches:
 ### JSON Output
 
 ```bash
-zen links --json
+inspekt links --json
 ```
 
 Outputs structured JSON for scripting:
@@ -139,40 +139,40 @@ Outputs structured JSON for scripting:
 
 ```bash
 # External URLs only, alphabetically sorted
-zen links --only-external --only-urls --alphabetically
+inspekt links --only-external --only-urls --alphabetically
 
 # Internal links as JSON
-zen links --only-internal --json
+inspekt links --only-internal --json
 
 # External links with enrichment
-zen links --only-external --enrich-external
+inspekt links --only-external --enrich-external
 ```
 
 ### Practical Uses
 
 **Export links for analysis:**
 ```bash
-zen links --only-external --only-urls > external-links.txt
+inspekt links --only-external --only-urls > external-links.txt
 ```
 
 **Count total links:**
 ```bash
-zen links --only-urls | wc -l
+inspekt links --only-urls | wc -l
 ```
 
 **Find PDF links:**
 ```bash
-zen links --only-urls | grep "\.pdf$"
+inspekt links --only-urls | grep "\.pdf$"
 ```
 
 **Check broken links:**
 ```bash
-zen links --only-urls | xargs -I {} curl -s -o /dev/null -w "%{http_code} {}\n" {}
+inspekt links --only-urls | xargs -I {} curl -s -o /dev/null -w "%{http_code} {}\n" {}
 ```
 
 **Extract and process with jq:**
 ```bash
-zen links --json | jq '.links[] | select(.internal == false) | .url'
+inspekt links --json | jq '.links[] | select(.internal == false) | .url'
 ```
 
 ---
@@ -184,7 +184,7 @@ Display the heading hierarchy of a page for accessibility audits and SEO analysi
 ### Basic Usage
 
 ```bash
-zen outline
+inspekt outline
 ```
 
 **Output:**
@@ -212,7 +212,7 @@ Total: 7 headings
 
 **Accessibility audit:**
 ```bash
-zen outline
+inspekt outline
 # Check for:
 # - Single H1
 # - Proper nesting (no skipped levels)
@@ -221,21 +221,21 @@ zen outline
 
 **SEO analysis:**
 ```bash
-zen outline | grep "H1"
+inspekt outline | grep "H1"
 # Should find exactly one H1
 ```
 
 **Content structure:**
 ```bash
-zen outline > page-structure.txt
+inspekt outline > page-structure.txt
 # Document page organization
 ```
 
 **Compare pages:**
 ```bash
-zen outline > page1.txt
+inspekt outline > page1.txt
 # Navigate to another page
-zen outline > page2.txt
+inspekt outline > page2.txt
 diff page1.txt page2.txt
 ```
 
@@ -248,7 +248,7 @@ Get the currently selected text with metadata.
 ### Basic Usage
 
 ```bash
-zen selected
+inspekt selected
 ```
 
 **Output:**
@@ -270,7 +270,7 @@ Shows:
 ### Raw Text Only
 
 ```bash
-zen selected --raw
+inspekt selected --raw
 ```
 
 **Output:**
@@ -284,23 +284,23 @@ Just the text, no metadata - perfect for piping.
 
 **Copy to clipboard (macOS):**
 ```bash
-zen selected --raw | pbcopy
+inspekt selected --raw | pbcopy
 ```
 
 **Save to file:**
 ```bash
-zen selected --raw > selection.txt
+inspekt selected --raw > selection.txt
 ```
 
 **Process with other tools:**
 ```bash
-zen selected --raw | wc -w  # Count words
-zen selected --raw | tr '[:upper:]' '[:lower:]'  # Lowercase
+inspekt selected --raw | wc -w  # Count words
+inspekt selected --raw | tr '[:upper:]' '[:lower:]'  # Lowercase
 ```
 
 **Translate selection:**
 ```bash
-zen selected --raw | translate-tool
+inspekt selected --raw | translate-tool
 ```
 
 ---
@@ -312,7 +312,7 @@ Find and download files interactively from the current page.
 ### Interactive Mode
 
 ```bash
-zen download
+inspekt download
 ```
 
 Presents an interactive menu to select files:
@@ -337,7 +337,7 @@ Select files to download (comma-separated, or 'all'):
 ### List Files Only
 
 ```bash
-zen download --list
+inspekt download --list
 ```
 
 Shows available files without downloading.
@@ -345,7 +345,7 @@ Shows available files without downloading.
 ### Custom Output Directory
 
 ```bash
-zen download --output ~/Downloads/example-com
+inspekt download --output ~/Downloads/example-com
 ```
 
 Downloads to a specific directory.
@@ -353,7 +353,7 @@ Downloads to a specific directory.
 ### Custom Timeout
 
 ```bash
-zen download --timeout 60
+inspekt download --timeout 60
 ```
 
 For large files or slow connections (default: 30s).
@@ -398,20 +398,20 @@ The `download` command:
 
 **Download all images:**
 ```bash
-zen download
+inspekt download
 # Select "Download all IMAGES"
 ```
 
 **Download PDFs from documentation:**
 ```bash
-zen download --output ~/Documents/docs
+inspekt download --output ~/Documents/docs
 # Select PDF files
 ```
 
 **Batch download resources:**
 ```bash
 # Navigate to resource page
-zen download --output ~/Downloads/resources
+inspekt download --output ~/Downloads/resources
 ```
 
 ---
@@ -423,7 +423,7 @@ Get comprehensive metadata about the current page.
 ### Basic Info
 
 ```bash
-zen info
+inspekt info
 ```
 
 **Output:**
@@ -439,7 +439,7 @@ Size:     1280x720
 ### Extended Information
 
 ```bash
-zen info --extended
+inspekt info --extended
 ```
 
 Includes:
@@ -489,27 +489,27 @@ Includes:
 ### JSON Output
 
 ```bash
-zen info --json
+inspekt info --json
 ```
 
 Structured JSON for parsing:
 
 ```bash
-zen info --json | jq '.url'
-zen info --json | jq '.title'
-zen info --json | jq '.extended.seo.canonical'
+inspekt info --json | jq '.url'
+inspekt info --json | jq '.title'
+inspekt info --json | jq '.extended.seo.canonical'
 ```
 
 ---
 
 ## Advanced Extraction with eval
 
-For custom extraction needs, use `zen eval`:
+For custom extraction needs, use `inspekt eval`:
 
 ### Extract Table Data
 
 ```bash
-zen eval "
+inspekt eval "
   const table = document.querySelector('table');
   const headers = Array.from(table.querySelectorAll('th')).map(th => th.textContent.trim());
   const rows = Array.from(table.querySelectorAll('tbody tr')).map(tr =>
@@ -522,7 +522,7 @@ zen eval "
 ### Extract Product Data
 
 ```bash
-zen eval "
+inspekt eval "
   Array.from(document.querySelectorAll('.product')).map(product => ({
     name: product.querySelector('.product-name').textContent.trim(),
     price: product.querySelector('.product-price').textContent.trim(),
@@ -536,7 +536,7 @@ zen eval "
 ### Extract Article Content
 
 ```bash
-zen eval "
+inspekt eval "
   ({
     title: document.querySelector('h1')?.textContent,
     author: document.querySelector('.author')?.textContent,
@@ -550,7 +550,7 @@ zen eval "
 ### Extract All Images
 
 ```bash
-zen eval "
+inspekt eval "
   Array.from(document.images).map(img => ({
     src: img.src,
     alt: img.alt,
@@ -565,7 +565,7 @@ zen eval "
 ### Extract Meta Tags
 
 ```bash
-zen eval "
+inspekt eval "
   const meta = {};
   document.querySelectorAll('meta').forEach(tag => {
     const name = tag.name || tag.property;
@@ -578,7 +578,7 @@ zen eval "
 ### Extract Forms
 
 ```bash
-zen eval "
+inspekt eval "
   Array.from(document.forms).map(form => ({
     action: form.action,
     method: form.method,
@@ -598,7 +598,7 @@ zen eval "
 ### Extract Structured Data (JSON-LD)
 
 ```bash
-zen eval "
+inspekt eval "
   Array.from(document.querySelectorAll('script[type=\"application/ld+json\"]'))
     .map(script => JSON.parse(script.textContent))
 " --format json > structured-data.json
@@ -611,7 +611,7 @@ zen eval "
 ### Text Normalization
 
 ```bash
-zen eval "
+inspekt eval "
   const text = document.querySelector('.content').textContent;
   return text
     .trim()
@@ -623,7 +623,7 @@ zen eval "
 ### HTML Stripping
 
 ```bash
-zen eval "
+inspekt eval "
   const html = document.querySelector('.content').innerHTML;
   const temp = document.createElement('div');
   temp.innerHTML = html;
@@ -634,7 +634,7 @@ zen eval "
 ### Data Validation
 
 ```bash
-zen eval "
+inspekt eval "
   Array.from(document.querySelectorAll('.item'))
     .map(item => ({
       title: item.querySelector('.title')?.textContent.trim(),
@@ -647,7 +647,7 @@ zen eval "
 ### URL Normalization
 
 ```bash
-zen eval "
+inspekt eval "
   Array.from(document.links).map(a => {
     try {
       return new URL(a.href).href;  // Normalize URL
@@ -676,8 +676,8 @@ URLS=(
 
 for url in "${URLS[@]}"; do
   echo "Extracting: $url"
-  zen open "$url" --wait
-  zen eval "({title: document.title, links: document.links.length})" --format json >> data.jsonl
+  inspekt open "$url" --wait
+  inspekt eval "({title: document.title, links: document.links.length})" --format json >> data.jsonl
 done
 ```
 
@@ -687,22 +687,22 @@ done
 #!/bin/bash
 # Complete page export
 
-PAGE_URL=$(zen eval "location.href" --format raw)
-PAGE_TITLE=$(zen eval "document.title" --format raw)
+PAGE_URL=$(inspekt eval "location.href" --format raw)
+PAGE_TITLE=$(inspekt eval "document.title" --format raw)
 
 mkdir -p "export/${PAGE_TITLE}"
 
 # Links
-zen links --json > "export/${PAGE_TITLE}/links.json"
+inspekt links --json > "export/${PAGE_TITLE}/links.json"
 
 # Outline
-zen outline > "export/${PAGE_TITLE}/outline.txt"
+inspekt outline > "export/${PAGE_TITLE}/outline.txt"
 
 # Metadata
-zen info --json > "export/${PAGE_TITLE}/info.json"
+inspekt info --json > "export/${PAGE_TITLE}/info.json"
 
 # Screenshots
-zen screenshot --selector "body" --output "export/${PAGE_TITLE}/screenshot.png"
+inspekt screenshot --selector "body" --output "export/${PAGE_TITLE}/screenshot.png"
 
 echo "Exported: ${PAGE_TITLE}"
 ```
@@ -714,7 +714,7 @@ echo "Exported: ${PAGE_TITLE}"
 ### 1. Limit Results
 
 ```bash
-zen eval "
+inspekt eval "
   Array.from(document.querySelectorAll('.item'))
     .slice(0, 100)  // First 100 only
     .map(item => item.textContent)
@@ -724,7 +724,7 @@ zen eval "
 ### 2. Extract Only What You Need
 
 ```bash
-zen eval "
+inspekt eval "
   // Good - extract only titles
   Array.from(document.querySelectorAll('.item'))
     .map(item => item.querySelector('.title').textContent)
@@ -735,16 +735,16 @@ zen eval "
 
 ```bash
 # Good - specific selector
-zen eval "document.querySelectorAll('.product .title')"
+inspekt eval "document.querySelectorAll('.product .title')"
 
 # Avoid - overly broad
-zen eval "document.querySelectorAll('*').filter(...)"
+inspekt eval "document.querySelectorAll('*').filter(...)"
 ```
 
 ### 4. Batch DOM Queries
 
 ```bash
-zen eval "
+inspekt eval "
   const container = document.querySelector('.container');
   const items = container.querySelectorAll('.item');  // Query once
   return Array.from(items).map(item => ({
@@ -767,8 +767,8 @@ zen eval "
 
 | Command | Purpose | Example |
 |---------|---------|---------|
-| `zen links` | Extract links | `zen links --only-external` |
-| `zen outline` | Page heading structure | `zen outline` |
-| `zen selected` | Get selected text | `zen selected --raw` |
-| `zen download` | Download files | `zen download --output ~/Downloads` |
-| `zen info` | Page metadata | `zen info --extended` |
+| `inspekt links` | Extract links | `inspekt links --only-external` |
+| `inspekt outline` | Page heading structure | `inspekt outline` |
+| `inspekt selected` | Get selected text | `inspekt selected --raw` |
+| `inspekt download` | Download files | `inspekt download --output ~/Downloads` |
+| `inspekt info` | Page metadata | `inspekt info --extended` |

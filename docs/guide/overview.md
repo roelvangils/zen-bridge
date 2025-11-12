@@ -1,10 +1,10 @@
 # Overview
 
-Welcome to Zen Bridge - a powerful CLI tool that lets you control your browser from the command line. Execute JavaScript, automate tasks, extract data, and interact with web pages without leaving your terminal.
+Welcome to Inspekt - a powerful CLI tool that lets you control your browser from the command line. Execute JavaScript, automate tasks, extract data, and interact with web pages without leaving your terminal.
 
-## What is Zen Bridge?
+## What is Inspekt?
 
-Zen Bridge is a command-line interface that connects your terminal to your web browser through a WebSocket-based architecture. It allows you to:
+Inspekt is a command-line interface that connects your terminal to your web browser through a WebSocket-based architecture. It allows you to:
 
 - Execute JavaScript code in your active browser tab
 - Interact with page elements (click, inspect, highlight, wait)
@@ -18,7 +18,7 @@ Think of it as a **bridge** between your terminal and your browser - hence the n
 
 ## How It Works
 
-Zen Bridge uses a three-component architecture:
+Inspekt uses a three-component architecture:
 
 ```
 ┌─────────────┐         ┌──────────────┐         ┌─────────────┐
@@ -31,7 +31,7 @@ Zen Bridge uses a three-component architecture:
 
 ### 1. CLI Tool (Your Terminal)
 
-When you run commands like `zen eval "document.title"`, the CLI tool:
+When you run commands like `inspekt eval "document.title"`, the CLI tool:
 
 - Parses your command and options
 - Formats the JavaScript code
@@ -51,7 +51,7 @@ The server acts as a message broker:
 
 Start the server with:
 ```bash
-zen server start --daemon
+inspekt server start --daemon
 ```
 
 ### 3. Browser Userscript (In Your Browser)
@@ -79,7 +79,7 @@ Traditional HTTP polling would be slow and inefficient. WebSockets provide:
 
 ### Message Flow Example
 
-When you run `zen eval "document.title"`:
+When you run `inspekt eval "document.title"`:
 
 1. **CLI → Server (HTTP)**
    ```json
@@ -131,11 +131,11 @@ The WebSocket connection is **local only**:
 - No authentication needed (local-only access)
 - Userscript only connects to localhost
 
-This means Zen Bridge can only control browsers on your own machine.
+This means Inspekt can only control browsers on your own machine.
 
-## When to Use Zen Bridge
+## When to Use Inspekt
 
-Zen Bridge is ideal for:
+Inspekt is ideal for:
 
 ### Web Development & Debugging
 
@@ -163,15 +163,15 @@ Zen Bridge is ideal for:
 
 ### Accessibility Testing
 
-- Check heading structure (`zen outline`)
+- Check heading structure (`inspekt outline`)
 - Find images without alt text
-- Test keyboard navigation (`zen control`)
+- Test keyboard navigation (`inspekt control`)
 - Generate page descriptions for screen readers
 
 ### Content Analysis
 
-- Generate AI summaries of articles (`zen summarize`)
-- Get concise page descriptions (`zen describe`)
+- Generate AI summaries of articles (`inspekt summarize`)
+- Get concise page descriptions (`inspekt describe`)
 - Analyze link structures
 - Check SEO metadata
 
@@ -182,9 +182,9 @@ Zen Bridge is ideal for:
 - Automate visual regression testing
 - Extract data for reports
 
-## When NOT to Use Zen Bridge
+## When NOT to Use Inspekt
 
-Zen Bridge is **not** suitable for:
+Inspekt is **not** suitable for:
 
 ### Heavy Automation at Scale
 
@@ -195,17 +195,17 @@ Zen Bridge is **not** suitable for:
 
 ### Distributed/Remote Automation
 
-- Zen Bridge only works on localhost
+- Inspekt only works on localhost
 - For remote browser control, use Playwright, Puppeteer, or Selenium Grid
 
 ### Production Monitoring
 
-- Don't rely on Zen Bridge for production monitoring
+- Don't rely on Inspekt for production monitoring
 - Use proper APM tools (Datadog, New Relic, etc.)
 
 ### Privacy-Sensitive Operations
 
-- Zen Bridge has access to everything in your browser
+- Inspekt has access to everything in your browser
 - Don't use it on pages with sensitive credentials
 - Be careful with commands that extract cookies or local storage
 
@@ -216,9 +216,9 @@ Zen Bridge is **not** suitable for:
 Run any JavaScript code in your browser:
 
 ```bash
-zen eval "document.title"
-zen eval "Array.from(document.links).map(a => a.href)"
-zen eval "({url: location.href, title: document.title})" --format json
+inspekt eval "document.title"
+inspekt eval "Array.from(document.links).map(a => a.href)"
+inspekt eval "({url: location.href, title: document.title})" --format json
 ```
 
 ### Interactive REPL
@@ -226,7 +226,7 @@ zen eval "({url: location.href, title: document.title})" --format json
 Live JavaScript session:
 
 ```bash
-zen repl
+inspekt repl
 zen> document.querySelectorAll('p').length
 2
 zen> exit
@@ -237,10 +237,10 @@ zen> exit
 Click, inspect, highlight, and wait for elements:
 
 ```bash
-zen click "button#submit"
-zen inspect "h1"
-zen highlight ".error" --color red
-zen wait ".modal" --visible
+inspekt click "button#submit"
+inspekt inspect "h1"
+inspekt highlight ".error" --color red
+inspekt wait ".modal" --visible
 ```
 
 ### Data Extraction
@@ -248,10 +248,10 @@ zen wait ".modal" --visible
 Extract structured data:
 
 ```bash
-zen links --only-external
-zen outline
-zen download
-zen info --extended
+inspekt links --only-external
+inspekt outline
+inspekt download
+inspekt info --extended
 ```
 
 ### AI-Powered Features
@@ -259,8 +259,8 @@ zen info --extended
 Summarize and describe pages:
 
 ```bash
-zen summarize
-zen describe
+inspekt summarize
+inspekt describe
 ```
 
 Requires [mods](https://github.com/charmbracelet/mods) for AI integration.
@@ -270,7 +270,7 @@ Requires [mods](https://github.com/charmbracelet/mods) for AI integration.
 Navigate entirely from your keyboard:
 
 ```bash
-zen control
+inspekt control
 # Use Tab, Enter, Arrow keys to navigate
 # Press 'q' to quit
 ```
@@ -280,13 +280,13 @@ zen control
 Watch browser activity:
 
 ```bash
-zen watch input  # Monitor keyboard input
-zen watch all    # Monitor all interactions
+inspekt watch input  # Monitor keyboard input
+inspekt watch all    # Monitor all interactions
 ```
 
 ## Architecture Benefits
 
-Zen Bridge follows a **hexagonal architecture** with clear separation of concerns:
+Inspekt follows a **hexagonal architecture** with clear separation of concerns:
 
 - **Domain Layer** - Pure business logic with Pydantic models
 - **Adapter Layer** - I/O operations (filesystem, WebSocket)
@@ -304,7 +304,7 @@ See [Architecture Guide](../development/architecture.md) for technical details.
 
 ## Getting Started
 
-Ready to try Zen Bridge? Check out these guides:
+Ready to try Inspekt? Check out these guides:
 
 1. **[Basic Commands](basic-commands.md)** - Start here for essential commands
 2. **[JavaScript Execution](javascript-execution.md)** - Master code execution
@@ -316,17 +316,17 @@ Ready to try Zen Bridge? Check out these guides:
 
 ## Next Steps
 
-1. Install Zen Bridge and the userscript (see [Installation guide](../getting-started/installation.md))
-2. Start the server: `zen server start --daemon`
-3. Try basic commands: `zen eval "document.title"`
+1. Install Inspekt and the userscript (see [Installation guide](../getting-started/installation.md))
+2. Start the server: `inspekt server start --daemon`
+3. Try basic commands: `inspekt eval "document.title"`
 4. Explore the guides above
 5. Check out the [API Reference](../api/commands.md) for complete documentation
 
 ## Getting Help
 
-- Run `zen --help` to see all commands
-- Run `zen <command> --help` for command-specific help
-- Check the [GitHub Issues](https://github.com/roelvangils/zen-bridge/issues) for known issues
+- Run `inspekt --help` to see all commands
+- Run `inspekt <command> --help` for command-specific help
+- Check the [GitHub Issues](https://github.com/roelvangils/inspekt/issues) for known issues
 - Read the [Contributing Guide](../development/contributing.md) to contribute
 
-Welcome to Zen Bridge - control your browser from the command line!
+Welcome to Inspekt - control your browser from the command line!

@@ -62,6 +62,11 @@ class ContentCache:
                 "similarity_threshold": 0.90,
                 "max_entries": 50,
             },
+            "ask": {
+                "enabled": True,
+                "ttl_hours": 1,
+                "max_entries": 200,
+            },
         }
 
     def _init_database(self):
@@ -145,6 +150,25 @@ class ContentCache:
         }
         return json.dumps(fingerprint, sort_keys=True)
 
+    def create_ask_fingerprint(self, question: str) -> str:
+        """
+        Create a fingerprint for an ask command.
+
+        For ask, the fingerprint is simply the question itself.
+        """
+        fingerprint = {
+            "question": question,
+        }
+        return json.dumps(fingerprint, sort_keys=True)
+
+    def get_question_hash(self, question: str) -> str:
+        """
+        Get a hash of the question for use as cache key.
+
+        This is used in the language field for ask command caching.
+        """
+        return hashlib.sha256(question.encode()).hexdigest()[:16]
+
     def calculate_similarity(self, fingerprint1: str, fingerprint2: str, command: str) -> float:
         """
         Calculate similarity between two fingerprints.
@@ -159,6 +183,8 @@ class ContentCache:
                 return self._calculate_describe_similarity(fp1, fp2)
             elif command == "summarize":
                 return self._calculate_summarize_similarity(fp1, fp2)
+            elif command == "ask":
+                return self._calculate_ask_similarity(fp1, fp2)
             else:
                 return 0.0
         except Exception:
@@ -241,6 +267,11 @@ class ContentCache:
         )
         return similarity
 
+    def _calculate_ask_similarity(self, fp1: dict, fp2: dict) -> float:
+        """Calculate similarity for ask questions (exact match only)."""
+        # For ask, we require exact question match
+        return 1.0 if fp1.get("question") == fp2.get("question") else 0.0
+
     def get_cached_content(
         self, url: str, command: str, current_fingerprint: str, language: str = "auto"
     ) -> dict | None:
@@ -275,8 +306,8 @@ class ContentCache:
 
             # Check if cache is fresh
             command_config = self.config.get(command, {})
-            if command == "describe":
-                ttl_seconds = command_config.get("ttl_hours", 12) * 3600
+            if command == "describe" or command == "ask":
+                ttl_seconds = command_config.get("ttl_hours", 12 if command == "describe" else 1) * 3600
             else:  # summarize
                 ttl_seconds = command_config.get("ttl_days", 7) * 86400
 
@@ -285,7 +316,12 @@ class ContentCache:
 
             # Check similarity
             similarity = self.calculate_similarity(cached_fingerprint, current_fingerprint, command)
-            threshold = command_config.get("similarity_threshold", 0.85 if command == "describe" else 0.90)
+
+            # For ask, require exact match (threshold 1.0)
+            if command == "ask":
+                threshold = 1.0
+            else:
+                threshold = command_config.get("similarity_threshold", 0.85 if command == "describe" else 0.90)
 
             if similarity < threshold:
                 return None
@@ -408,7 +444,7 @@ class ContentCache:
                 }
             else:
                 # Stats for all commands
-                for cmd in ["describe", "summarize"]:
+                for cmd in ["describe", "summarize", "ask"]:
                     cursor.execute(
                         """
                         SELECT COUNT(*), SUM(hit_count), AVG(hit_count)

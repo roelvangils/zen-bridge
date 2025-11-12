@@ -1,17 +1,17 @@
 # JavaScript Execution
 
-Master JavaScript execution in Zen Bridge. Learn inline code execution, file execution, stdin piping, timeout handling, error handling, output formatting, and advanced patterns.
+Master JavaScript execution in Inspekt. Learn inline code execution, file execution, stdin piping, timeout handling, error handling, output formatting, and advanced patterns.
 
 ## Execution Methods
 
-Zen Bridge offers three ways to execute JavaScript code in your browser.
+Inspekt offers three ways to execute JavaScript code in your browser.
 
 ### 1. Inline Code Execution
 
 Execute code directly from the command line:
 
 ```bash
-zen eval "document.title"
+inspekt eval "document.title"
 ```
 
 **Best for:**
@@ -24,9 +24,9 @@ zen eval "document.title"
 Execute code from JavaScript files:
 
 ```bash
-zen eval --file script.js
+inspekt eval --file script.js
 # or
-zen exec script.js
+inspekt exec script.js
 ```
 
 **Best for:**
@@ -39,8 +39,8 @@ zen exec script.js
 Pipe code from stdin:
 
 ```bash
-cat script.js | zen eval
-echo "document.title" | zen eval
+cat script.js | inspekt eval
+echo "document.title" | inspekt eval
 ```
 
 **Best for:**
@@ -56,32 +56,32 @@ echo "document.title" | zen eval
 
 ```bash
 # Get page title
-zen eval "document.title"
+inspekt eval "document.title"
 
 # Get URL
-zen eval "window.location.href"
+inspekt eval "window.location.href"
 
 # Count elements
-zen eval "document.querySelectorAll('a').length"
+inspekt eval "document.querySelectorAll('a').length"
 
 # Check if element exists
-zen eval "document.querySelector('.modal') !== null"
+inspekt eval "document.querySelector('.modal') !== null"
 ```
 
 ### Complex Expressions
 
 ```bash
 # Array operations
-zen eval "Array.from(document.links).map(a => a.href)"
+inspekt eval "Array.from(document.links).map(a => a.href)"
 
 # Object literals (wrap in parentheses)
-zen eval "({title: document.title, url: location.href})"
+inspekt eval "({title: document.title, url: location.href})"
 
 # Filter and map
-zen eval "Array.from(document.querySelectorAll('img')).filter(img => img.alt).map(img => img.src)"
+inspekt eval "Array.from(document.querySelectorAll('img')).filter(img => img.alt).map(img => img.src)"
 
 # Reduce
-zen eval "Array.from(document.links).reduce((acc, link) => acc + link.textContent.length, 0)"
+inspekt eval "Array.from(document.links).reduce((acc, link) => acc + link.textContent.length, 0)"
 ```
 
 ### Multi-line Code
@@ -89,7 +89,7 @@ zen eval "Array.from(document.links).reduce((acc, link) => acc + link.textConten
 Use newlines and proper JavaScript syntax:
 
 ```bash
-zen eval "
+inspekt eval "
   const products = document.querySelectorAll('.product');
   const data = Array.from(products).map(p => ({
     name: p.querySelector('.name').textContent,
@@ -110,16 +110,16 @@ Shell quoting can be tricky. Here are the rules:
 
 ```bash
 # Double quotes - escape inner double quotes
-zen eval "document.querySelector(\"h1\").textContent"
+inspekt eval "document.querySelector(\"h1\").textContent"
 
 # Single quotes in double quotes - no escaping needed
-zen eval "document.querySelector('h1').textContent"
+inspekt eval "document.querySelector('h1').textContent"
 
 # Backticks for template literals - use single quotes outside
-zen eval 'document.querySelector("h1").textContent = `Hello ${name}`'
+inspekt eval 'document.querySelector("h1").textContent = `Hello ${name}`'
 
 # Heredoc for complex quoting
-zen eval <<'EOF'
+inspekt eval <<'EOF'
 const selector = 'div[data-value="complex"]';
 const element = document.querySelector(selector);
 return element?.textContent;
@@ -145,9 +145,9 @@ return links.map(link => ({
 
 **Execute:**
 ```bash
-zen exec script.js
+inspekt exec script.js
 # or
-zen eval --file script.js
+inspekt eval --file script.js
 ```
 
 ### File with Modules
@@ -181,26 +181,26 @@ return {
 
 ### Built-in Scripts
 
-Zen Bridge includes several ready-to-use scripts in the `zen/scripts/` directory:
+Inspekt includes several ready-to-use scripts in the `zen/scripts/` directory:
 
 ```bash
 # Extract all images
-zen exec zen/scripts/extract_images.js
+inspekt exec zen/scripts/extract_images.js
 
 # Extract table data
-zen exec zen/scripts/extract_table.js
+inspekt exec zen/scripts/extract_table.js
 
 # Get SEO metadata
-zen exec zen/scripts/extract_metadata.js
+inspekt exec zen/scripts/extract_metadata.js
 
 # Performance metrics
-zen exec zen/scripts/performance_metrics.js
+inspekt exec zen/scripts/performance_metrics.js
 
 # Inject jQuery
-zen exec zen/scripts/inject_jquery.js
+inspekt exec zen/scripts/inject_jquery.js
 
 # Highlight elements
-zen exec zen/scripts/highlight_selector.js
+inspekt exec zen/scripts/highlight_selector.js
 ```
 
 ### Creating Your Own Scripts
@@ -222,7 +222,7 @@ return prices.map(p => ({
 
 **3. Execute:**
 ```bash
-zen exec ~/zen-scripts/extract-prices.js --format json
+inspekt exec ~/zen-scripts/extract-prices.js --format json
 ```
 
 ---
@@ -232,13 +232,13 @@ zen exec ~/zen-scripts/extract-prices.js --format json
 ### Pipe from Files
 
 ```bash
-cat script.js | zen eval
+cat script.js | inspekt eval
 ```
 
 ### Pipe from echo
 
 ```bash
-echo "document.title" | zen eval
+echo "document.title" | inspekt eval
 ```
 
 ### Generate Code Dynamically
@@ -246,10 +246,10 @@ echo "document.title" | zen eval
 ```bash
 # Generate selector from variable
 SELECTOR=".product"
-echo "document.querySelectorAll('$SELECTOR').length" | zen eval
+echo "document.querySelectorAll('$SELECTOR').length" | inspekt eval
 
 # Generate complex code
-cat <<EOF | zen eval
+cat <<EOF | inspekt eval
 const selector = '$SELECTOR';
 const elements = document.querySelectorAll(selector);
 return Array.from(elements).length;
@@ -260,10 +260,10 @@ EOF
 
 ```bash
 # Extract, filter, execute
-grep -v "^//" script.js | zen eval
+grep -v "^//" script.js | inspekt eval
 
 # Combine multiple commands
-echo "document.links.length" | zen eval | awk '{print "Found " $1 " links"}'
+echo "document.links.length" | inspekt eval | awk '{print "Found " $1 " links"}'
 ```
 
 ---
@@ -275,7 +275,7 @@ echo "document.links.length" | zen eval | awk '{print "Found " $1 " links"}'
 Commands timeout after **10 seconds** by default:
 
 ```bash
-zen eval "document.title"  # 10 second timeout
+inspekt eval "document.title"  # 10 second timeout
 ```
 
 ### Custom Timeout
@@ -284,20 +284,20 @@ Adjust for slow operations:
 
 ```bash
 # 30 second timeout
-zen eval "await fetch('/api/data').then(r => r.json())" --timeout 30
+inspekt eval "await fetch('/api/data').then(r => r.json())" --timeout 30
 
 # 5 second timeout (strict)
-zen eval "document.title" --timeout 5
+inspekt eval "document.title" --timeout 5
 
 # 60 second timeout (very slow operations)
-zen eval "await heavyComputation()" --timeout 60
+inspekt eval "await heavyComputation()" --timeout 60
 ```
 
 ### Timeout Examples
 
 **Long-running API call:**
 ```bash
-zen eval "
+inspekt eval "
   const response = await fetch('/api/large-dataset');
   const data = await response.json();
   return data.items.length;
@@ -306,7 +306,7 @@ zen eval "
 
 **Wait for lazy-loaded content:**
 ```bash
-zen eval "
+inspekt eval "
   // Scroll to load content
   for (let i = 0; i < 10; i++) {
     window.scrollTo(0, document.body.scrollHeight);
@@ -339,7 +339,7 @@ Error: Request timed out after 10 seconds
 Runtime errors are caught and displayed:
 
 ```bash
-zen eval "document.querySelector('.missing').click()"
+inspekt eval "document.querySelector('.missing').click()"
 ```
 
 **Output:**
@@ -353,7 +353,7 @@ TypeError: Cannot read property 'click' of null
 Invalid JavaScript is caught:
 
 ```bash
-zen eval "document..title"
+inspekt eval "document..title"
 ```
 
 **Output:**
@@ -366,7 +366,7 @@ SyntaxError: Unexpected token '.'
 Use try-catch for graceful error handling:
 
 ```bash
-zen eval "
+inspekt eval "
   try {
     const element = document.querySelector('.maybe-exists');
     return element.textContent;
@@ -382,13 +382,13 @@ Use optional chaining and nullish coalescing:
 
 ```bash
 # Optional chaining
-zen eval "document.querySelector('.modal')?.textContent"
+inspekt eval "document.querySelector('.modal')?.textContent"
 
 # Nullish coalescing
-zen eval "document.querySelector('.price')?.textContent ?? 'N/A'"
+inspekt eval "document.querySelector('.price')?.textContent ?? 'N/A'"
 
 # Combined
-zen eval "document.querySelector('.product')?.querySelector('.price')?.textContent ?? 'No price'"
+inspekt eval "document.querySelector('.product')?.querySelector('.price')?.textContent ?? 'No price'"
 ```
 
 ### Validation
@@ -396,7 +396,7 @@ zen eval "document.querySelector('.product')?.querySelector('.price')?.textConte
 Validate before operating:
 
 ```bash
-zen eval "
+inspekt eval "
   const element = document.querySelector('.submit-btn');
   if (!element) {
     return { error: 'Button not found' };
@@ -425,10 +425,10 @@ Control output format with the `--format` flag:
 Intelligently formats output:
 
 ```bash
-zen eval "document.title"
+inspekt eval "document.title"
 # Output: Example Domain (plain text)
 
-zen eval "({title: document.title, url: location.href})"
+inspekt eval "({title: document.title, url: location.href})"
 # Output: Pretty-printed JSON
 ```
 
@@ -437,16 +437,16 @@ zen eval "({title: document.title, url: location.href})"
 Always outputs valid JSON:
 
 ```bash
-zen eval "document.title" --format json
+inspekt eval "document.title" --format json
 # Output: "Example Domain"
 
-zen eval "({title: document.title, links: document.links.length})" --format json
+inspekt eval "({title: document.title, links: document.links.length})" --format json
 # Output: {"title":"Example Domain","links":15}
 ```
 
 **Perfect for `jq`:**
 ```bash
-zen eval "({title: document.title, url: location.href})" --format json | jq '.title'
+inspekt eval "({title: document.title, url: location.href})" --format json | jq '.title'
 # Output: "Example Domain"
 ```
 
@@ -455,17 +455,17 @@ zen eval "({title: document.title, url: location.href})" --format json | jq '.ti
 No formatting - just the value:
 
 ```bash
-zen eval "document.title" --format raw
+inspekt eval "document.title" --format raw
 # Output: Example Domain
 
-zen eval "document.links.length" --format raw
+inspekt eval "document.links.length" --format raw
 # Output: 15
 ```
 
 **Perfect for shell variables:**
 ```bash
-TITLE=$(zen eval "document.title" --format raw)
-COUNT=$(zen eval "document.links.length" --format raw)
+TITLE=$(inspekt eval "document.title" --format raw)
+COUNT=$(inspekt eval "document.links.length" --format raw)
 echo "$COUNT links on $TITLE"
 ```
 
@@ -475,13 +475,13 @@ Add context to output:
 
 ```bash
 # Add URL
-zen eval "document.title" --url
+inspekt eval "document.title" --url
 
 # Add title
-zen eval "document.links.length" --title
+inspekt eval "document.links.length" --title
 
 # Add both
-zen eval "document.links.length" --url --title
+inspekt eval "document.links.length" --url --title
 ```
 
 **Output:**
@@ -502,17 +502,17 @@ Full support for promises and async/await:
 
 ```bash
 # Fetch API
-zen eval "await fetch('/api/data').then(r => r.json())"
+inspekt eval "await fetch('/api/data').then(r => r.json())"
 
 # Multiple awaits
-zen eval "
+inspekt eval "
   const response = await fetch('/api/users');
   const users = await response.json();
   return users.length;
 "
 
 # Promise.all
-zen eval "
+inspekt eval "
   const promises = Array.from({length: 5}, (_, i) =>
     fetch(\`/api/item/\${i}\`).then(r => r.json())
   );
@@ -524,32 +524,32 @@ zen eval "
 
 ```bash
 # Map
-zen eval "Array.from(document.querySelectorAll('a')).map(a => a.href)"
+inspekt eval "Array.from(document.querySelectorAll('a')).map(a => a.href)"
 
 # Filter
-zen eval "Array.from(document.links).filter(a => a.hostname === location.hostname)"
+inspekt eval "Array.from(document.links).filter(a => a.hostname === location.hostname)"
 
 # Reduce
-zen eval "Array.from(document.images).reduce((sum, img) => sum + img.naturalWidth, 0)"
+inspekt eval "Array.from(document.images).reduce((sum, img) => sum + img.naturalWidth, 0)"
 
 # Find
-zen eval "Array.from(document.links).find(a => a.textContent.includes('Contact'))"
+inspekt eval "Array.from(document.links).find(a => a.textContent.includes('Contact'))"
 
 # Some/Every
-zen eval "Array.from(document.images).every(img => img.alt)"
+inspekt eval "Array.from(document.images).every(img => img.alt)"
 ```
 
 ### Working with Objects
 
 ```bash
 # Object.keys
-zen eval "Object.keys(window)"
+inspekt eval "Object.keys(window)"
 
 # Object.entries
-zen eval "Object.entries(localStorage).map(([k,v]) => ({key: k, value: v}))"
+inspekt eval "Object.entries(localStorage).map(([k,v]) => ({key: k, value: v}))"
 
 # Destructuring
-zen eval "
+inspekt eval "
   const {title, URL: url} = document;
   return {title, url};
 "
@@ -559,23 +559,23 @@ zen eval "
 
 ```bash
 # Parent
-zen eval "document.querySelector('.child').parentElement.tagName"
+inspekt eval "document.querySelector('.child').parentElement.tagName"
 
 # Children
-zen eval "Array.from(document.body.children).map(el => el.tagName)"
+inspekt eval "Array.from(document.body.children).map(el => el.tagName)"
 
 # Siblings
-zen eval "document.querySelector('h1').nextElementSibling?.tagName"
+inspekt eval "document.querySelector('h1').nextElementSibling?.tagName"
 
 # Closest
-zen eval "document.querySelector('.nested').closest('.container')?.className"
+inspekt eval "document.querySelector('.nested').closest('.container')?.className"
 ```
 
 ### Performance Optimization
 
 **Cache selectors:**
 ```bash
-zen eval "
+inspekt eval "
   const products = document.querySelectorAll('.product');
   return Array.from(products).map(p => {
     // Reuse 'p' instead of querying again
@@ -589,7 +589,7 @@ zen eval "
 
 **Use document fragments:**
 ```bash
-zen eval "
+inspekt eval "
   const fragment = document.createDocumentFragment();
   for (let i = 0; i < 100; i++) {
     const div = document.createElement('div');
@@ -605,7 +605,7 @@ zen eval "
 
 **CSV Generation:**
 ```bash
-zen eval "
+inspekt eval "
   const rows = Array.from(document.querySelectorAll('table tr'));
   return rows.map(row =>
     Array.from(row.cells).map(cell => cell.textContent).join(',')
@@ -615,7 +615,7 @@ zen eval "
 
 **JSON Transformation:**
 ```bash
-zen eval "
+inspekt eval "
   const links = Array.from(document.links);
   return links.reduce((acc, link) => {
     acc[link.textContent] = link.href;
@@ -629,23 +629,23 @@ zen eval "
 **Store data globally:**
 ```bash
 # Set
-zen eval "window.zenData = {extracted: Date.now(), items: [1,2,3]}"
+inspekt eval "window.zenData = {extracted: Date.now(), items: [1,2,3]}"
 
 # Get
-zen eval "window.zenData"
+inspekt eval "window.zenData"
 
 # Update
-zen eval "window.zenData.items.push(4); window.zenData"
+inspekt eval "window.zenData.items.push(4); window.zenData"
 ```
 
 ### Console Integration
 
 ```bash
 # Log to browser console
-zen eval "console.log('Debug:', document.title); document.title"
+inspekt eval "console.log('Debug:', document.title); document.title"
 
 # Console table
-zen eval "
+inspekt eval "
   const data = Array.from(document.links).slice(0, 5).map(a => ({
     text: a.textContent,
     href: a.href
@@ -655,7 +655,7 @@ zen eval "
 "
 
 # Console time
-zen eval "
+inspekt eval "
   console.time('query');
   const result = document.querySelectorAll('*').length;
   console.timeEnd('query');
@@ -667,28 +667,28 @@ zen eval "
 
 **Local Storage:**
 ```bash
-zen eval "localStorage.getItem('token')"
-zen eval "localStorage.setItem('key', 'value')"
-zen eval "Object.keys(localStorage)"
+inspekt eval "localStorage.getItem('token')"
+inspekt eval "localStorage.setItem('key', 'value')"
+inspekt eval "Object.keys(localStorage)"
 ```
 
 **Cookies:**
 ```bash
-zen eval "document.cookie"
-zen eval "document.cookie.split(';').length"
+inspekt eval "document.cookie"
+inspekt eval "document.cookie.split(';').length"
 ```
 
 **Performance API:**
 ```bash
-zen eval "performance.now()"
-zen eval "performance.memory.usedJSHeapSize"
-zen eval "performance.timing.loadEventEnd - performance.timing.navigationStart"
+inspekt eval "performance.now()"
+inspekt eval "performance.memory.usedJSHeapSize"
+inspekt eval "performance.timing.loadEventEnd - performance.timing.navigationStart"
 ```
 
 **Clipboard API:**
 ```bash
-zen eval "await navigator.clipboard.readText()"
-zen eval "await navigator.clipboard.writeText('Hello from CLI')"
+inspekt eval "await navigator.clipboard.readText()"
+inspekt eval "await navigator.clipboard.writeText('Hello from CLI')"
 ```
 
 ---
@@ -699,7 +699,7 @@ zen eval "await navigator.clipboard.writeText('Hello from CLI')"
 
 ```bash
 # Good - structured return
-zen eval "
+inspekt eval "
   return {
     success: true,
     count: document.links.length,
@@ -708,7 +708,7 @@ zen eval "
 "
 
 # Avoid - multiple console.logs
-zen eval "
+inspekt eval "
   console.log('Links:', document.links.length);
   console.log('Images:', document.images.length);
 "
@@ -718,14 +718,14 @@ zen eval "
 
 ```bash
 # Good
-zen eval "
+inspekt eval "
   const productElements = document.querySelectorAll('.product');
   const productData = Array.from(productElements).map(extractProductInfo);
   return productData;
 "
 
 # Avoid
-zen eval "
+inspekt eval "
   const a = document.querySelectorAll('.product');
   const b = Array.from(a).map(c => extractProductInfo(c));
   return b;
@@ -735,7 +735,7 @@ zen eval "
 ### 3. Handle Edge Cases
 
 ```bash
-zen eval "
+inspekt eval "
   const element = document.querySelector('.may-not-exist');
   if (!element) {
     return { error: 'Element not found' };
@@ -747,7 +747,7 @@ zen eval "
 ### 4. Comment Complex Code
 
 ```bash
-zen eval "
+inspekt eval "
   // Extract all external links
   const allLinks = Array.from(document.querySelectorAll('a'));
 
@@ -795,7 +795,7 @@ Open browser console while running commands to see:
 ### 2. Test in REPL First
 
 ```bash
-zen repl
+inspekt repl
 zen> document.querySelector('.complex-selector')
 zen> Array.from(document.querySelectorAll('.items')).length
 zen> exit
@@ -805,19 +805,19 @@ zen> exit
 
 ```bash
 # Step 1: Test selector
-zen eval "document.querySelectorAll('.product').length"
+inspekt eval "document.querySelectorAll('.product').length"
 
 # Step 2: Test extraction
-zen eval "document.querySelector('.product .name').textContent"
+inspekt eval "document.querySelector('.product .name').textContent"
 
 # Step 3: Combine
-zen eval "Array.from(document.querySelectorAll('.product')).map(p => p.querySelector('.name').textContent)"
+inspekt eval "Array.from(document.querySelectorAll('.product')).map(p => p.querySelector('.name').textContent)"
 ```
 
 ### 4. Add Debug Output
 
 ```bash
-zen eval "
+inspekt eval "
   console.log('Starting extraction...');
   const products = document.querySelectorAll('.product');
   console.log('Found products:', products.length);
@@ -839,14 +839,14 @@ zen eval "
 
 ```bash
 # Wrong - no return
-zen eval "
+inspekt eval "
   const links = document.querySelectorAll('a');
   links.length;
 "
 # Output: undefined
 
 # Correct
-zen eval "
+inspekt eval "
   const links = document.querySelectorAll('a');
   return links.length;
 "
@@ -857,11 +857,11 @@ zen eval "
 
 ```bash
 # Wrong - returns Promise
-zen eval "fetch('/api/data').then(r => r.json())"
+inspekt eval "fetch('/api/data').then(r => r.json())"
 # Output: [object Promise]
 
 # Correct - await the promise
-zen eval "await fetch('/api/data').then(r => r.json())"
+inspekt eval "await fetch('/api/data').then(r => r.json())"
 # Output: {data: [...]}
 ```
 
@@ -869,20 +869,20 @@ zen eval "await fetch('/api/data').then(r => r.json())"
 
 ```bash
 # Wrong - quote mismatch
-zen eval 'document.querySelector("div[data-id="123"]")'
+inspekt eval 'document.querySelector("div[data-id="123"]")'
 
 # Correct - escape or use heredoc
-zen eval "document.querySelector(\"div[data-id='123']\")"
+inspekt eval "document.querySelector(\"div[data-id='123']\")"
 ```
 
 ### 4. Not Checking Null
 
 ```bash
 # Wrong - may throw error
-zen eval "document.querySelector('.missing').click()"
+inspekt eval "document.querySelector('.missing').click()"
 
 # Correct - check first
-zen eval "document.querySelector('.missing')?.click() ?? 'Element not found'"
+inspekt eval "document.querySelector('.missing')?.click() ?? 'Element not found'"
 ```
 
 ---

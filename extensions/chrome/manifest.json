@@ -1,0 +1,46 @@
+{
+  "manifest_version": 3,
+  "name": "Inspekt",
+  "version": "4.2.1",
+  "description": "Browser automation and inspection from the command line. Inspect elements, navigate pages, and control your browser via CLI.",
+
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+
+  "host_permissions": [
+    "<all_urls>"
+  ],
+
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["permissions.js", "content.js"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ],
+
+  "action": {
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png"
+    },
+    "default_title": "Inspekt",
+    "default_popup": "popup/popup.html"
+  },
+
+  "devtools_page": "devtools.html"
+}

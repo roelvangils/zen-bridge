@@ -1,6 +1,6 @@
 # Permanent Installation Guide
 
-This guide explains how to install the Zen Browser Bridge extension permanently in Firefox.
+This guide explains how to install the Inspekt extension permanently in Firefox.
 
 ## Quick Answer
 
@@ -141,7 +141,7 @@ Use this for public distribution on the official store:
 2. Choose "On this site" (listed)
 3. Upload `build/zen-browser-bridge-4.0.0.zip`
 4. Fill out listing information:
-   - Name: Zen Browser Bridge
+   - Name: Inspekt
    - Summary: Execute JavaScript in your browser from the command line
    - Categories: Developer Tools
    - Support email/website
@@ -268,14 +268,14 @@ Once you have the extension permanently installed:
 
 1. **Start the server:**
    ```bash
-   zen server start
+   inspektserver start
    ```
 
 2. **Test on a CSP-protected site:**
    ```bash
    # Open github.com in your browser, then:
-   zen info
-   zen eval "document.title"
+   inspektinfo
+   inspekteval "document.title"
    ```
 
 3. **Enjoy CSP bypass on all websites!** ⚡

@@ -3,16 +3,16 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "zen-bridge"
+name = "inspekt"
 version = "1.0.0"
-description = "Execute JavaScript in your browser from the command line"
+description = "Browser automation and inspection from the command line"
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
 authors = [
     {name = "Roel van Gils", email = "roel@example.com"}
 ]
-keywords = ["browser", "automation", "javascript", "cli", "development-tools"]
+keywords = ["browser", "automation", "javascript", "cli", "development-tools", "inspection", "accessibility"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
@@ -56,12 +56,12 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/roelvangils/zen-bridge"
-Repository = "https://github.com/roelvangils/zen-bridge"
-Issues = "https://github.com/roelvangils/zen-bridge/issues"
+Homepage = "https://github.com/roelvangils/inspekt"
+Repository = "https://github.com/roelvangils/inspekt"
+Issues = "https://github.com/roelvangils/inspekt/issues"
 
 [project.scripts]
-zen = "zen.app.cli:main"
+inspekt = "zen.app.cli:main"
 
 [tool.setuptools]
 packages = ["zen"]

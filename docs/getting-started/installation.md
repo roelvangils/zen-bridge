@@ -1,6 +1,6 @@
 # Installation
 
-This comprehensive guide will walk you through installing Zen Browser Bridge on your system, from installing Python dependencies to setting up the browser userscript and verifying everything works correctly.
+This comprehensive guide will walk you through installing Inspekt on your system, from installing Python dependencies to setting up the browser userscript and verifying everything works correctly.
 
 ## Installation Flow
 
@@ -51,7 +51,7 @@ Before you begin, ensure you have the following:
 
 ## Step 1: Install the CLI Tool
 
-You can install Zen Browser Bridge from source (recommended for development) or via pip (when available).
+You can install Inspekt from source (recommended for development) or via pip (when available).
 
 === "From Source (Recommended)"
 
@@ -59,8 +59,8 @@ You can install Zen Browser Bridge from source (recommended for development) or 
 
     ```bash
     # Clone the repository
-    git clone https://github.com/roelvangils/zen-bridge.git
-    cd zen-bridge
+    git clone https://github.com/roelvangils/inspekt.git
+    cd inspekt
 
     # Install in development mode
     pip install -e .
@@ -74,8 +74,8 @@ You can install Zen Browser Bridge from source (recommended for development) or 
 
     ```bash
     # Clone the repository
-    git clone https://github.com/roelvangils/zen-bridge.git
-    cd zen-bridge
+    git clone https://github.com/roelvangils/inspekt.git
+    cd inspekt
 
     # Install dependencies
     pip install -r requirements.txt
@@ -87,8 +87,8 @@ You can install Zen Browser Bridge from source (recommended for development) or 
 
     ```bash
     # Clone the repository
-    git clone https://github.com/roelvangils/zen-bridge.git
-    cd zen-bridge
+    git clone https://github.com/roelvangils/inspekt.git
+    cd inspekt
 
     # Install with dev dependencies
     pip install -e ".[dev]"
@@ -101,19 +101,19 @@ You can install Zen Browser Bridge from source (recommended for development) or 
 After installation, verify the `zen` command is available:
 
 ```bash
-zen --version
+inspekt--version
 ```
 
 You should see output like:
 
 ```
-Zen Browser Bridge v2.0.0
+Inspekt v2.0.0
 ```
 
 Run the help command to see available commands:
 
 ```bash
-zen --help
+inspekt--help
 ```
 
 !!! success "Installation Complete"
@@ -138,7 +138,7 @@ The Firefox extension provides **full compatibility** with all websites, includi
 
 1. **Download the extension files** from the repository:
    ```bash
-   cd /path/to/zen-bridge
+   cd /path/to/inspekt
    cd extensions/firefox
    ```
 
@@ -216,7 +216,7 @@ First, install a userscript manager extension in your browser:
 Display the userscript code using the CLI:
 
 ```bash
-zen userscript
+inspektuserscript
 ```
 
 This will output the complete userscript code to your terminal. The userscript is located at `/Users/roelvangils/zen_bridge/userscript_ws.js` in the repository.
@@ -228,7 +228,7 @@ Now create a new userscript in your userscript manager:
 1. **Click the userscript manager icon** in your browser toolbar
 2. **Create a new script** (usually a "+" or "New Script" button)
 3. **Delete any default content** in the editor
-4. **Paste the userscript code** from the `zen userscript` command
+4. **Paste the userscript code** from the `inspektuserscript` command
 5. **Save the script** (usually ++ctrl+s++ or ++cmd+s++)
 
 The userscript will automatically enable itself.
@@ -236,12 +236,12 @@ The userscript will automatically enable itself.
 !!! tip "Quick Copy"
     To copy the userscript to your clipboard (macOS):
     ```bash
-    zen userscript | pbcopy
+    inspektuserscript | pbcopy
     ```
 
     Or save it to a file:
     ```bash
-    zen userscript > my-userscript.js
+    inspektuserscript > my-userscript.js
     ```
 
 #### 2.4b Verify Userscript is Active
@@ -270,19 +270,19 @@ You can start the server in foreground or background mode:
     **Recommended for normal use:**
 
     ```bash
-    zen server start --daemon
+    inspektserver start --daemon
     ```
 
     The server runs in the background. You can close your terminal and it will keep running.
 
     Check server status:
     ```bash
-    zen server status
+    inspektserver status
     ```
 
     Stop the server:
     ```bash
-    zen server stop
+    inspektserver stop
     ```
 
 === "Foreground Mode"
@@ -290,7 +290,7 @@ You can start the server in foreground or background mode:
     **Useful for debugging:**
 
     ```bash
-    zen server start
+    inspektserver start
     ```
 
     The server runs in the foreground with live log output. Press ++ctrl+c++ to stop.
@@ -318,7 +318,7 @@ The server uses two ports:
 Check the server status:
 
 ```bash
-zen server status
+inspektserver status
 ```
 
 Expected output when running:
@@ -358,7 +358,7 @@ Connected to Zen Bridge WebSocket server
 From your terminal, run a simple command:
 
 ```bash
-zen eval "document.title"
+inspekteval "document.title"
 ```
 
 Expected output:
@@ -376,20 +376,20 @@ If you see the page title, congratulations! Everything is working correctly.
 
 ```bash
 # Get page information
-zen info
+inspektinfo
 
 # Get the current URL
-zen eval "location.href"
+inspekteval "location.href"
 
 # Count links on the page
-zen eval "document.querySelectorAll('a').length"
+inspekteval "document.querySelectorAll('a').length"
 
 # Start interactive REPL
-zen repl
+inspektrepl
 ```
 
 !!! success "Setup Complete!"
-    You've successfully installed Zen Browser Bridge! Check out the [Quick Start Guide](quick-start.md) for a hands-on tutorial.
+    You've successfully installed Inspekt! Check out the [Quick Start Guide](quick-start.md) for a hands-on tutorial.
 
 ---
 
@@ -404,7 +404,7 @@ zen repl
 === "Check Installation"
     ```bash
     # Verify installation
-    pip show zen-bridge
+    pip show inspekt
 
     # Reinstall if needed
     pip install -e .
@@ -433,18 +433,18 @@ zen repl
 
 1. **Start the server**:
    ```bash
-   zen server start --daemon
+   inspektserver start --daemon
    ```
 
 2. **Check if server is running**:
    ```bash
-   zen server status
+   inspektserver status
    ```
 
 3. **Restart the server**:
    ```bash
-   zen server stop
-   zen server start --daemon
+   inspektserver stop
+   inspektserver start --daemon
    ```
 
 4. **Check for port conflicts**:
@@ -476,12 +476,12 @@ zen repl
 4. **Restart everything**:
    ```bash
    # Stop server
-   zen server stop
+   inspektserver stop
 
    # Restart browser (to reload userscript)
 
    # Start server
-   zen server start --daemon
+   inspektserver start --daemon
    ```
 
 5. **Check WebSocket connection manually**
@@ -499,7 +499,7 @@ zen repl
 
 1. **Increase timeout**:
    ```bash
-   zen eval "slow_operation()" --timeout 30
+   inspekteval "slow_operation()" --timeout 30
    ```
 
 2. **Check if tab is active**:
@@ -518,7 +518,7 @@ zen repl
 
 1. **Verify server is running**:
    ```bash
-   zen server status
+   inspektserver status
    ```
 
 2. **Check firewall settings**:
@@ -557,22 +557,22 @@ zen repl
 
 ## Uninstallation
 
-To uninstall Zen Browser Bridge:
+To uninstall Inspekt:
 
 ### 1. Stop the Server
 
 ```bash
-zen server stop
+inspektserver stop
 ```
 
 ### 2. Uninstall the Package
 
 ```bash
 # If installed with pip
-pip uninstall zen-bridge
+pip uninstall inspekt
 
 # If installed from source, just delete the directory
-rm -rf ~/zen-bridge
+rm -rf ~/inspekt
 ```
 
 ### 3. Remove Browser Userscript
@@ -585,7 +585,7 @@ rm -rf ~/zen-bridge
 
 ## Next Steps
 
-Now that you have Zen Browser Bridge installed, continue with:
+Now that you have Inspekt installed, continue with:
 
 - **[Quick Start Guide](quick-start.md)** - 5-minute hands-on tutorial
 - **[Configuration](configuration.md)** - Customize your setup
@@ -595,6 +595,6 @@ Now that you have Zen Browser Bridge installed, continue with:
 
 ## Additional Resources
 
-- **[GitHub Repository](https://github.com/roelvangils/zen-bridge)** - Source code and issues
+- **[GitHub Repository](https://github.com/roelvangils/inspekt)** - Source code and issues
 - **[Architecture Guide](../development/architecture.md)** - How Zen Bridge works internally
 - **[Security Guide](../development/security.md)** - Security model and best practices

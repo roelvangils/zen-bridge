@@ -1,6 +1,6 @@
 # Internationalization (i18n) Configuration
 
-This directory contains multilingual support configuration for the `zen do` command.
+This directory contains multilingual support configuration for the `inspekt do` command.
 
 ## Files
 
@@ -54,7 +54,7 @@ Contains common web actions with translations and URL patterns.
 
 ## How It Works
 
-1. **Language Detection**: The `zen do` command automatically detects the page language from `document.documentElement.lang`
+1. **Language Detection**: The `inspekt do` command automatically detects the page language from `document.documentElement.lang`
 
 2. **Normalization**: User actions are normalized by removing filler words in the detected language + English as fallback
 
@@ -64,17 +64,17 @@ Contains common web actions with translations and URL patterns.
 
 ```bash
 # Dutch page: <html lang="nl">
-zen do "Ga naar de inloggen pagina"
+inspekt do "Ga naar de inloggen pagina"
 # Normalizes to: "inloggen"
 # Matches Dutch "inloggen" pattern → finds login link
 
 # French page: <html lang="fr">
-zen do "Aller à la page de connexion"
+inspekt do "Aller à la page de connexion"
 # Normalizes to: "connexion"
 # Matches French "connexion" pattern → finds login link
 
 # English page: <html lang="en">
-zen do "Go to the login page"
+inspekt do "Go to the login page"
 # Normalizes to: "login"
 # Matches English "login" pattern → finds login link
 ```
@@ -145,7 +145,7 @@ To contribute translations:
 
 1. Fork the repository
 2. Add translations to the JSON files
-3. Test with `zen do` on pages in that language
+3. Test with `inspekt do` on pages in that language
 4. Submit a pull request
 
 **Translation Guidelines:**

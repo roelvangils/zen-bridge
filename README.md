@@ -1,20 +1,17 @@
-# Zen Browser Bridge
+# Inspekt
 
-**Execute JavaScript in your browser from the command line.**
+**Browser automation and inspection from the command line.**
 
-A powerful CLI tool for browser automation, debugging, and interactive development. Control your browser, extract data, automate tasks, and interact with web pages—all from your terminal.
+A powerful CLI tool for browser automation, debugging, and interactive development. Control your browser, inspect elements, extract data, automate tasks, and interact with web pages—all from your terminal.
 
-[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/roelvangils/zen-bridge)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/roelvangils/inspekt)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-244%20passing-brightgreen.svg)](https://github.com/roelvangils/zen-bridge)
-[![Coverage](https://img.shields.io/badge/coverage-12.53%25-yellow.svg)](https://github.com/roelvangils/zen-bridge)
 [![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![CI](https://img.shields.io/badge/CI-GitHub%20Actions-blue.svg)](https://github.com/roelvangils/zen-bridge/actions)
-[![Documentation](https://img.shields.io/badge/docs-mkdocs-blue.svg)](https://roelvangils.github.io/zen-bridge/)
+[![Documentation](https://img.shields.io/badge/docs-mkdocs-blue.svg)](https://roelvangils.github.io/inspekt/)
 
 ---
 
-📚 **[Read the Full Documentation →](https://roelvangils.github.io/zen-bridge/)**
+📚 **[Read the Full Documentation →](https://roelvangils.github.io/inspekt/)**
 
 Comprehensive guides, API reference, tutorials, and examples. Beautiful Material theme with search, dark mode, and interactive examples.
 
@@ -51,8 +48,8 @@ Comprehensive guides, API reference, tutorials, and examples. Beautiful Material
 
 ```bash
 # Clone the repository
-git clone https://github.com/roelvangils/zen-bridge.git
-cd zen-bridge
+git clone https://github.com/roelvangils/inspekt.git
+cd inspekt
 
 # Install in development mode
 pip install -e .
@@ -61,11 +58,37 @@ pip install -e .
 pip install -r requirements.txt
 ```
 
-### 2. Install the userscript
+### 2. Choose Your Browser Integration
 
-The browser needs a userscript to receive commands from the CLI.
+Inspekt works with either a browser extension (recommended) or a userscript. Choose one:
 
-1. **Install a userscript manager** in your browser:
+#### Option A: Browser Extension (Recommended)
+
+✅ **Works on all websites** including those with strict Content Security Policy (CSP)
+✅ **Bypasses CSP restrictions** on GitHub, Gmail, banking sites, etc.
+✅ **No CSP warnings** in the console
+✅ **Full page access** in all contexts
+
+**Chrome/Edge:**
+1. Open `chrome://extensions/` (or `edge://extensions/`)
+2. Enable "Developer mode"
+3. Click "Load unpacked"
+4. Select the `extensions/chrome` directory
+5. The extension will connect automatically to `localhost:8766`
+
+**Firefox:**
+1. Open `about:debugging#/runtime/this-firefox`
+2. Click "Load Temporary Add-on"
+3. Select `extensions/firefox/manifest.json`
+
+#### Option B: Userscript (Alternative)
+
+⚠️ **Limited by CSP** - won't work on sites like GitHub, Gmail, banking sites
+⚠️ **Console warnings** on CSP-protected pages
+✅ **Easy to update** via userscript manager
+✅ **Works fine** on most regular websites
+
+1. **Install a userscript manager**:
    - [Violentmonkey](https://violentmonkey.github.io/) (recommended)
    - [Tampermonkey](https://www.tampermonkey.net/)
    - [Greasemonkey](https://www.greasespot.net/) (Firefox only)
@@ -76,45 +99,47 @@ The browser needs a userscript to receive commands from the CLI.
 
 To view the userscript:
 ```bash
-zen userscript
+inspektuserscript
 ```
+
+> **Recommendation:** Use the browser extension for the best experience, especially if you work with sites that have Content Security Policy restrictions.
 
 ### 3. Start the bridge server
 
 ```bash
 # Start in foreground
-zen server start
+inspektserver start
 
 # Or start in background (daemon mode)
-zen server start --daemon
+inspektserver start --daemon
 
 # Check server status
-zen server status
+inspektserver status
 ```
 
 ## 🚀 Quick Start
 
 ```bash
 # Execute JavaScript code
-zen eval "document.title"
+inspekteval "document.title"
 
 # Get page information
-zen info
+inspektinfo
 
 # Extract all links
-zen links --only-external
+inspektlinks --only-external
 
 # Start interactive REPL
-zen repl
+inspektrepl
 
 # Summarize article with AI
-zen summarize
+inspektsummarize
 
 # Control browser with keyboard
-zen control
+inspektcontrol
 
 # Get help with all commands and flags
-zen --help
+inspekt--help
 ```
 
 ## 📖 Usage Guide
@@ -123,24 +148,24 @@ zen --help
 
 ```bash
 # Simple expression
-zen eval "document.title"
+inspekteval "document.title"
 
 # Complex code
-zen eval "Array.from(document.querySelectorAll('a')).map(a => a.href)"
+inspekteval "Array.from(document.querySelectorAll('a')).map(a => a.href)"
 
 # Show URL and title metadata
-zen eval "document.title" --url --title
+inspekteval "document.title" --url --title
 
 # JSON output format
-zen eval "({url: location.href, title: document.title})" --format json
+inspekteval "({url: location.href, title: document.title})" --format json
 
 # Execute from file
-zen eval --file script.js
-zen exec script.js
+inspekteval --file script.js
+inspektexec script.js
 
 # Use stdin
-echo "console.log('Hello')" | zen eval
-cat script.js | zen eval
+echo "console.log('Hello')" | inspekteval
+cat script.js | inspekteval
 ```
 
 ### Interactive REPL
@@ -148,7 +173,7 @@ cat script.js | zen eval
 Start a live JavaScript session:
 
 ```bash
-zen repl
+inspektrepl
 ```
 
 Example session:
@@ -170,13 +195,13 @@ Goodbye!
 
 ```bash
 # Basic info
-zen info
+inspektinfo
 
 # Extended info (language, meta tags, cookies)
-zen info --extended
+inspektinfo --extended
 
 # JSON output
-zen info --json
+inspektinfo --json
 ```
 
 Output:
@@ -194,81 +219,81 @@ Size:     1280x720
 **Click elements:**
 ```bash
 # Click by selector
-zen click "button#submit"
+inspektclick "button#submit"
 
 # Double-click
-zen double-click "div.editable"
+inspektdouble-click "div.editable"
 
 # Right-click (context menu)
-zen right-click "a.download"
+inspektright-click "a.download"
 ```
 
 **Inspect elements:**
 ```bash
 # Inspect by selector
-zen inspect "h1"
+inspektinspect "h1"
 
 # Get details of inspected element
-zen inspected
+inspektinspected
 
 # In browser DevTools Console, you can also use:
 # zenStore($0)  - Store currently inspected element
-# Then: zen inspected
+# Then: inspektinspected
 ```
 
 **Highlight elements:**
 ```bash
 # Highlight with default color (red)
-zen highlight "h1, h2"
+inspekthighlight "h1, h2"
 
 # Custom color
-zen highlight "a" --color blue
+inspekthighlight "a" --color blue
 
 # Clear highlights
-zen highlight --clear
+inspekthighlight --clear
 ```
 
 **Wait for elements:**
 ```bash
 # Wait for element to exist (default: 30s timeout)
-zen wait "button#submit"
+inspektwait "button#submit"
 
 # Wait for element to be visible
-zen wait ".modal-dialog" --visible
+inspektwait ".modal-dialog" --visible
 
 # Wait for element to be hidden
-zen wait ".loading-spinner" --hidden
+inspektwait ".loading-spinner" --hidden
 
 # Wait for text content
-zen wait "div.result" --text "Success"
+inspektwait "div.result" --text "Success"
 
 # Custom timeout
-zen wait "div.notification" --timeout 10
+inspektwait "div.notification" --timeout 10
 ```
 
 ### Extract Links
 
 ```bash
 # Show all links
-zen links
+inspektlinks
 
 # Only URLs (one per line)
-zen links --only-urls
+inspektlinks --only-urls
 
 # Filter to internal links
-zen links --only-internal
+inspektlinks --only-internal
 
 # Filter to external links
-zen links --only-external
+inspektlinks --only-external
 
 # Sort alphabetically
-zen links --alphabetically
+inspektlinks --alphabetically
 
 # Get enriched metadata (MIME type, size, title, status)
-zen links --enrich-external
+inspektlinks --enrich-external
 
 # Combine filters
-zen links --only-external --only-urls --alphabetically
+inspektlinks --only-external --only-urls --alphabetically
 ```
 
 **Example output:**
@@ -285,13 +310,13 @@ Total: 15 links (8 internal, 7 external)
 **Practical uses:**
 ```bash
 # Export external links for analysis
-zen links --only-external --only-urls > external-links.txt
+inspektlinks --only-external --only-urls > external-links.txt
 
 # Count total links
-zen links --only-urls | wc -l
+inspektlinks --only-urls | wc -l
 
 # Find all PDF links
-zen links --only-urls | grep "\.pdf$"
+inspektlinks --only-urls | grep "\.pdf$"
 ```
 
 ### Page Outline
@@ -299,7 +324,7 @@ zen links --only-urls | grep "\.pdf$"
 Display heading hierarchy:
 
 ```bash
-zen outline
+inspektoutline
 ```
 
 Output:
@@ -334,10 +359,10 @@ Total: 7 headings
 
 ```bash
 # Generate concise summary
-zen summarize
+inspektsummarize
 
 # Show full extracted article
-zen summarize --format full
+inspektsummarize --format full
 ```
 
 Requires [mods](https://github.com/charmbracelet/mods) to be installed.
@@ -345,7 +370,7 @@ Requires [mods](https://github.com/charmbracelet/mods) to be installed.
 **Page Descriptions for Screen Readers:**
 
 ```bash
-zen describe
+inspektdescribe
 ```
 
 Generates a natural-language description perfect for blind users:
@@ -376,13 +401,13 @@ Find and download files interactively:
 
 ```bash
 # Interactive selection
-zen download
+inspektdownload
 
 # List files without downloading
-zen download --list
+inspektdownload --list
 
 # Custom output directory
-zen download --output ~/Downloads
+inspektdownload --output ~/Downloads
 ```
 
 **Supported file types:**
@@ -397,7 +422,7 @@ zen download --output ~/Downloads
 Navigate and interact with pages using only your keyboard:
 
 ```bash
-zen control
+inspektcontrol
 ```
 
 **Controls:**
@@ -427,7 +452,7 @@ zen control
 
 **Example workflow:**
 ```bash
-zen control
+inspektcontrol
 # Tab to link → Enter → Page loads → Element auto-refocuses → Continue tabbing
 ```
 
@@ -435,23 +460,23 @@ zen control
 
 ```bash
 # Get selected text with metadata
-zen selection text
+inspektselection text
 
 # Get as HTML
-zen selection html
+inspektselection html
 
 # Get as Markdown
-zen selection markdown
+inspektselection markdown
 
 # Raw text only (no formatting)
-zen selection text --raw
+inspektselection text --raw
 
 # Use in scripts
-zen selection text --raw | pbcopy
-zen selection markdown --raw > selection.md
+inspektselection text --raw | pbcopy
+inspektselection markdown --raw > selection.md
 
 # Get as JSON (includes markdown)
-zen selection text --json
+inspektselection text --json
 ```
 
 ### Type or Paste Text
@@ -460,28 +485,28 @@ Type text character by character or paste instantly:
 
 ```bash
 # Paste text instantly (fastest, clears existing text)
-zen paste "Hello World"
+inspektpaste "Hello World"
 
 # Type text at maximum speed (clears existing text)
-zen type "Hello World"
+inspekttype "Hello World"
 
 # Type with human-like random delays (~100 WPM with realistic typos)
-zen type "Hello, how are you?" --speed 0
+inspekttype "Hello, how are you?" --speed 0
 
 # Type at controlled speed (10 characters per second)
-zen type "test@example.com" --speed 10
+inspekttype "test@example.com" --speed 10
 
 # Type without clearing existing text (append mode)
-zen type "append this" --no-clear
+inspekttype "append this" --no-clear
 
 # Paste without clearing (append mode)
-zen paste " more text" --no-clear
+inspektpaste " more text" --no-clear
 
 # Type into specific element
-zen type "password123" --selector "input[type=password]"
+inspekttype "password123" --selector "input[type=password]"
 
 # Paste into specific element
-zen paste "username" --selector "#username"
+inspektpaste "username" --selector "#username"
 ```
 
 #### Human-like Typing (`--speed 0`)
@@ -507,8 +532,8 @@ The `--speed 0` option simulates realistic human typing with random variations:
 **Example:**
 ```bash
 # Simulate human filling out a form
-zen type "john.doe@example.com" --speed 0 --selector "#email"
-zen type "My name is John, and I'm interested in your product." --speed 0 --selector "#message"
+inspekttype "john.doe@example.com" --speed 0 --selector "#email"
+inspekttype "My name is John, and I'm interested in your product." --speed 0 --selector "#message"
 ```
 
 **Note:** By default, both `type` and `paste` clear any existing text in the input field before inserting new text. Use `--no-clear` to append instead.
@@ -517,30 +542,30 @@ zen type "My name is John, and I'm interested in your product." --speed 0 --sele
 
 ```bash
 # Screenshot by selector
-zen screenshot --selector "h1" --output screenshot.png
+inspektscreenshot --selector "h1" --output screenshot.png
 
 # Use inspected element ($0 in DevTools)
-zen screenshot --selector "$0" --output element.png
+inspektscreenshot --selector "$0" --output element.png
 ```
 
 ### Navigation
 
 ```bash
 # Navigate to URL
-zen open https://example.com
+inspektopen https://example.com
 
 # Navigate and wait for load
-zen open https://example.com --wait
+inspektopen https://example.com --wait
 
 # Browser history
-zen back
-zen forward
+inspektback
+inspektforward
 
 # Reload page
-zen reload
+inspektreload
 
 # Hard reload (bypass cache)
-zen reload --hard
+inspektreload --hard
 ```
 
 ### Watch Events
@@ -549,7 +574,7 @@ Monitor browser activity in real-time:
 
 ```bash
 # Watch keyboard input
-zen watch input
+inspektwatch input
 ```
 
 Output:
@@ -561,7 +586,7 @@ H e l l o [SPACE] W o r l d [ENTER]
 ### Cookie Management
 
 ```bash
-zen cookies
+inspektcookies
 ```
 
 ## 🎯 Practical Examples
@@ -570,20 +595,20 @@ zen cookies
 
 ```bash
 # Extract all product prices
-zen eval "Array.from(document.querySelectorAll('.price')).map(el => el.textContent)"
+inspekteval "Array.from(document.querySelectorAll('.price')).map(el => el.textContent)"
 
 # Get all image URLs
-zen eval "Array.from(document.images).map(img => img.src)" --format json
+inspekteval "Array.from(document.images).map(img => img.src)" --format json
 
 # Extract table data
-zen exec zen/scripts/extract_table.js --format json > data.json
+inspektexec zen/scripts/extract_table.js --format json > data.json
 ```
 
 ### Authenticated Data Extraction
 
 ```bash
 # Extract dashboard data (while logged in)
-zen eval "
+inspekteval "
   Array.from(document.querySelectorAll('.dashboard-item')).map(item => ({
     title: item.querySelector('.title').textContent,
     value: item.querySelector('.value').textContent
@@ -595,69 +620,69 @@ zen eval "
 
 ```bash
 # Fill form fields
-zen eval "document.querySelector('#email').value = 'user@example.com'"
-zen eval "document.querySelector('#password').value = 'secret'"
-zen click "button[type=submit]"
-zen wait ".success-message" --visible
+inspekteval "document.querySelector('#email').value = 'user@example.com'"
+inspekteval "document.querySelector('#password').value = 'secret'"
+inspektclick "button[type=submit]"
+inspektwait ".success-message" --visible
 ```
 
 ### Performance Monitoring
 
 ```bash
 # Page load time
-zen eval "(performance.timing.loadEventEnd - performance.timing.navigationStart) + 'ms'"
+inspekteval "(performance.timing.loadEventEnd - performance.timing.navigationStart) + 'ms'"
 
 # Memory usage
-zen eval "Math.round(performance.memory.usedJSHeapSize / 1048576) + 'MB'"
+inspekteval "Math.round(performance.memory.usedJSHeapSize / 1048576) + 'MB'"
 
 # Full performance metrics
-zen exec zen/scripts/performance_metrics.js --format json
+inspektexec zen/scripts/performance_metrics.js --format json
 ```
 
 ### Debugging & Development
 
 ```bash
 # Check React/Redux state
-zen eval "window.__REDUX_DEVTOOLS_EXTENSION__?.store.getState()" --format json
+inspekteval "window.__REDUX_DEVTOOLS_EXTENSION__?.store.getState()" --format json
 
 # Inspect app state
-zen eval "window.myApp?.state" --format json
+inspekteval "window.myApp?.state" --format json
 
 # Console log monitoring
-zen watch
+inspektwatch
 ```
 
 ### SEO Analysis
 
 ```bash
 # Extract metadata
-zen exec zen/scripts/extract_metadata.js --format json
+inspektexec zen/scripts/extract_metadata.js --format json
 
 # Get all headings
-zen outline
+inspektoutline
 
 # Find broken internal links
-zen links --only-internal --only-urls | xargs -I {} curl -s -o /dev/null -w "%{http_code} {}\n" {}
+inspektlinks --only-internal --only-urls | xargs -I {} curl -s -o /dev/null -w "%{http_code} {}\n" {}
 
 # Check external link status
-zen links --enrich-external --json
+inspektlinks --enrich-external --json
 ```
 
 ### Shell Integration
 
 ```bash
 # Use in scripts
-TITLE=$(zen eval "document.title" --format raw)
+TITLE=$(inspekteval "document.title" --format raw)
 echo "Current page: $TITLE"
 
 # Monitor for changes
 while true; do
-  zen eval "document.querySelectorAll('.notification').length" --format raw
+  inspekteval "document.querySelectorAll('.notification').length" --format raw
   sleep 5
 done
 
 # Process with other tools
-zen links --only-urls | grep "github" | sort | uniq
+inspektlinks --only-urls | grep "github" | sort | uniq
 ```
 
 ## 🛠️ Built-in Scripts
@@ -666,32 +691,32 @@ Zen includes ready-to-use scripts for common tasks:
 
 ```bash
 # Extract all images
-zen exec zen/scripts/extract_images.js --format json
+inspektexec zen/scripts/extract_images.js --format json
 
 # Extract table data to JSON
-zen exec zen/scripts/extract_table.js --format json > data.json
+inspektexec zen/scripts/extract_table.js --format json > data.json
 
 # Get SEO metadata (Open Graph, Twitter Cards, etc.)
-zen exec zen/scripts/extract_metadata.js --format json
+inspektexec zen/scripts/extract_metadata.js --format json
 
 # Performance metrics
-zen exec zen/scripts/performance_metrics.js --format json
+inspektexec zen/scripts/performance_metrics.js --format json
 
 # Inject jQuery
-zen exec zen/scripts/inject_jquery.js
-# Then use: zen eval "$('a').length"
+inspektexec zen/scripts/inject_jquery.js
+# Then use: inspekteval "$('a').length"
 
 # Highlight elements
 # Edit zen/scripts/highlight_selector.js to change selector
-zen exec zen/scripts/highlight_selector.js
+inspektexec zen/scripts/highlight_selector.js
 ```
 
 ## 📚 Command Reference
 
-Run `zen --help` to see all commands with their available flags and options:
+Run `inspekt--help` to see all commands with their available flags and options:
 
 ```bash
-zen --help
+inspekt--help
 ```
 
 The enhanced help system shows:
@@ -702,9 +727,9 @@ The enhanced help system shows:
 
 For command-specific help:
 ```bash
-zen eval --help
-zen links --help
-zen control --help
+inspekteval --help
+inspektlinks --help
+inspektcontrol --help
 ```
 
 ## ⚙️ Configuration
@@ -795,7 +820,7 @@ zen/
 
 Start the server:
 ```bash
-zen server start
+inspektserver start
 ```
 
 ### "No response from browser"
@@ -809,7 +834,7 @@ zen server start
 
 ```bash
 # Increase timeout
-zen eval "slow_operation()" --timeout 30
+inspekteval "slow_operation()" --timeout 30
 
 # Check if tab is active (inactive tabs may throttle execution)
 ```
@@ -818,14 +843,14 @@ zen eval "slow_operation()" --timeout 30
 
 ```bash
 # Restart the server
-zen server stop
-zen server start
+inspektserver stop
+inspektserver start
 
 # Check server status
-zen server status
+inspektserver status
 
 # View server logs
-zen server start  # (foreground mode to see logs)
+inspektserver start  # (foreground mode to see logs)
 ```
 
 

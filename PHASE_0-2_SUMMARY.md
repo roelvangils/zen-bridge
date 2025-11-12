@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-Completed foundational refactoring work to improve code quality, testability, and maintainability of the Zen Bridge project. Established modern tooling, comprehensive type safety with Pydantic validation, and created initial service/adapter layers while fixing a critical blocking I/O bug in the WebSocket server.
+Completed foundational refactoring work to improve code quality, testability, and maintainability of the Inspekt project. Established modern tooling, comprehensive type safety with Pydantic validation, and created initial service/adapter layers while fixing a critical blocking I/O bug in the WebSocket server.
 
 **Key Achievement**: Zero test coverage → 11.83% coverage with 52 passing tests, all CLI commands working identically.
 
@@ -386,9 +386,9 @@ make lint
 make typecheck
 
 # Test all CLI commands (should work identically)
-zen --help
-zen server start  # Terminal 1
-zen eval "document.title"  # Terminal 2
+inspekt --help
+inspekt server start  # Terminal 1
+inspekt eval "document.title"  # Terminal 2
 ```
 
 ---

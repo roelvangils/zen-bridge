@@ -7,10 +7,10 @@
 
     // If selector is $0, use stored inspected element
     if (selector === '$0') {
-        element = window.__ZEN_INSPECTED_ELEMENT__;
+        element = window.__INSPEKT_INSPECTED_ELEMENT__;
         if (!element || !document.body.contains(element)) {
             return {
-                error: 'No element stored. Use: zen inspect "<selector>" first, or provide a selector'
+                error: 'No element stored. Use: inspekt inspect "<selector>" first, or provide a selector'
             };
         }
     } else {

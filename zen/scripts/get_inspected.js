@@ -1,21 +1,21 @@
 // Get the currently inspected element from DevTools
 (function() {
     // First, try to get from our stored variable
-    let element = window.__ZEN_INSPECTED_ELEMENT__;
+    let element = window.__INSPEKT_INSPECTED_ELEMENT__;
 
     // If not found, try calling the injected function that attempts to access $0
-    if (!element && typeof window.__zenGetInspectedElement === 'function') {
-        element = window.__zenGetInspectedElement();
+    if (!element && typeof window.__inspektGetInspectedElement === 'function') {
+        element = window.__inspektGetInspectedElement();
         // If we got an element, store it
         if (element && element.nodeType === 1) {
-            window.__ZEN_INSPECTED_ELEMENT__ = element;
+            window.__INSPEKT_INSPECTED_ELEMENT__ = element;
         }
     }
 
     if (!element || element.nodeType !== 1) {
         return {
             error: 'No element selected yet',
-            hint: 'In DevTools Console, run: zenStore() to store the inspected element ($0)'
+            hint: 'Right-click an element and select "Inspect", or use the Inspekt DevTools panel'
         };
     }
 

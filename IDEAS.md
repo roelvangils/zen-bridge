@@ -1,20 +1,20 @@
-# Zen Bridge - Future Ideas
+# Inspekt - Future Ideas
 
 This document contains ideas for future features and improvements.
 
 ## 🎯 Unique Accessibility Features
 
-### 1. `zen a11y experience` - Simulate Disabilities
+### 1. `inspekt a11y experience` - Simulate Disabilities
 
 Simulate how people with different disabilities experience your site.
 
 ```bash
 # Simulate different conditions
-zen a11y experience --blindness
-zen a11y experience --low-vision
-zen a11y experience --color-blind deuteranopia
-zen a11y experience --motor-impairment
-zen a11y experience --cognitive
+inspekt a11y experience --blindness
+inspekt a11y experience --low-vision
+inspekt a11y experience --color-blind deuteranopia
+inspekt a11y experience --motor-impairment
+inspekt a11y experience --cognitive
 ```
 
 **What it does:**
@@ -28,15 +28,15 @@ zen a11y experience --cognitive
 
 ---
 
-### 2. `zen a11y personas` - Test with Specific User Personas
+### 2. `inspekt a11y personas` - Test with Specific User Personas
 
 Test your site from the perspective of real user personas with disabilities.
 
 ```bash
-zen a11y persona "Sarah, 67, macular degeneration, uses screen magnifier"
-zen a11y persona "Marcus, blind, NVDA screen reader"
-zen a11y persona "Lisa, RSI, keyboard only"
-zen a11y persona --list  # Show available personas
+inspekt a11y persona "Sarah, 67, macular degeneration, uses screen magnifier"
+inspekt a11y persona "Marcus, blind, NVDA screen reader"
+inspekt a11y persona "Lisa, RSI, keyboard only"
+inspekt a11y persona --list  # Show available personas
 ```
 
 **Shows:**
@@ -50,15 +50,15 @@ zen a11y persona --list  # Show available personas
 
 ---
 
-### 3. `zen a11y journey` - Test Complete User Flows
+### 3. `inspekt a11y journey` - Test Complete User Flows
 
 Test accessibility of complete user journeys, not just isolated elements.
 
 ```bash
-zen a11y journey "complete checkout"
-zen a11y journey "sign up" --screen-reader
-zen a11y journey "search product" --keyboard-only
-zen a11y journey --record  # Record the journey with issues highlighted
+inspekt a11y journey "complete checkout"
+inspekt a11y journey "sign up" --screen-reader
+inspekt a11y journey "search product" --keyboard-only
+inspekt a11y journey --record  # Record the journey with issues highlighted
 ```
 
 **Tests a complete flow:**
@@ -88,16 +88,16 @@ Success rate: 0% (blocked at step 4)
 
 ---
 
-### 4. `zen a11y narrate` - Hear What a Screen Reader Says
+### 4. `inspekt a11y narrate` - Hear What a Screen Reader Says
 
 Simulate actual screen reader output with text-to-speech.
 
 ```bash
-zen a11y narrate
-zen a11y narrate "main"
-zen a11y narrate "#checkout-form"
-zen a11y narrate --save audio.mp3
-zen a11y narrate --speed 2x  # Experienced users read faster
+inspekt a11y narrate
+inspekt a11y narrate "main"
+inspekt a11y narrate "#checkout-form"
+inspekt a11y narrate --save audio.mp3
+inspekt a11y narrate --speed 2x  # Experienced users read faster
 ```
 
 **Unique features:**
@@ -127,14 +127,14 @@ Issues found:
 
 ---
 
-### 5. `zen a11y time` - Measure Interaction Time
+### 5. `inspekt a11y time` - Measure Interaction Time
 
 Compare how long tasks take with different input methods.
 
 ```bash
-zen a11y time "checkout flow"
-zen a11y time "complete form" --keyboard-only vs --mouse
-zen a11y time --compare-all  # Mouse, keyboard, screen reader
+inspekt a11y time "checkout flow"
+inspekt a11y time "complete form" --keyboard-only vs --mouse
+inspekt a11y time --compare-all  # Mouse, keyboard, screen reader
 ```
 
 **Measures:**
@@ -164,14 +164,14 @@ Impact: 89% of keyboard users abandon at this point
 
 ---
 
-### 6. `zen a11y quiz` - Interactive Learning
+### 6. `inspekt a11y quiz` - Interactive Learning
 
 Learn accessibility while testing your site.
 
 ```bash
-zen a11y quiz
-zen a11y quiz --difficulty advanced
-zen a11y quiz --topic "ARIA"
+inspekt a11y quiz
+inspekt a11y quiz --difficulty advanced
+inspekt a11y quiz --topic "ARIA"
 ```
 
 **Interactive experience:**
@@ -206,14 +206,14 @@ Press Enter for next question...
 
 ---
 
-### 7. `zen a11y compare` - Benchmark Against Others
+### 7. `inspekt a11y compare` - Benchmark Against Others
 
 Compare your accessibility against competitors and industry standards.
 
 ```bash
-zen a11y compare https://competitor.com
-zen a11y compare --industry "e-commerce"
-zen a11y compare --save-report
+inspekt a11y compare https://competitor.com
+inspekt a11y compare --industry "e-commerce"
+inspekt a11y compare --save-report
 ```
 
 **Output:**
@@ -250,14 +250,14 @@ Quick wins:
 
 ---
 
-### 8. `zen a11y live` - Real-time Accessibility During Development
+### 8. `inspekt a11y live` - Real-time Accessibility During Development
 
 Live feedback as you develop, with hot reload.
 
 ```bash
-zen a11y live
-zen a11y live --focus forms
-zen a11y live --notifications desktop
+inspekt a11y live
+inspekt a11y live --focus forms
+inspekt a11y live --notifications desktop
 ```
 
 **Live overlay in browser:**
@@ -283,19 +283,19 @@ zen a11y live --notifications desktop
 
 ---
 
-### 9. `zen a11y explain` - AI-Powered Explanations
+### 9. `inspekt a11y explain` - AI-Powered Explanations
 
 Get detailed explanations for any accessibility issue.
 
 ```bash
-zen a11y explain "Why does this link need aria-label?"
-zen a11y explain --element "button.submit"
-zen a11y explain --wcag "1.4.3"
+inspekt a11y explain "Why does this link need aria-label?"
+inspekt a11y explain --element "button.submit"
+inspekt a11y explain --wcag "1.4.3"
 ```
 
 **Interactive Q&A:**
 ```
-❯ zen a11y explain "button.submit"
+❯ inspekt a11y explain "button.submit"
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Element Analysis: button.submit
@@ -350,15 +350,15 @@ Affected users: ~15% of your audience
 
 ---
 
-### 10. `zen a11y record` - Record and Visualize User Journey
+### 10. `inspekt a11y record` - Record and Visualize User Journey
 
 Record simulated user sessions showing accessibility issues.
 
 ```bash
-zen a11y record --duration 5m
-zen a11y record --keyboard-only
-zen a11y record --screen-reader
-zen a11y record --export video.mp4
+inspekt a11y record --duration 5m
+inspekt a11y record --keyboard-only
+inspekt a11y record --screen-reader
+inspekt a11y record --export video.mp4
 ```
 
 **Creates:**
@@ -382,79 +382,79 @@ zen a11y record --export video.mp4
 
 For completeness, also implement standard accessibility checks:
 
-### `zen a11y scan`
+### `inspekt a11y scan`
 Complete accessibility scan of the page.
 
 ```bash
-zen a11y scan
-zen a11y scan --format json > report.json
-zen a11y scan --severity critical  # Only critical issues
+inspekt a11y scan
+inspekt a11y scan --format json > report.json
+inspekt a11y scan --severity critical  # Only critical issues
 ```
 
-### `zen a11y images`
+### `inspekt a11y images`
 Check image accessibility.
 
 ```bash
-zen a11y images
-zen a11y images --highlight  # Highlight problematic images
-zen a11y images --fix  # Auto-add missing alt with AI suggestions
+inspekt a11y images
+inspekt a11y images --highlight  # Highlight problematic images
+inspekt a11y images --fix  # Auto-add missing alt with AI suggestions
 ```
 
-### `zen a11y forms`
+### `inspekt a11y forms`
 Check form accessibility.
 
 ```bash
-zen a11y forms
-zen a11y forms --fix  # Auto-add missing IDs and labels
+inspekt a11y forms
+inspekt a11y forms --fix  # Auto-add missing IDs and labels
 ```
 
-### `zen a11y headings`
+### `inspekt a11y headings`
 Check heading structure.
 
 ```bash
-zen a11y headings
-zen a11y headings --tree  # Show hierarchy as tree
+inspekt a11y headings
+inspekt a11y headings --tree  # Show hierarchy as tree
 ```
 
-### `zen a11y contrast`
+### `inspekt a11y contrast`
 Check color contrast.
 
 ```bash
-zen a11y contrast
-zen a11y contrast --threshold wcag-aaa
-zen a11y contrast --fix  # Suggest better colors
+inspekt a11y contrast
+inspekt a11y contrast --threshold wcag-aaa
+inspekt a11y contrast --fix  # Suggest better colors
 ```
 
-### `zen a11y links`
+### `inspekt a11y links`
 Check link accessibility.
 
 ```bash
-zen a11y links
-zen a11y links --highlight-bad
+inspekt a11y links
+inspekt a11y links --highlight-bad
 ```
 
-### `zen a11y landmarks`
+### `inspekt a11y landmarks`
 Check page structure and landmarks.
 
 ```bash
-zen a11y landmarks
-zen a11y landmarks --visualize
+inspekt a11y landmarks
+inspekt a11y landmarks --visualize
 ```
 
-### `zen a11y keyboard`
+### `inspekt a11y keyboard`
 Test keyboard navigation.
 
 ```bash
-zen a11y keyboard
-zen a11y keyboard --interactive
+inspekt a11y keyboard
+inspekt a11y keyboard --interactive
 ```
 
-### `zen a11y aria`
+### `inspekt a11y aria`
 Check ARIA usage.
 
 ```bash
-zen a11y aria
-zen a11y aria --suggest  # Suggest ARIA improvements
+inspekt a11y aria
+inspekt a11y aria --suggest  # Suggest ARIA improvements
 ```
 
 ---
@@ -467,37 +467,37 @@ zen a11y aria --suggest  # Suggest ARIA improvements
 - **WebSocket mode**: Faster than HTTP polling
 - **Plugin system**: Let users write custom scripts
 - **Cloud sync**: Share scripts across team
-- **CI/CD integration**: `zen test` in GitHub Actions
+- **CI/CD integration**: `inspekt test` in GitHub Actions
 
 ### Developer Tools
 
-- **`zen debug`**: Advanced debugging tools
-- **`zen console`**: Browser console in terminal
-- **`zen network`**: Network request monitoring
-- **`zen performance`**: Detailed performance profiling
-- **`zen lighthouse`**: Run Lighthouse audits
+- **`inspekt debug`**: Advanced debugging tools
+- **`inspekt console`**: Browser console in terminal
+- **`inspekt network`**: Network request monitoring
+- **`inspekt performance`**: Detailed performance profiling
+- **`inspekt lighthouse`**: Run Lighthouse audits
 
 ### Design Tools
 
-- **`zen screenshot`**: Take screenshots (full page, element, viewport)
-- **`zen measure`**: Measure distances between elements
-- **`zen grid`**: Overlay grid system
-- **`zen ruler`**: Show element dimensions
-- **`zen colors`**: Extract color palette from page
+- **`inspekt screenshot`**: Take screenshots (full page, element, viewport)
+- **`inspekt measure`**: Measure distances between elements
+- **`inspekt grid`**: Overlay grid system
+- **`inspekt ruler`**: Show element dimensions
+- **`inspekt colors`**: Extract color palette from page
 
 ### Testing Tools
 
-- **`zen test visual`**: Visual regression testing
-- **`zen test responsive`**: Test different viewports
-- **`zen test forms`**: Auto-fill and test forms
-- **`zen test links`**: Check for broken links
+- **`inspekt test visual`**: Visual regression testing
+- **`inspekt test responsive`**: Test different viewports
+- **`inspekt test forms`**: Auto-fill and test forms
+- **`inspekt test links`**: Check for broken links
 
 ### Content Tools
 
-- **`zen extract`**: Extract content (text, links, emails, etc.)
-- **`zen translate`**: Test translations
-- **`zen seo`**: SEO analysis
-- **`zen readability`**: Content readability score
+- **`inspekt extract`**: Extract content (text, links, emails, etc.)
+- **`inspekt translate`**: Test translations
+- **`inspekt seo`**: SEO analysis
+- **`inspekt readability`**: Content readability score
 
 ---
 
@@ -505,16 +505,16 @@ zen a11y aria --suggest  # Suggest ARIA improvements
 
 Based on uniqueness and impact:
 
-1. **`zen a11y experience`** - High impact, very unique, creates empathy
-2. **`zen a11y journey`** - Real-world testing, unique approach
-3. **`zen a11y narrate`** - Easy to implement, immediate value
-4. **`zen a11y time`** - Powerful for stakeholder buy-in
-5. **`zen a11y live`** - Developer workflow enhancement
-6. **`zen a11y explain`** - Educational value
-7. **`zen a11y compare`** - Competitive motivation
-8. **`zen a11y personas`** - Empathy building
-9. **`zen a11y quiz`** - Gamification, learning
-10. **`zen a11y record`** - Stakeholder communication
+1. **`inspekt a11y experience`** - High impact, very unique, creates empathy
+2. **`inspekt a11y journey`** - Real-world testing, unique approach
+3. **`inspekt a11y narrate`** - Easy to implement, immediate value
+4. **`inspekt a11y time`** - Powerful for stakeholder buy-in
+5. **`inspekt a11y live`** - Developer workflow enhancement
+6. **`inspekt a11y explain`** - Educational value
+7. **`inspekt a11y compare`** - Competitive motivation
+8. **`inspekt a11y personas`** - Empathy building
+9. **`inspekt a11y quiz`** - Gamification, learning
+10. **`inspekt a11y record`** - Stakeholder communication
 
 ---
 
@@ -527,4 +527,4 @@ Have more ideas? Feel free to:
 
 ---
 
-*This document is a living brainstorm. Not all ideas will be implemented, but they serve as inspiration for the direction of Zen Bridge.*
+*This document is a living brainstorm. Not all ideas will be implemented, but they serve as inspiration for the direction of Inspekt.*

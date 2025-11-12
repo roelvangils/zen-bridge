@@ -31,7 +31,7 @@ Extract shared utilities:
 # zen/cli/base.py
 import click
 import json
-from zen import config as zen_config, __version__
+from inspekt import config as zen_config, __version__
 
 _builtin_open = open
 _builtin_next = next
@@ -177,7 +177,7 @@ from . import util
 @click.group(cls=base.CustomGroup)
 @click.version_option(version=__version__)
 def cli():
-    """Zen Browser Bridge - Execute JavaScript in your browser from the CLI."""
+    """Inspekt - Execute JavaScript in your browser from the CLI."""
     pass
 
 # Register top-level commands

@@ -1,12 +1,12 @@
 # Services API Reference
 
-Complete reference for all four Zen Bridge services that provide business logic and orchestration.
+Complete reference for all four Inspekt services that provide business logic and orchestration.
 
 ---
 
 ## Overview
 
-Zen Bridge services layer implements the core business logic following a clean architecture pattern. Services use dependency injection, follow the single responsibility principle, and provide both synchronous and asynchronous interfaces where appropriate.
+Inspekt services layer implements the core business logic following a clean architecture pattern. Services use dependency injection, follow the single responsibility principle, and provide both synchronous and asynchronous interfaces where appropriate.
 
 **Available Services:**
 

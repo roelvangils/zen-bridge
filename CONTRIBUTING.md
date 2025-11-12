@@ -1,6 +1,6 @@
-# Contributing to Zen Bridge
+# Contributing to Inspekt
 
-Thank you for your interest in contributing to Zen Bridge! This guide will help you get started with development.
+Thank you for your interest in contributing to Inspekt! This guide will help you get started with development.
 
 ---
 
@@ -32,14 +32,14 @@ Thank you for your interest in contributing to Zen Bridge! This guide will help 
 
 ```bash
 # Clone the repository
-git clone https://github.com/roelvangils/zen-bridge.git
-cd zen-bridge
+git clone https://github.com/roelvangils/inspekt.git
+cd inspekt
 
 # Install in development mode
 pip install -e .
 
 # Verify installation
-zen --version
+inspekt --version
 ```
 
 ---
@@ -100,12 +100,12 @@ In one terminal:
 
 ```bash
 # Start the WebSocket server
-zen server start
+inspekt server start
 ```
 
 Expected output:
 ```
-Zen Bridge WebSocket Server (aiohttp)
+Inspekt WebSocket Server (aiohttp)
 WebSocket: ws://127.0.0.1:8766/ws
 HTTP API: http://127.0.0.1:8765
 
@@ -125,7 +125,7 @@ Ready for connections!
 5. Click "Create a new script"
 6. Paste the contents and save
 7. Open any website (e.g., https://example.com)
-8. Check browser console for: `[Zen Bridge] Connected via WebSocket`
+8. Check browser console for: `[Inspekt] Connected via WebSocket`
 
 ### 3. Test Commands
 
@@ -133,15 +133,15 @@ In another terminal:
 
 ```bash
 # Test basic evaluation
-zen eval "document.title"
+inspekt eval "document.title"
 
 # Test data extraction
-zen extract-links
+inspekt extract-links
 
 # Test control mode
-zen control start
-zen control next
-zen control click
+inspekt control start
+inspekt control next
+inspekt control click
 ```
 
 ### 4. Make Your Changes
@@ -157,7 +157,7 @@ Edit the relevant Python files:
 
 ```bash
 # Quick test: Does it still work?
-zen eval "document.title"
+inspekt eval "document.title"
 
 # After refactor: Run test suite
 make test
@@ -306,19 +306,19 @@ For scripts in `zen/scripts/`:
 No tests exist yet. Manual testing only.
 
 **Manual Test Checklist**:
-1. Start server: `zen server start`
+1. Start server: `inspekt server start`
 2. Install userscript in browser
 3. Open test page (e.g., https://example.com)
 4. Run 10 commands:
-   - `zen eval "document.title"`
-   - `zen extract-links`
-   - `zen extract-page-structure`
-   - `zen control start`
-   - `zen control next` (5x)
-   - `zen control click`
-   - `zen get url`
-   - `zen screenshot "body" test.png`
-   - `zen wait "#logo" --timeout 5`
+   - `inspekt eval "document.title"`
+   - `inspekt extract-links`
+   - `inspekt extract-page-structure`
+   - `inspekt control start`
+   - `inspekt control next` (5x)
+   - `inspekt control click`
+   - `inspekt get url`
+   - `inspekt screenshot "body" test.png`
+   - `inspekt wait "#logo" --timeout 5`
 5. All should complete without errors
 
 ### Post-Refactor (Phase 0+)
@@ -336,7 +336,7 @@ pytest tests/integration/       # Integration tests
 pytest tests/e2e/               # End-to-end browser tests
 
 # Run with coverage report
-pytest tests/ --cov=zen --cov-report=html
+pytest tests/ --cov=inspekt --cov-report=html
 open htmlcov/index.html         # View coverage report
 
 # Run specific test file
@@ -397,13 +397,13 @@ from playwright.sync_api import sync_playwright
 
 @pytest.fixture
 def browser_with_userscript():
-    """Launch browser with Zen Bridge userscript."""
+    """Launch browser with Inspekt userscript."""
     # Setup: Start server, inject userscript, open test page
     # Yield browser page
     # Teardown
 
 def test_extract_links_command(browser_with_userscript):
-    """Test zen extract-links returns valid links."""
+    """Test inspekt extract-links returns valid links."""
     page = browser_with_userscript
     page.goto("https://example.com")
 
@@ -647,7 +647,7 @@ def my_command(arg: str, timeout: float) -> None:
         sys.exit(1)
 ```
 
-3. Test: `zen my-command test-arg`
+3. Test: `inspekt my-command test-arg`
 
 **Post-Refactor Approach** (Phase 2+):
 
@@ -742,7 +742,7 @@ python zen/bridge_ws.py
 vim zen/cli.py
 
 # Terminal 3: Test changes
-zen eval "document.title"
+inspekt eval "document.title"
 ```
 
 No need to restart server for CLI changes (server is separate process).
@@ -753,7 +753,7 @@ No need to restart server for CLI changes (server is separate process).
 
 ```bash
 # Server side
-zen server start  # Already verbose by default
+inspekt server start  # Already verbose by default
 
 # Browser side
 # Edit userscript_ws.js, set:
@@ -764,7 +764,7 @@ const VERBOSE = true;
 
 ```bash
 # Is server running?
-zen server status
+inspekt server status
 
 # Health check
 curl http://127.0.0.1:8765/health
@@ -779,9 +779,9 @@ curl http://127.0.0.1:8765/health
 
 **Command Not Working**:
 
-1. Test simple command first: `zen eval "1+1"`
+1. Test simple command first: `inspekt eval "1+1"`
 2. Check browser console for JavaScript errors
-3. Try `zen --debug` flag (if available)
+3. Try `inspekt --debug` flag (if available)
 4. Check server logs for errors
 
 ---
@@ -789,7 +789,7 @@ curl http://127.0.0.1:8765/health
 ## Getting Help
 
 - **Documentation**: See ARCHITECTURE.md, PROTOCOL.md
-- **Issues**: Check [GitHub Issues](https://github.com/roelvangils/zen-bridge/issues)
+- **Issues**: Check [GitHub Issues](https://github.com/roelvangils/inspekt/issues)
 - **Discussions**: Use GitHub Discussions for questions
 - **Bug Reports**: Open an issue with reproducible example
 

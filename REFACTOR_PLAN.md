@@ -1,8 +1,8 @@
-# Refactor Plan: Zen Bridge
+# Refactor Plan: Inspekt
 
 ## Executive Summary
 
-This document outlines a phased refactoring plan for the Zen Bridge project to improve modularity, testability, reliability, and long-term maintainability while preserving the stable public CLI interface.
+This document outlines a phased refactoring plan for the Inspekt project to improve modularity, testability, reliability, and long-term maintainability while preserving the stable public CLI interface.
 
 **Status**: ✅ PHASE 2 COMPLETE - Phase 3 (0% complete)
 **Last Updated**: 2025-10-27
@@ -241,7 +241,7 @@ Layer 3: Application (CLI, server entry points)
        pip install -e ".[dev]"
 
    test:
-       pytest tests/ -v --cov=zen --cov-report=html
+       pytest tests/ -v --cov=inspekt --cov-report=html
 
    lint:
        ruff check zen/
@@ -352,7 +352,7 @@ Layer 3: Application (CLI, server entry points)
 - [x] ✅ `tests/unit/test_models.py`: 28 tests for all Pydantic models
 - [x] ✅ `tests/unit/test_config.py`: Test config loading, merging, validation
 - [x] ✅ Test invalid configs raise appropriate errors
-- [x] ✅ Test config file precedence (local > ~/.zen > defaults)
+- [x] ✅ Test config file precedence (local > ~/.inspekt > defaults)
 - **Coverage**: 94.70% on zen/domain/models.py
 
 ### Verification Checklist (Phase 1)
@@ -550,7 +550,7 @@ Layer 3: Application (CLI, server entry points)
 - [x] ✅ All files in `zen/app/cli/` are well-sized (largest: 785 lines for extraction.py)
 - [x] ✅ All imports follow layer architecture (app → services → adapters → domain)
 - [x] ✅ `pip install -e .` works with new entry point (zen.app.cli:main)
-- [x] ✅ `zen --help` shows all commands
+- [x] ✅ `inspekt --help` shows all commands
 - [x] ✅ Manual test: All CLI commands tested successfully
 
 **Deferred to Phase 3**:
@@ -589,12 +589,12 @@ Layer 3: Application (CLI, server entry points)
        # Teardown: Close browser, stop server
 
    def test_eval_command(browser_with_userscript):
-       """Test: zen eval 'document.title' returns page title."""
+       """Test: inspekt eval 'document.title' returns page title."""
        # Run CLI command
        # Assert output matches browser title
 
    def test_extract_links(browser_with_userscript):
-       """Test: zen extract-links returns valid link JSON."""
+       """Test: inspekt extract-links returns valid link JSON."""
        # Navigate to test page with known links
        # Run CLI command
        # Assert all expected links present
@@ -655,7 +655,7 @@ Layer 3: Application (CLI, server entry points)
    - [ ] Add missing docstrings (Google or NumPy style)
    - [ ] Ensure all public APIs have docstrings
    - [ ] Add type hints to all functions (100% coverage)
-   - [ ] Run coverage report: `pytest --cov=zen --cov-report=html`
+   - [ ] Run coverage report: `pytest --cov=inspekt --cov-report=html`
    - [ ] Achieve ≥80% coverage on critical paths
 
 4. **Performance & Reliability**
@@ -694,7 +694,7 @@ After completing all phases, the following must be true:
 - [ ] WebSocket server runs stably for >1 hour under load
 - [ ] Browser reconnect works seamlessly after page reload
 - [ ] Control mode auto-reinit works correctly
-- [ ] CLI installable via `pipx install zen-bridge`
+- [ ] CLI installable via `pipx install inspekt`
 
 ### Quality Metrics
 - [ ] Test coverage ≥80% on critical modules (services, adapters, server)
@@ -742,9 +742,9 @@ After completing all phases, the following must be true:
    python3.11 -m venv test_env
    source test_env/bin/activate
    pip install -e .
-   zen --version
-   zen server start  # Terminal 1
-   zen eval "document.title"  # Terminal 2
+   inspekt --version
+   inspekt server start  # Terminal 1
+   inspekt eval "document.title"  # Terminal 2
    ```
 
 2. **Cross-Platform Test** (if applicable)
@@ -754,7 +754,7 @@ After completing all phases, the following must be true:
 
 3. **Load Test**
    - Start server
-   - Run 100 `zen eval` commands in parallel
+   - Run 100 `inspekt eval` commands in parallel
    - No errors, all complete in reasonable time
 
 4. **Documentation Review**
@@ -773,7 +773,7 @@ After completing all phases, the following must be true:
 
 ```toml
 [project]
-name = "zen-bridge"
+name = "inspekt"
 version = "2.0.0"
 requires-python = ">=3.11"
 dependencies = [
@@ -818,7 +818,7 @@ testpaths = ["tests"]
 python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
-addopts = "-v --cov=zen --cov-report=term-missing"
+addopts = "-v --cov=inspekt --cov-report=term-missing"
 
 [tool.coverage.run]
 source = ["zen"]

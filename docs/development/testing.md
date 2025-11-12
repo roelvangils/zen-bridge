@@ -1,10 +1,10 @@
 # Testing Guide
 
-Comprehensive guide to testing Zen Bridge. This covers unit tests, integration tests, E2E tests, and test coverage strategies.
+Comprehensive guide to testing Inspekt. This covers unit tests, integration tests, E2E tests, and test coverage strategies.
 
 ## Overview
 
-Zen Bridge uses **pytest** as the testing framework with support for:
+Inspekt uses **pytest** as the testing framework with support for:
 
 - **Unit tests** - Fast, isolated tests for individual functions
 - **Integration tests** - Multi-component tests (CLI + server)
@@ -95,11 +95,11 @@ pytest -k "test_execute"
 pytest --cov=zen
 
 # With HTML report
-pytest --cov=zen --cov-report=html
+pytest --cov=inspekt --cov-report=html
 open htmlcov/index.html
 
 # With terminal report showing missing lines
-pytest --cov=zen --cov-report=term-missing
+pytest --cov=inspekt --cov-report=term-missing
 
 # Coverage for specific module
 pytest tests/unit/test_models.py --cov=zen.domain.models
@@ -472,7 +472,7 @@ from playwright.sync_api import sync_playwright
 
 @pytest.fixture
 def zen_server():
-    """Start zen server in background."""
+    """Start inspekt server in background."""
     proc = subprocess.Popen(["zen", "server", "start"])
     yield
     proc.terminate()
@@ -480,7 +480,7 @@ def zen_server():
 
 @pytest.mark.e2e
 def test_eval_command(zen_server):
-    """Test zen eval command with real browser."""
+    """Test inspekt eval command with real browser."""
     with sync_playwright() as p:
         # Launch browser
         browser = p.chromium.launch()
@@ -533,17 +533,17 @@ def test_eval_command(zen_server):
 
 ```bash
 # Generate coverage report
-pytest --cov=zen --cov-report=term-missing
+pytest --cov=inspekt --cov-report=term-missing
 
 # HTML report
-pytest --cov=zen --cov-report=html
+pytest --cov=inspekt --cov-report=html
 open htmlcov/index.html
 
 # Coverage for specific package
 pytest --cov=zen.services --cov-report=term
 
 # Fail if coverage below threshold
-pytest --cov=zen --cov-fail-under=80
+pytest --cov=inspekt --cov-fail-under=80
 ```
 
 ### Coverage Configuration
@@ -794,7 +794,7 @@ jobs:
 
       - name: Run tests
         run: |
-          pytest --cov=zen --cov-report=xml
+          pytest --cov=inspekt --cov-report=xml
 
       - name: Upload coverage
         uses: codecov/codecov-action@v3

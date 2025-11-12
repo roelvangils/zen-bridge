@@ -1,4 +1,4 @@
-# Zen Bridge - Project Summary
+# Inspekt - Project Summary
 
 **Version**: 1.0.0 (current) → 2.0.0 (refactor target)
 **Status**: Deep code review complete, refactor plan ready
@@ -6,9 +6,9 @@
 
 ---
 
-## What is Zen Bridge?
+## What is Inspekt?
 
-Zen Bridge is a command-line tool that executes JavaScript in your browser from the terminal. It uses a WebSocket-based architecture to create a bidirectional communication channel between a CLI, a local server, and a Tampermonkey userscript running in the browser.
+Inspekt is a command-line tool that executes JavaScript in your browser from the terminal. It uses a WebSocket-based architecture to create a bidirectional communication channel between a CLI, a local server, and a Tampermonkey userscript running in the browser.
 
 **Core Value Proposition**:
 - Execute arbitrary JavaScript from terminal
@@ -26,7 +26,7 @@ Zen Bridge is a command-line tool that executes JavaScript in your browser from 
 ```
 ┌─────────────────┐
 │   USER TERMINAL │
-│   (zen CLI)     │
+│   (inspekt CLI)     │
 └────────┬────────┘
          │ HTTP POST /run
          ▼
@@ -248,23 +248,23 @@ async def websocket_handler(request):
 
 ```bash
 # Clone repository
-git clone https://github.com/roelvangils/zen-bridge.git
-cd zen-bridge
+git clone https://github.com/roelvangils/inspekt.git
+cd inspekt
 
 # Install (development mode)
 pip install -e .
 
 # Verify installation
-zen --version
+inspekt --version
 ```
 
 ### Running the Bridge
 
 **Terminal 1: Start server**
 ```bash
-zen server start
+inspekt server start
 # Output:
-# Zen Bridge WebSocket Server (aiohttp)
+# Inspekt WebSocket Server (aiohttp)
 # WebSocket: ws://127.0.0.1:8766/ws
 # HTTP API: http://127.0.0.1:8765
 ```
@@ -279,19 +279,19 @@ zen server start
 **Terminal 2: Execute commands**
 ```bash
 # Evaluate JavaScript
-zen eval "document.title"
+inspekt eval "document.title"
 
 # Extract links
-zen extract-links
+inspekt extract-links
 
 # Start control mode (keyboard navigation)
-zen control start
+inspekt control start
 
 # Get page structure
-zen extract-page-structure
+inspekt extract-page-structure
 
 # Screenshot element
-zen screenshot "#logo" output.png
+inspekt screenshot "#logo" output.png
 ```
 
 ### Testing (Post-Refactor)
@@ -327,7 +327,7 @@ make typecheck               # Run mypy
 - [ ] WebSocket server stable under load (100 requests/min)
 - [ ] Browser reconnect works after page navigation
 - [ ] Control mode auto-reinit functional
-- [ ] Installable via `pipx install zen-bridge`
+- [ ] Installable via `pipx install inspekt`
 
 ### Quality ✅
 - [ ] Test coverage ≥80% on critical modules
@@ -364,8 +364,8 @@ make typecheck               # Run mypy
 
 ```bash
 # 1. Clone and enter directory
-git clone https://github.com/roelvangils/zen-bridge.git
-cd zen-bridge
+git clone https://github.com/roelvangils/inspekt.git
+cd inspekt
 
 # 2. Install dependencies (using uv, recommended)
 uv venv
@@ -379,7 +379,7 @@ pre-commit install
 make test
 
 # 5. Start development server
-zen server start
+inspekt server start
 ```
 
 ### Development Workflow
@@ -440,7 +440,7 @@ from zen.app.cli.my_commands import my_command
 
 @click.group()
 def cli():
-    """Zen Bridge CLI."""
+    """Inspekt CLI."""
     pass
 
 cli.add_command(my_command)
@@ -483,7 +483,7 @@ def test_my_command(mock_executor):
    - **Decision Needed**: ❓ Research existing usage
 
 5. **AI Service Integration**
-   - What AI service is used for `zen describe` and `zen summarize`?
+   - What AI service is used for `inspekt describe` and `inspekt summarize`?
    - How is it configured?
    - **Decision Needed**: ❓ Document in ARCHITECTURE.md
 
@@ -557,7 +557,7 @@ def test_my_command(mock_executor):
 - SECURITY.md - Threat model (📋 Phase 3)
 
 ### External Links
-- Project Repository: https://github.com/roelvangils/zen-bridge
+- Project Repository: https://github.com/roelvangils/inspekt
 - Click Documentation: https://click.palletsprojects.com/
 - Pydantic Documentation: https://docs.pydantic.dev/
 - aiohttp Documentation: https://docs.aiohttp.org/
@@ -568,8 +568,8 @@ def test_my_command(mock_executor):
 ## Contact & Support
 
 **Maintainer**: Roel van Gils
-**Repository**: https://github.com/roelvangils/zen-bridge
-**Issues**: https://github.com/roelvangils/zen-bridge/issues
+**Repository**: https://github.com/roelvangils/inspekt
+**Issues**: https://github.com/roelvangils/inspekt/issues
 
 For questions about this refactor plan, please:
 1. Review REFACTOR_PLAN.md for detailed information

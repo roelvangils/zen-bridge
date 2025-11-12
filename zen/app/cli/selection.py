@@ -113,10 +113,46 @@ def display_selection(response, content_type="text", show_tip=True):
         click.echo(f"Tip: Use `zen selection {content_type} --raw` for raw output.")
 
 
-@click.group()
-def selection():
+@click.group(invoke_without_command=True)
+@click.option("--json", "output_json", is_flag=True, help="Output as JSON with all formats")
+@click.pass_context
+def selection(ctx, output_json):
     """Get the current text selection in the browser."""
-    pass
+    # If no subcommand is provided and --json flag is used, return all formats
+    if ctx.invoked_subcommand is None and output_json:
+        response = get_selection_data()
+
+        if response is None:
+            click.echo(json.dumps({
+                "hasSelection": False,
+                "text": "",
+                "html": "",
+                "markdown": "",
+                "length": 0
+            }, indent=2))
+            sys.exit(0)
+
+        # Generate markdown from HTML
+        html = response.get("html", "")
+        text_content = response.get("text", "")
+        markdown_content = html_to_markdown(html) if html else text_content
+
+        # Return all three formats
+        output = {
+            "hasSelection": True,
+            "text": text_content,
+            "html": html,
+            "markdown": markdown_content,
+            "length": response.get("length", 0),
+            "position": response.get("position", {}),
+            "container": response.get("container", {})
+        }
+        click.echo(json.dumps(output, indent=2))
+        sys.exit(0)
+    elif ctx.invoked_subcommand is None:
+        # No subcommand and no --json flag, show help
+        click.echo(ctx.get_help())
+        sys.exit(0)
 
 
 @selection.command()
@@ -136,11 +172,14 @@ def text(raw, output_json):
 
     text_content = response.get("text", "")
 
-    # JSON mode: output all data as JSON (including markdown)
+    # JSON mode: output only text data
     if output_json:
-        html = response.get("html", "")
-        response["markdown"] = html_to_markdown(html) if html else text_content
-        click.echo(json.dumps(response, indent=2))
+        output = {
+            "hasSelection": True,
+            "text": text_content,
+            "length": response.get("length", 0)
+        }
+        click.echo(json.dumps(output, indent=2))
         return
 
     # Raw mode: just print the text, nothing else
@@ -161,19 +200,22 @@ def html(raw, output_json):
 
     if response is None:
         if output_json:
-            click.echo(json.dumps({"hasSelection": False, "text": "", "html": "", "length": 0}, indent=2))
+            click.echo(json.dumps({"hasSelection": False, "html": "", "length": 0}, indent=2))
         elif not raw:
             click.echo("No text selected")
             click.echo("Hint: Select some text in the browser first, then run: zen selection html")
         sys.exit(0)
 
     html_content = response.get("html", "")
-    text_content = response.get("text", "")
 
-    # JSON mode: output all data as JSON (including markdown)
+    # JSON mode: output only html data
     if output_json:
-        response["markdown"] = html_to_markdown(html_content) if html_content else text_content
-        click.echo(json.dumps(response, indent=2))
+        output = {
+            "hasSelection": True,
+            "html": html_content,
+            "length": response.get("length", 0)
+        }
+        click.echo(json.dumps(output, indent=2))
         return
 
     # Raw mode: just print the HTML, nothing else
@@ -194,7 +236,7 @@ def markdown(raw, output_json):
 
     if response is None:
         if output_json:
-            click.echo(json.dumps({"hasSelection": False, "text": "", "markdown": "", "length": 0}, indent=2))
+            click.echo(json.dumps({"hasSelection": False, "markdown": "", "length": 0}, indent=2))
         elif not raw:
             click.echo("No text selected")
             click.echo("Hint: Select some text in the browser first, then run: zen selection markdown")
@@ -204,10 +246,14 @@ def markdown(raw, output_json):
     text_content = response.get("text", "")
     markdown_content = html_to_markdown(html_content) if html_content else text_content
 
-    # JSON mode: output all data as JSON
+    # JSON mode: output only markdown data
     if output_json:
-        response["markdown"] = markdown_content
-        click.echo(json.dumps(response, indent=2))
+        output = {
+            "hasSelection": True,
+            "markdown": markdown_content,
+            "length": response.get("length", 0)
+        }
+        click.echo(json.dumps(output, indent=2))
         return
 
     # Raw mode: just print the markdown, nothing else
@@ -243,11 +289,14 @@ def selected(raw, output_json):
 
     text_content = response.get("text", "")
 
-    # JSON mode: output all data as JSON
+    # JSON mode: output only text data (for backward compatibility)
     if output_json:
-        html = response.get("html", "")
-        response["markdown"] = html_to_markdown(html) if html else text_content
-        click.echo(json.dumps(response, indent=2))
+        output = {
+            "hasSelection": True,
+            "text": text_content,
+            "length": response.get("length", 0)
+        }
+        click.echo(json.dumps(output, indent=2))
         return
 
     # Raw mode: just print the text, nothing else

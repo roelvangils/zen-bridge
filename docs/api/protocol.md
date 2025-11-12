@@ -1,12 +1,12 @@
 # WebSocket Protocol Specification
 
-Complete specification for the Zen Bridge WebSocket protocol.
+Complete specification for the Inspekt WebSocket protocol.
 
 ---
 
 ## Overview
 
-Zen Bridge uses a bidirectional WebSocket protocol for real-time communication between the Python server and browser userscript. The protocol supports:
+Inspekt uses a bidirectional WebSocket protocol for real-time communication between the Python server and browser userscript. The protocol supports:
 
 - **Code Execution**: Execute JavaScript in browser from server
 - **Keepalive**: Ping/pong for connection health
@@ -324,7 +324,7 @@ sequenceDiagram
 **Recovery:**
 
 - Browser: Retry connection (exponential backoff)
-- CLI: User must start server with `zen server start`
+- CLI: User must start server with `inspekt server start`
 
 ---
 

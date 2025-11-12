@@ -1,6 +1,6 @@
 # CLI Command Reference
 
-Complete reference for all 42+ Zen Bridge CLI commands organized by category.
+Complete reference for all 42+ Inspekt CLI commands organized by category.
 
 ---
 
@@ -10,7 +10,7 @@ The Zen CLI provides commands to interact with the browser through the WebSocket
 
 **Global Usage:**
 ```bash
-zen [OPTIONS] COMMAND [ARGS]...
+inspekt [OPTIONS] COMMAND [ARGS]...
 ```
 
 **Global Options:**
@@ -43,7 +43,7 @@ Execute JavaScript code in the active browser tab.
 
 **Syntax:**
 ```bash
-zen eval [CODE] [OPTIONS]
+inspekt eval [CODE] [OPTIONS]
 ```
 
 **Arguments:**
@@ -62,19 +62,19 @@ zen eval [CODE] [OPTIONS]
 
 ```bash
 # Execute inline code
-zen eval "document.title"
+inspekt eval "document.title"
 
 # Execute from file
-zen eval --file script.js
+inspekt eval --file script.js
 
 # Read from stdin
-echo "console.log('test')" | zen eval
+echo "console.log('test')" | inspekt eval
 
 # Get result as JSON
-zen eval "({title: document.title, url: location.href})" --format json
+inspekt eval "({title: document.title, url: location.href})" --format json
 
 # Show metadata
-zen eval "document.body.innerHTML.length" --url --title
+inspekt eval "document.body.innerHTML.length" --url --title
 ```
 
 **Return Value:**
@@ -104,7 +104,7 @@ Execute JavaScript from a file.
 
 **Syntax:**
 ```bash
-zen exec FILEPATH [OPTIONS]
+inspekt exec FILEPATH [OPTIONS]
 ```
 
 **Arguments:**
@@ -119,9 +119,9 @@ zen exec FILEPATH [OPTIONS]
 **Examples:**
 
 ```bash
-zen exec script.js
-zen exec script.js --timeout 30
-zen exec script.js --format json
+inspekt exec script.js
+inspekt exec script.js --timeout 30
+inspekt exec script.js --format json
 ```
 
 **Return Value:**
@@ -147,7 +147,7 @@ Navigate to a URL.
 
 **Syntax:**
 ```bash
-zen open URL [OPTIONS]
+inspekt open URL [OPTIONS]
 ```
 
 **Arguments:**
@@ -163,13 +163,13 @@ zen open URL [OPTIONS]
 
 ```bash
 # Navigate to URL
-zen open "https://example.com"
+inspekt open "https://example.com"
 
 # Navigate and wait for page load
-zen open "https://example.com" --wait
+inspekt open "https://example.com" --wait
 
 # Navigate with custom timeout
-zen open "https://example.com" --wait --timeout 60
+inspekt open "https://example.com" --wait --timeout 60
 ```
 
 **Return Value:**
@@ -194,7 +194,7 @@ Go back to the previous page in browser history.
 
 **Syntax:**
 ```bash
-zen back
+inspekt back
 ```
 
 **Aliases:**
@@ -204,7 +204,7 @@ zen back
 **Examples:**
 
 ```bash
-zen back
+inspekt back
 ```
 
 **Return Value:**
@@ -224,7 +224,7 @@ Go forward to the next page in browser history.
 
 **Syntax:**
 ```bash
-zen forward
+inspekt forward
 ```
 
 **Aliases:**
@@ -234,7 +234,7 @@ zen forward
 **Examples:**
 
 ```bash
-zen forward
+inspekt forward
 ```
 
 **Return Value:**
@@ -253,7 +253,7 @@ Reload the current page.
 
 **Syntax:**
 ```bash
-zen reload [OPTIONS]
+inspekt reload [OPTIONS]
 ```
 
 **Options:**
@@ -268,10 +268,10 @@ zen reload [OPTIONS]
 
 ```bash
 # Normal reload
-zen reload
+inspekt reload
 
 # Hard reload (bypass cache)
-zen reload --hard
+inspekt reload --hard
 ```
 
 **Return Value:**
@@ -294,13 +294,13 @@ List all cookies for the current page.
 
 **Syntax:**
 ```bash
-zen cookies list
+inspekt cookies list
 ```
 
 **Examples:**
 
 ```bash
-zen cookies list
+inspekt cookies list
 ```
 
 **Return Value:**
@@ -327,7 +327,7 @@ Get the value of a specific cookie.
 
 **Syntax:**
 ```bash
-zen cookies get NAME
+inspekt cookies get NAME
 ```
 
 **Arguments:**
@@ -337,7 +337,7 @@ zen cookies get NAME
 **Examples:**
 
 ```bash
-zen cookies get session_id
+inspekt cookies get session_id
 ```
 
 **Return Value:**
@@ -364,7 +364,7 @@ Set a cookie.
 
 **Syntax:**
 ```bash
-zen cookies set NAME VALUE [OPTIONS]
+inspekt cookies set NAME VALUE [OPTIONS]
 ```
 
 **Arguments:**
@@ -385,16 +385,16 @@ zen cookies set NAME VALUE [OPTIONS]
 
 ```bash
 # Simple cookie
-zen cookies set session_id abc123
+inspekt cookies set session_id abc123
 
 # With expiration
-zen cookies set token xyz --max-age 3600
+inspekt cookies set token xyz --max-age 3600
 
 # Secure cookie with path
-zen cookies set user_pref dark --path / --secure
+inspekt cookies set user_pref dark --path / --secure
 
 # With SameSite
-zen cookies set csrf_token abc --same-site Strict
+inspekt cookies set csrf_token abc --same-site Strict
 ```
 
 **Return Value:**
@@ -417,7 +417,7 @@ Delete a specific cookie.
 
 **Syntax:**
 ```bash
-zen cookies delete NAME
+inspekt cookies delete NAME
 ```
 
 **Arguments:**
@@ -427,7 +427,7 @@ zen cookies delete NAME
 **Examples:**
 
 ```bash
-zen cookies delete session_id
+inspekt cookies delete session_id
 ```
 
 **Return Value:**
@@ -450,13 +450,13 @@ Clear all cookies for the current page.
 
 **Syntax:**
 ```bash
-zen cookies clear
+inspekt cookies clear
 ```
 
 **Examples:**
 
 ```bash
-zen cookies clear
+inspekt cookies clear
 ```
 
 **Return Value:**
@@ -481,7 +481,7 @@ Send text to the browser by typing it character by character.
 
 **Syntax:**
 ```bash
-zen send TEXT [OPTIONS]
+inspekt send TEXT [OPTIONS]
 ```
 
 **Arguments:**
@@ -496,13 +496,13 @@ zen send TEXT [OPTIONS]
 
 ```bash
 # Type into currently focused element
-zen send "Hello World"
+inspekt send "Hello World"
 
 # Type into specific element
-zen send "test@example.com" --selector "input[type=email]"
+inspekt send "test@example.com" --selector "input[type=email]"
 
 # Type into password field
-zen send "mypassword" --selector "#password"
+inspekt send "mypassword" --selector "#password"
 ```
 
 **Return Value:**
@@ -526,7 +526,7 @@ Click on an element.
 
 **Syntax:**
 ```bash
-zen click [SELECTOR]
+inspekt click [SELECTOR]
 ```
 
 **Arguments:**
@@ -537,12 +537,12 @@ zen click [SELECTOR]
 
 ```bash
 # Click on stored element ($0)
-zen inspect "button#submit"
-zen click
+inspekt inspect "button#submit"
+inspekt click
 
 # Click directly on element
-zen click "button#submit"
-zen click ".primary-button"
+inspekt click "button#submit"
+inspekt click ".primary-button"
 ```
 
 **Return Value:**
@@ -572,7 +572,7 @@ Double-click on an element.
 
 **Syntax:**
 ```bash
-zen double-click [SELECTOR]
+inspekt double-click [SELECTOR]
 ```
 
 **Arguments:**
@@ -586,9 +586,9 @@ zen double-click [SELECTOR]
 **Examples:**
 
 ```bash
-zen double-click "div.item"
-zen inspect "div.item"
-zen double-click
+inspekt double-click "div.item"
+inspekt inspect "div.item"
+inspekt double-click
 ```
 
 **Return Value:**
@@ -607,7 +607,7 @@ Right-click (context menu) on an element.
 
 **Syntax:**
 ```bash
-zen right-click [SELECTOR]
+inspekt right-click [SELECTOR]
 ```
 
 **Arguments:**
@@ -621,9 +621,9 @@ zen right-click [SELECTOR]
 **Examples:**
 
 ```bash
-zen right-click "a.download-link"
-zen inspect "a.download-link"
-zen right-click
+inspekt right-click "a.download-link"
+inspekt inspect "a.download-link"
+inspekt right-click
 ```
 
 **Return Value:**
@@ -642,7 +642,7 @@ Wait for an element to appear, be visible, hidden, or contain text.
 
 **Syntax:**
 ```bash
-zen wait SELECTOR [OPTIONS]
+inspekt wait SELECTOR [OPTIONS]
 ```
 
 **Arguments:**
@@ -660,19 +660,19 @@ zen wait SELECTOR [OPTIONS]
 
 ```bash
 # Wait for element to exist (up to 30 seconds)
-zen wait "button#submit"
+inspekt wait "button#submit"
 
 # Wait for element to be visible
-zen wait ".modal" --visible
+inspekt wait ".modal" --visible
 
 # Wait for element to be hidden
-zen wait ".loading-spinner" --hidden
+inspekt wait ".loading-spinner" --hidden
 
 # Wait for element to contain text
-zen wait "h1" --text "Success"
+inspekt wait "h1" --text "Success"
 
 # Custom timeout (10 seconds)
-zen wait "div.result" --timeout 10
+inspekt wait "div.result" --timeout 10
 ```
 
 **Return Value:**
@@ -705,7 +705,7 @@ Select an element and show its details.
 
 **Syntax:**
 ```bash
-zen inspect [SELECTOR]
+inspekt inspect [SELECTOR]
 ```
 
 **Arguments:**
@@ -716,12 +716,12 @@ zen inspect [SELECTOR]
 
 ```bash
 # Select and show details
-zen inspect "h1"
-zen inspect "#header"
-zen inspect ".main-content"
+inspekt inspect "h1"
+inspekt inspect "#header"
+inspekt inspect ".main-content"
 
 # Show currently selected element
-zen inspect
+inspekt inspect
 ```
 
 **Return Value:**
@@ -784,7 +784,7 @@ Get information about the currently inspected element.
 
 **Syntax:**
 ```bash
-zen inspected
+inspekt inspected
 ```
 
 **Examples:**
@@ -794,11 +794,11 @@ zen inspected
 # 1. Right-click element → Inspect
 # 2. In DevTools Console: zenStore()
 # 3. Run:
-zen inspected
+inspekt inspected
 
 # Or select programmatically:
-zen inspect "h1"
-zen inspected
+inspekt inspect "h1"
+inspekt inspected
 ```
 
 **Return Value:**
@@ -822,7 +822,7 @@ Take a screenshot of a specific element.
 
 **Syntax:**
 ```bash
-zen screenshot -s SELECTOR [OPTIONS]
+inspekt screenshot -s SELECTOR [OPTIONS]
 ```
 
 **Options:**
@@ -834,13 +834,13 @@ zen screenshot -s SELECTOR [OPTIONS]
 
 ```bash
 # Screenshot element
-zen screenshot --selector "#main"
+inspekt screenshot --selector "#main"
 
 # Save to specific file
-zen screenshot -s ".hero-section" -o hero.png
+inspekt screenshot -s ".hero-section" -o hero.png
 
 # Screenshot inspected element ($0)
-zen screenshot -s "$0" -o inspected.png
+inspekt screenshot -s "$0" -o inspected.png
 ```
 
 **Return Value:**
@@ -872,7 +872,7 @@ Get the current text selection in the browser.
 
 **Syntax:**
 ```bash
-zen selected [OPTIONS]
+inspekt selected [OPTIONS]
 ```
 
 **Options:**
@@ -883,13 +883,13 @@ zen selected [OPTIONS]
 
 ```bash
 # Get selection with metadata
-zen selected
+inspekt selected
 
 # Get just the raw text
-zen selected --raw
+inspekt selected --raw
 
 # Pipe to file
-zen selected --raw > selection.txt
+inspekt selected --raw > selection.txt
 ```
 
 **Return Value:**
@@ -934,7 +934,7 @@ Start the bridge server.
 
 **Syntax:**
 ```bash
-zen server start [OPTIONS]
+inspekt server start [OPTIONS]
 ```
 
 **Options:**
@@ -946,13 +946,13 @@ zen server start [OPTIONS]
 
 ```bash
 # Start in foreground
-zen server start
+inspekt server start
 
 # Start on custom port
-zen server start --port 9000
+inspekt server start --port 9000
 
 # Start as background daemon
-zen server start --daemon
+inspekt server start --daemon
 ```
 
 **Return Value:**
@@ -983,13 +983,13 @@ Check bridge server status.
 
 **Syntax:**
 ```bash
-zen server status
+inspekt server status
 ```
 
 **Examples:**
 
 ```bash
-zen server status
+inspekt server status
 ```
 
 **Return Value:**
@@ -1018,13 +1018,13 @@ Stop the bridge server.
 
 **Syntax:**
 ```bash
-zen server stop
+inspekt server stop
 ```
 
 **Examples:**
 
 ```bash
-zen server stop
+inspekt server stop
 ```
 
 **Return Value:**
@@ -1050,7 +1050,7 @@ Generate an AI-powered description of the page for screen reader users.
 
 **Syntax:**
 ```bash
-zen describe [OPTIONS]
+inspekt describe [OPTIONS]
 ```
 
 **Options:**
@@ -1062,13 +1062,13 @@ zen describe [OPTIONS]
 
 ```bash
 # Generate description
-zen describe
+inspekt describe
 
 # Force English output
-zen describe --language en
+inspekt describe --language en
 
 # Debug mode (see prompt)
-zen describe --debug
+inspekt describe --debug
 ```
 
 **Return Value:**
@@ -1098,13 +1098,13 @@ Display the page's heading structure as a nested outline.
 
 **Syntax:**
 ```bash
-zen outline
+inspekt outline
 ```
 
 **Examples:**
 
 ```bash
-zen outline
+inspekt outline
 ```
 
 **Return Value:**
@@ -1135,7 +1135,7 @@ Extract all links from the current page.
 
 **Syntax:**
 ```bash
-zen links [OPTIONS]
+inspekt links [OPTIONS]
 ```
 
 **Options:**
@@ -1151,28 +1151,28 @@ zen links [OPTIONS]
 
 ```bash
 # All links with anchor text
-zen links
+inspekt links
 
 # Only links on same domain
-zen links --only-internal
+inspekt links --only-internal
 
 # Only links to other domains
-zen links --only-external
+inspekt links --only-external
 
 # Sort alphabetically
-zen links --alphabetically
+inspekt links --alphabetically
 
 # Show only URLs
-zen links --only-urls
+inspekt links --only-urls
 
 # External URLs only
-zen links --only-external --only-urls
+inspekt links --only-external --only-urls
 
 # Add metadata for external links
-zen links --enrich-external
+inspekt links --enrich-external
 
 # JSON output
-zen links --json
+inspekt links --json
 ```
 
 **Return Value:**
@@ -1218,7 +1218,7 @@ Summarize the current article using AI.
 
 **Syntax:**
 ```bash
-zen summarize [OPTIONS]
+inspekt summarize [OPTIONS]
 ```
 
 **Options:**
@@ -1231,16 +1231,16 @@ zen summarize [OPTIONS]
 
 ```bash
 # Get AI summary
-zen summarize
+inspekt summarize
 
 # Show full extracted article
-zen summarize --format full
+inspekt summarize --format full
 
 # Force French output
-zen summarize --language fr
+inspekt summarize --language fr
 
 # Debug mode
-zen summarize --debug
+inspekt summarize --debug
 ```
 
 **Return Value:**
@@ -1275,13 +1275,13 @@ Watch keyboard input in real-time.
 
 **Syntax:**
 ```bash
-zen watch input
+inspekt watch input
 ```
 
 **Examples:**
 
 ```bash
-zen watch input
+inspekt watch input
 ```
 
 **Return Value:**
@@ -1300,13 +1300,13 @@ Watch all user interactions - keyboard, focus, and accessible names.
 
 **Syntax:**
 ```bash
-zen watch all
+inspekt watch all
 ```
 
 **Examples:**
 
 ```bash
-zen watch all
+inspekt watch all
 ```
 
 **Return Value:**
@@ -1344,13 +1344,13 @@ Control the browser remotely from your terminal (interactive mode).
 
 **Syntax:**
 ```bash
-zen control
+inspekt control
 ```
 
 **Examples:**
 
 ```bash
-zen control
+inspekt control
 ```
 
 **Features:**
@@ -1405,7 +1405,7 @@ Get information about the current browser tab.
 
 **Syntax:**
 ```bash
-zen info [OPTIONS]
+inspekt info [OPTIONS]
 ```
 
 **Options:**
@@ -1417,13 +1417,13 @@ zen info [OPTIONS]
 
 ```bash
 # Basic info
-zen info
+inspekt info
 
 # Extended info
-zen info --extended
+inspekt info --extended
 
 # JSON output
-zen info --extended --json
+inspekt info --extended --json
 ```
 
 **Return Value:**
@@ -1466,13 +1466,13 @@ Start an interactive REPL session.
 
 **Syntax:**
 ```bash
-zen repl
+inspekt repl
 ```
 
 **Examples:**
 
 ```bash
-zen repl
+inspekt repl
 ```
 
 **Return Value:**
@@ -1511,13 +1511,13 @@ Display the userscript that needs to be installed in your browser.
 
 **Syntax:**
 ```bash
-zen userscript
+inspekt userscript
 ```
 
 **Examples:**
 
 ```bash
-zen userscript
+inspekt userscript
 ```
 
 **Return Value:**
@@ -1547,7 +1547,7 @@ Find and download files from the current page.
 
 **Syntax:**
 ```bash
-zen download [OPTIONS]
+inspekt download [OPTIONS]
 ```
 
 **Options:**
@@ -1560,13 +1560,13 @@ zen download [OPTIONS]
 
 ```bash
 # Interactive download
-zen download
+inspekt download
 
 # Download to specific directory
-zen download --output ~/Documents
+inspekt download --output ~/Documents
 
 # List files only
-zen download --list
+inspekt download --list
 ```
 
 **Features:**
@@ -1630,7 +1630,7 @@ All commands follow standard Unix exit code conventions:
 
 Commands respect these environment settings:
 
-- **Config file**: `~/.config/zen-bridge/config.json`
+- **Config file**: `~/.config/inspekt/config.json`
 - **Default host**: 127.0.0.1
 - **Default port**: 8765 (HTTP API), 8766 (WebSocket)
 

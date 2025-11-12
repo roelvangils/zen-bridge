@@ -40,9 +40,19 @@
         if (cspMeta) {
             const content = cspMeta.getAttribute('content') || '';
             if (content.includes('connect-src') && !content.includes('ws://') && !content.includes('localhost')) {
-                return 'meta-tag';
+                return 'meta-tag (connect-src blocks WebSocket)';
             }
         }
+
+        // Test if eval is blocked by trying it
+        try {
+            (0, eval)('1+1');
+        } catch (e) {
+            if (e instanceof EvalError || (e.message && e.message.includes('Content Security Policy'))) {
+                return 'eval blocked by CSP (script-src missing unsafe-eval)';
+            }
+        }
+
         return null;
     }
 
@@ -131,6 +141,12 @@
                                 result = await result;
                             }
                         } catch (e) {
+                            // Check if this is a CSP error
+                            if (e instanceof EvalError || (e.message && e.message.includes('Content Security Policy'))) {
+                                // Set CSP blocked flag so CLI can detect it
+                                window.__ZEN_BRIDGE_CSP_BLOCKED__ = true;
+                                showCSPWarning('eval blocked by CSP (script-src missing unsafe-eval)');
+                            }
                             error = String(e && e.stack ? e.stack : e);
                         }
 

@@ -1,6 +1,6 @@
 # Configuration
 
-Customize Zen Browser Bridge for your specific workflow with comprehensive configuration options. This guide covers everything from basic settings to advanced control mode customization.
+Customize Inspekt for your specific workflow with comprehensive configuration options. This guide covers everything from basic settings to advanced control mode customization.
 
 ---
 
@@ -64,7 +64,7 @@ The configuration file has two main sections:
 
 ### `ai-language`
 
-Controls the language used for AI-powered features (`zen summarize` and `zen describe`).
+Controls the language used for AI-powered features (`inspektsummarize` and `inspektdescribe`).
 
 **Type**: `string`
 **Default**: `"auto"`
@@ -109,7 +109,7 @@ Controls the language used for AI-powered features (`zen summarize` and `zen des
 
 ## Control Mode Configuration
 
-The `control` section customizes keyboard navigation behavior when using `zen control`.
+The `control` section customizes keyboard navigation behavior when using `inspektcontrol`.
 
 ### Auto-Refocus Settings
 
@@ -679,8 +679,8 @@ Maximum logging and visibility:
 
 Configuration is loaded when:
 
-1. **Server starts** - `zen server start`
-2. **Control mode starts** - `zen control`
+1. **Server starts** - `inspektserver start`
+2. **Control mode starts** - `inspektcontrol`
 
 To apply changes:
 
@@ -688,18 +688,18 @@ To apply changes:
 
     ```bash
     # Press 'q' in control mode to quit, then restart
-    zen control
+    inspektcontrol
     ```
 
 === "Restart Server"
 
     ```bash
-    zen server stop
-    zen server start --daemon
+    inspektserver stop
+    inspektserver start --daemon
     ```
 
 !!! tip "Live Reload"
-    Control mode configuration is sent to the browser when you start `zen control`, so you just need to quit and restart control mode to apply changes.
+    Control mode configuration is sent to the browser when you start `inspektcontrol`, so you just need to quit and restart control mode to apply changes.
 
 ---
 
@@ -754,7 +754,7 @@ Example:
 # Result: verbose=false
 
 # But if you pass a flag:
-zen control --verbose
+inspektcontrol --verbose
 # Result: verbose=true (flag overrides config)
 ```
 
@@ -785,9 +785,9 @@ zen control --verbose
 
 3. **Restart server and control mode**:
    ```bash
-   zen server stop
-   zen server start --daemon
-   zen control
+   inspektserver stop
+   inspektserver start --daemon
+   inspektcontrol
    ```
 
 ### Invalid Configuration Value

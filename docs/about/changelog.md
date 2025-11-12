@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Zen Browser Bridge are documented here.
+All notable changes to Inspekt are documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
@@ -10,7 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Major Refactoring - Hexagonal Architecture
 
-Version 2.0.0 represents a comprehensive refactoring of Zen Bridge with **zero breaking changes**. All existing commands and features remain fully compatible with v1.x.
+Version 2.0.0 represents a comprehensive refactoring of Inspekt with **zero breaking changes**. All existing commands and features remain fully compatible with v1.x.
 
 #### Architecture Improvements
 
@@ -148,7 +148,7 @@ zen/
 
 ### First Production Release
 
-Initial production-ready release of Zen Browser Bridge with all core features implemented.
+Initial production-ready release of Inspekt with all core features implemented.
 
 #### Core Features
 

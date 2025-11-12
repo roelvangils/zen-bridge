@@ -1,4 +1,4 @@
-# Zen Bridge Protocol Specification
+# Inspekt Protocol Specification
 
 **Protocol Version**: 3.4 (current userscript version)
 **Server Implementation**: aiohttp WebSocket
@@ -22,7 +22,7 @@
 
 ## Overview
 
-Zen Bridge uses a WebSocket-based protocol for bidirectional communication between the CLI (via HTTP), server, and browser. The protocol is JSON-based with typed messages.
+Inspekt uses a WebSocket-based protocol for bidirectional communication between the CLI (via HTTP), server, and browser. The protocol is JSON-based with typed messages.
 
 ### Communication Architecture
 
@@ -514,12 +514,12 @@ Triggered when:
 ### Network Errors
 
 **WebSocket Connection Failed**:
-- Browser console: `[Zen Bridge] Connection failed`
+- Browser console: `[Inspekt] Connection failed`
 - Auto-reconnect after 3 seconds
 
 **HTTP Request Failed**:
 - CLI: `ConnectionError: Failed to submit code`
-- Check if server is running: `zen server status`
+- Check if server is running: `inspekt server status`
 
 ---
 
@@ -581,7 +581,7 @@ if installed_version != expected_version:
 **Assumptions**:
 - Server runs on localhost only (`127.0.0.1`)
 - User trusts their local system
-- User trusts websites they visit with Zen Bridge active
+- User trusts websites they visit with Inspekt active
 
 **Security Properties**:
 - ✅ Server binds to localhost (not `0.0.0.0`)
@@ -607,7 +607,7 @@ if installed_version != expected_version:
 ### Best Practices
 
 **For Users**:
-1. Only run Zen Bridge on trusted websites
+1. Only run Inspekt on trusted websites
 2. Review JavaScript code before executing
 3. Don't expose server to network (keep localhost binding)
 4. Keep userscript updated
@@ -625,7 +625,7 @@ if installed_version != expected_version:
 ### Example 1: Simple Evaluation
 
 ```
-1. User runs: zen eval "document.title"
+1. User runs: inspekt eval "document.title"
 
 2. CLI sends POST /run:
    {
@@ -681,7 +681,7 @@ if installed_version != expected_version:
 ### Example 2: Control Mode Refocus
 
 ```
-1. User runs: zen control next
+1. User runs: inspekt control next
 
 2. CLI sends control.js script with action="next"
 

@@ -312,8 +312,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed  # Parallel down
 
 # Internal
 from zen.client import BridgeClient    # Browser communication
-from zen import config as zen_config    # Configuration
-from zen import __version__            # Version info
+from inspekt import config as zen_config    # Configuration
+from inspekt import __version__            # Version info
 ```
 
 ### Optional Dependencies (conditional imports)

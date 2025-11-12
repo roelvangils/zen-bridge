@@ -1,10 +1,20 @@
-# Zen Browser Bridge - Extensions
+# Inspekt - Extensions
 
-Browser extensions for Zen Browser Bridge that **bypass CSP restrictions** and work on **all websites**.
+Browser extensions for Inspekt that **bypass CSP restrictions** and work on **all websites**.
 
 ## Why Extensions?
 
 While the userscript installation is quick and easy, many important websites have **Content Security Policy (CSP)** restrictions that block WebSocket connections and script injection:
+
+### Security Model 🔒
+
+Both extensions now include **explicit opt-in per domain**:
+- Permission modal appears on first visit to any domain
+- You choose which websites Zen can access
+- Manage allowed domains from extension popup
+- Revoke access anytime
+
+**You're in control** - Inspekt only works on domains you explicitly allow.
 
 | Website Type | Userscript | Extension |
 |--------------|-----------|-----------|
@@ -39,9 +49,28 @@ While the userscript installation is quick and easy, many important websites hav
 [Read full Firefox guide →](firefox/README.md)
 
 ### Chrome Extension
-🚧 **Coming Soon** - In development
+✅ **Available Now** - Full CSP bypass support
 
-We're building a Chrome extension with the same CSP bypass capabilities. It will be available in `extensions/chrome/` soon.
+📖 [Chrome Installation Guide](chrome/README.md)
+
+**Features:**
+- Works on all websites including GitHub, Gmail, banking sites
+- Built-in settings panel with connection status
+- DevTools integration with `zenStore($0)`
+- Auto-reconnect on page navigation
+- Manifest V3 (future-proof)
+- Version 4.0.0
+
+**Installation:**
+1. Download the extension files
+2. Navigate to `chrome://extensions/`
+3. Enable "Developer mode"
+4. Click "Load unpacked"
+5. Select the `extensions/chrome/` directory
+
+[Read full Chrome guide →](chrome/README.md)
+
+**Publishing:** See [Chrome Web Store Submission Guide](chrome/CHROME_WEB_STORE.md)
 
 ### Edge Extension
 📅 **Planned** - Future release
@@ -82,15 +111,16 @@ This is **safe and intended** - browser extensions are designed to have elevated
 | Feature | Userscript | Firefox Extension | Chrome Extension |
 |---------|-----------|-------------------|------------------|
 | **Installation** | ⚡ One click | 🔧 Few steps | 🔧 Few steps |
-| **CSP Bypass** | ❌ No | ✅ Yes | 🚧 Soon |
-| **GitHub** | ❌ Blocked | ✅ Works | 🚧 Soon |
-| **Gmail** | ❌ Blocked | ✅ Works | 🚧 Soon |
-| **Banking Sites** | ❌ Blocked | ✅ Works | 🚧 Soon |
-| **Settings Panel** | ❌ No | ✅ Yes | 🚧 Soon |
-| **Status Indicator** | ❌ No | ✅ Yes | 🚧 Soon |
-| **DevTools Integration** | ✅ Yes | ✅ Yes | 🚧 Soon |
+| **CSP Bypass** | ❌ No | ✅ Yes | ✅ Yes |
+| **GitHub** | ❌ Blocked | ✅ Works | ✅ Works |
+| **Gmail** | ❌ Blocked | ✅ Works | ✅ Works |
+| **Banking Sites** | ❌ Blocked | ✅ Works | ✅ Works |
+| **Settings Panel** | ❌ No | ✅ Yes | ✅ Yes |
+| **Status Indicator** | ❌ No | ✅ Yes | ✅ Yes |
+| **DevTools Integration** | ✅ Yes | ✅ Yes | ✅ Yes |
 | **Auto-Update** | ✅ Via Tampermonkey | 🚧 Manual (for now) | 🚧 Manual (for now) |
-| **Version** | 3.5 | 4.0.0 | - |
+| **Manifest Version** | N/A | V2 | V3 |
+| **Version** | 3.5 | 4.0.0 | 4.0.0 |
 
 ## Common Commands (All Methods)
 
@@ -98,29 +128,30 @@ Once installed (via userscript or extension), all Zen commands work the same:
 
 ```bash
 # Start the server
-zen server start
+inspektserver start
 
 # Get page information
-zen info
+inspektinfo
 
 # Execute JavaScript
-zen eval "document.title"
+inspekteval "document.title"
 
 # Natural language actions
-zen do "click login button"
+inspektdo "click login button"
 
 # AI-powered description
-zen describe
+inspektdescribe
 
 # Store element from DevTools
 # 1. Right-click element → Inspect
 # 2. In console: zenStore($0)
-# 3. In terminal: zen inspected
+# 3. In terminal: inspektinspected
 ```
 
 ## Installation Guides
 
 - **Firefox Extension**: [extensions/firefox/README.md](firefox/README.md)
+- **Chrome Extension**: [extensions/chrome/README.md](chrome/README.md)
 - **Userscript** (Tampermonkey): [See main installation docs](https://roelvangils.github.io/zen-bridge/getting-started/installation/)
 
 ## Troubleshooting
@@ -128,17 +159,17 @@ zen describe
 ### Extension Not Connecting
 
 **Check the browser console** (F12):
-- Look for `[Zen Bridge Extension] Loaded` message
-- Look for `[Zen Bridge] Connected via WebSocket` message
+- Look for `[Inspekt Extension] Loaded` message
+- Look for `[Inspekt] Connected via WebSocket` message
 
 **Verify server is running**:
 ```bash
-zen server status
+inspektserver status
 ```
 
 **Restart server if needed**:
 ```bash
-zen server restart
+inspektserver restart
 ```
 
 ### CSP Issues
@@ -179,7 +210,7 @@ Yes! Browser extensions from trusted sources are safe. The CSP bypass functional
 **Firefox:**
 1. Make changes to extension files
 2. Go to `about:debugging#/runtime/this-firefox`
-3. Click "Reload" next to Zen Browser Bridge
+3. Click "Reload" next to Inspekt
 4. Test on a CSP-protected site like GitHub
 
 ### Building for Distribution
@@ -208,4 +239,4 @@ Please open an issue or pull request on GitHub.
 
 ## License
 
-Part of Zen Browser Bridge - see main repository for license.
+Part of Inspekt - see main repository for license.

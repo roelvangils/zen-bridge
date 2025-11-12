@@ -7,6 +7,9 @@ from typing import Any
 # Default configuration
 DEFAULT_CONFIG: dict[str, Any] = {
     "ai-language": "auto",
+    "typing": {
+        "human-like-typo-rate": 0.05,
+    },
     "control": {
         "auto-refocus": "only-spa",
         "focus-outline": "custom",
@@ -79,6 +82,12 @@ def load_config() -> dict[str, Any]:
                 # Nested control config - merge deeply
                 if isinstance(config["control"], dict):
                     config["control"].update(user_config["control"])
+            elif key == "typing" and isinstance(user_config["typing"], dict):
+                # Nested typing config - merge deeply
+                if isinstance(config.get("typing"), dict):
+                    config["typing"].update(user_config["typing"])
+                else:
+                    config["typing"] = user_config["typing"]
             else:
                 # Root-level properties like ai-language - overwrite
                 config[key] = user_config[key]
@@ -209,3 +218,27 @@ def get_config_path() -> str | None:
     """Get the path to the config file being used, if any."""
     config_file = find_config_file()
     return str(config_file) if config_file else None
+
+
+def get_typing_config() -> dict[str, Any]:
+    """
+    Get typing configuration with validation.
+
+    Returns:
+        Typing configuration dictionary with validated values
+    """
+    config = load_config()
+    typing_config = config.get("typing", {})
+
+    # Validate typo rate: must be between 0 and 1
+    typo_rate = typing_config.get("human-like-typo-rate", 0.05)
+    try:
+        typo_rate = float(typo_rate)
+        # Clamp between 0 and 1
+        typo_rate = max(0.0, min(1.0, typo_rate))
+    except (ValueError, TypeError):
+        typo_rate = 0.05
+
+    return {
+        "human-like-typo-rate": typo_rate,
+    }

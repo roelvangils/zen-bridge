@@ -1,25 +1,25 @@
 # Element Interaction
 
-Master element interaction in Zen Bridge. Learn how to click, inspect, highlight, wait for elements, send keyboard input, and take screenshots - all from your terminal.
+Master element interaction in Inspekt. Learn how to click, inspect, highlight, wait for elements, send keyboard input, and take screenshots - all from your terminal.
 
 ## Overview
 
-Zen Bridge provides specialized commands for interacting with page elements:
+Inspekt provides specialized commands for interacting with page elements:
 
-- `zen click` - Click elements
-- `zen double-click` / `zen right-click` - Double-click and right-click
-- `zen wait` - Wait for elements to appear/disappear
-- `zen send` - Type text into elements
-- `zen inspect` / `zen inspected` - Inspect elements
-- `zen highlight` - Highlight elements visually
-- `zen screenshot` - Screenshot elements
+- `inspekt click` - Click elements
+- `inspekt double-click` / `inspekt right-click` - Double-click and right-click
+- `inspekt wait` - Wait for elements to appear/disappear
+- `inspekt send` - Type text into elements
+- `inspekt inspect` / `inspekt inspected` - Inspect elements
+- `inspekt highlight` - Highlight elements visually
+- `inspekt screenshot` - Screenshot elements
 
 ## Clicking Elements
 
 ### Basic Click
 
 ```bash
-zen click "button#submit"
+inspekt click "button#submit"
 ```
 
 Clicks the first element matching the selector.
@@ -28,19 +28,19 @@ Clicks the first element matching the selector.
 
 ```bash
 # Click button by ID
-zen click "#submit-btn"
+inspekt click "#submit-btn"
 
 # Click link by class
-zen click ".nav-link"
+inspekt click ".nav-link"
 
 # Click by complex selector
-zen click "nav > ul > li:first-child > a"
+inspekt click "nav > ul > li:first-child > a"
 
 # Click by attribute
-zen click "[data-action='delete']"
+inspekt click "[data-action='delete']"
 
 # Click by text content (using eval)
-zen eval "Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Submit')).click()"
+inspekt eval "Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Submit')).click()"
 ```
 
 ### Using Inspected Element
@@ -52,9 +52,9 @@ You can click the currently inspected element (from DevTools):
 # In browser console: zenStore($0)
 
 # Then click it
-zen click
+inspekt click
 # or explicitly
-zen click "$0"
+inspekt click "$0"
 ```
 
 ### Double Click
@@ -62,8 +62,8 @@ zen click "$0"
 Double-click elements for actions that require it:
 
 ```bash
-zen double-click "div.editable"
-zen double-click ".file-item"
+inspekt double-click "div.editable"
+inspekt double-click ".file-item"
 ```
 
 ### Right Click (Context Menu)
@@ -71,90 +71,90 @@ zen double-click ".file-item"
 Trigger context menus:
 
 ```bash
-zen right-click "a.download-link"
-zen right-click ".file-item"
+inspekt right-click "a.download-link"
+inspekt right-click ".file-item"
 ```
 
 !!! tip "Click Types"
-    - `zen click` - Single left click
-    - `zen double-click` - Double left click
-    - `zen right-click` - Right click (context menu)
+    - `inspekt click` - Single left click
+    - `inspekt double-click` - Double left click
+    - `inspekt right-click` - Right click (context menu)
 
 ---
 
 ## Waiting for Elements
 
-The `zen wait` command waits for elements to appear, become visible, become hidden, or contain specific text.
+The `inspekt wait` command waits for elements to appear, become visible, become hidden, or contain specific text.
 
 ### Wait for Element to Exist
 
 ```bash
 # Wait up to 30 seconds (default)
-zen wait "button#submit"
+inspekt wait "button#submit"
 
 # Custom timeout
-zen wait ".modal" --timeout 10
+inspekt wait ".modal" --timeout 10
 ```
 
 ### Wait for Element to be Visible
 
 ```bash
-zen wait ".modal-dialog" --visible
+inspekt wait ".modal-dialog" --visible
 
 # With custom timeout
-zen wait ".notification" --visible --timeout 15
+inspekt wait ".notification" --visible --timeout 15
 ```
 
 ### Wait for Element to be Hidden
 
 ```bash
-zen wait ".loading-spinner" --hidden
+inspekt wait ".loading-spinner" --hidden
 
 # Wait for modal to close
-zen wait ".modal-overlay" --hidden --timeout 20
+inspekt wait ".modal-overlay" --hidden --timeout 20
 ```
 
 ### Wait for Specific Text
 
 ```bash
 # Wait for element with specific text
-zen wait "div.result" --text "Success"
+inspekt wait "div.result" --text "Success"
 
 # Wait for error message
-zen wait ".message" --text "Error" --visible
+inspekt wait ".message" --text "Error" --visible
 ```
 
 ### Wait Use Cases
 
 **Wait for page load:**
 ```bash
-zen wait "main.content" --visible
+inspekt wait "main.content" --visible
 ```
 
 **Wait for AJAX content:**
 ```bash
-zen wait ".dynamic-content" --visible --timeout 20
+inspekt wait ".dynamic-content" --visible --timeout 20
 ```
 
 **Wait for form validation:**
 ```bash
 # Fill form
-zen eval "document.querySelector('#email').value = 'test@example.com'"
+inspekt eval "document.querySelector('#email').value = 'test@example.com'"
 
 # Submit
-zen click "#submit-btn"
+inspekt click "#submit-btn"
 
 # Wait for success message
-zen wait ".success-message" --visible
+inspekt wait ".success-message" --visible
 ```
 
 **Wait for loading to finish:**
 ```bash
 # Click action that shows spinner
-zen click ".load-more"
+inspekt click ".load-more"
 
 # Wait for spinner to disappear
-zen wait ".spinner" --hidden
+inspekt wait ".spinner" --hidden
 ```
 
 !!! warning "Timeout Default"
@@ -164,12 +164,12 @@ zen wait ".spinner" --hidden
 
 ## Sending Keyboard Input
 
-The `zen send` command types text character by character, simulating keyboard input.
+The `inspekt send` command types text character by character, simulating keyboard input.
 
 ### Basic Text Input
 
 ```bash
-zen send "Hello World"
+inspekt send "Hello World"
 ```
 
 Types into the currently focused element.
@@ -178,51 +178,51 @@ Types into the currently focused element.
 
 ```bash
 # Type into email input
-zen send "test@example.com" --selector "input[type=email]"
+inspekt send "test@example.com" --selector "input[type=email]"
 
 # Type into search box
-zen send "query text" --selector "input[name=search]"
+inspekt send "query text" --selector "input[name=search]"
 
 # Type into textarea
-zen send "Multi-line text here" --selector "textarea#message"
+inspekt send "Multi-line text here" --selector "textarea#message"
 ```
 
 ### Form Filling Examples
 
 **Login form:**
 ```bash
-zen send "user@example.com" --selector "#email"
-zen send "password123" --selector "#password"
-zen click "#login-btn"
+inspekt send "user@example.com" --selector "#email"
+inspekt send "password123" --selector "#password"
+inspekt click "#login-btn"
 ```
 
 **Search form:**
 ```bash
-zen send "Zen Bridge documentation" --selector "input[name=q]"
-zen click "button[type=submit]"
+inspekt send "Inspekt documentation" --selector "input[name=q]"
+inspekt click "button[type=submit]"
 ```
 
 **Comment form:**
 ```bash
-zen send "Great article!" --selector "textarea#comment"
-zen send "John Doe" --selector "input#name"
-zen click "button#post-comment"
+inspekt send "Great article!" --selector "textarea#comment"
+inspekt send "John Doe" --selector "input#name"
+inspekt click "button#post-comment"
 ```
 
 ### Typing Speed
 
-The `send` command types at a realistic speed (character by character). For instant value setting, use `zen eval`:
+The `send` command types at a realistic speed (character by character). For instant value setting, use `inspekt eval`:
 
 ```bash
 # Instant value (no events)
-zen eval "document.querySelector('#email').value = 'test@example.com'"
+inspekt eval "document.querySelector('#email').value = 'test@example.com'"
 
 # Typed input (fires input events)
-zen send "test@example.com" --selector "#email"
+inspekt send "test@example.com" --selector "#email"
 ```
 
 !!! tip "Input Events"
-    `zen send` fires proper keyboard events, which may trigger validation, autocomplete, and other event listeners.
+    `inspekt send` fires proper keyboard events, which may trigger validation, autocomplete, and other event listeners.
 
 ---
 
@@ -233,7 +233,7 @@ zen send "test@example.com" --selector "#email"
 Select and store an element for inspection:
 
 ```bash
-zen inspect "h1"
+inspekt inspect "h1"
 ```
 
 **Output:**
@@ -248,16 +248,16 @@ ID: title
 
 ```bash
 # By ID
-zen inspect "#header"
+inspekt inspect "#header"
 
 # By class
-zen inspect ".main-content"
+inspekt inspect ".main-content"
 
 # By complex selector
-zen inspect "nav > ul > li:first-child > a"
+inspekt inspect "nav > ul > li:first-child > a"
 
 # By attribute
-zen inspect "[data-id='123']"
+inspekt inspect "[data-id='123']"
 ```
 
 ### Get Inspected Element Details
@@ -265,7 +265,7 @@ zen inspect "[data-id='123']"
 After inspecting an element, get detailed information:
 
 ```bash
-zen inspected
+inspekt inspected
 ```
 
 **Output:**
@@ -296,10 +296,10 @@ You can also store the currently selected element in DevTools:
 1. Open DevTools (F12)
 2. Select an element (inspect tool or click in Elements panel)
 3. In console, run: `zenStore($0)`
-4. Then use: `zen inspected`
+4. Then use: `inspekt inspected`
 
 !!! tip "Workflow"
-    Use `zen inspect` to find elements programmatically, or use DevTools + `zenStore($0)` for visual selection.
+    Use `inspekt inspect` to find elements programmatically, or use DevTools + `zenStore($0)` for visual selection.
 
 ---
 
@@ -310,7 +310,7 @@ Visually highlight elements on the page with colored outlines.
 ### Basic Highlight
 
 ```bash
-zen highlight "h1, h2"
+inspekt highlight "h1, h2"
 ```
 
 Highlights all matching elements with a red dashed outline.
@@ -318,16 +318,16 @@ Highlights all matching elements with a red dashed outline.
 ### Custom Color
 
 ```bash
-zen highlight "a" --color blue
-zen highlight ".error" --color red
-zen highlight ".success" --color green
-zen highlight ".warning" --color orange
+inspekt highlight "a" --color blue
+inspekt highlight ".error" --color red
+inspekt highlight ".success" --color green
+inspekt highlight ".warning" --color orange
 ```
 
 ### Clear Highlights
 
 ```bash
-zen highlight --clear
+inspekt highlight --clear
 ```
 
 Removes all highlights from the page.
@@ -336,23 +336,23 @@ Removes all highlights from the page.
 
 **Debugging layout:**
 ```bash
-zen highlight "div"
+inspekt highlight "div"
 ```
 
 **Find all links:**
 ```bash
-zen highlight "a" --color blue
+inspekt highlight "a" --color blue
 ```
 
 **Highlight errors:**
 ```bash
-zen highlight ".error-message" --color red
+inspekt highlight ".error-message" --color red
 ```
 
 **Accessibility audit:**
 ```bash
 # Highlight images without alt text
-zen eval "
+inspekt eval "
   document.querySelectorAll('img:not([alt])').forEach(img => {
     img.style.outline = '3px solid red';
   });
@@ -369,38 +369,38 @@ Take screenshots of specific elements.
 ### Screenshot Element
 
 ```bash
-zen screenshot --selector "h1" --output screenshot.png
+inspekt screenshot --selector "h1" --output screenshot.png
 ```
 
 ### Screenshot Examples
 
 ```bash
 # Screenshot by selector
-zen screenshot --selector "#header" --output header.png
+inspekt screenshot --selector "#header" --output header.png
 
 # Screenshot with auto-generated filename
-zen screenshot --selector ".hero-section"
+inspekt screenshot --selector ".hero-section"
 
 # Screenshot of inspected element
-zen inspect "h1"
-zen screenshot --selector "$0" --output title.png
+inspekt inspect "h1"
+inspekt screenshot --selector "$0" --output title.png
 ```
 
 ### Screenshot Use Cases
 
 **Visual regression testing:**
 ```bash
-zen screenshot --selector ".hero" --output hero-$(date +%Y%m%d).png
+inspekt screenshot --selector ".hero" --output hero-$(date +%Y%m%d).png
 ```
 
 **Documentation:**
 ```bash
-zen screenshot --selector ".component-example" --output docs/component.png
+inspekt screenshot --selector ".component-example" --output docs/component.png
 ```
 
 **Bug reports:**
 ```bash
-zen screenshot --selector ".error-dialog" --output bug-screenshot.png
+inspekt screenshot --selector ".error-dialog" --output bug-screenshot.png
 ```
 
 !!! note "Screenshot Format"
@@ -410,7 +410,7 @@ zen screenshot --selector ".error-dialog" --output bug-screenshot.png
 
 ## CSS Selectors Explained
 
-Zen Bridge uses standard CSS selectors. Here's a quick reference:
+Inspekt uses standard CSS selectors. Here's a quick reference:
 
 ### Basic Selectors
 
@@ -445,25 +445,25 @@ Zen Bridge uses standard CSS selectors. Here's a quick reference:
 
 ```bash
 # Multiple classes
-zen click ".button.primary"
+inspekt click ".button.primary"
 
 # Attribute with value
-zen click "[data-action='submit']"
+inspekt click "[data-action='submit']"
 
 # Attribute contains
-zen click "[class*='modal']"
+inspekt click "[class*='modal']"
 
 # Attribute starts with
-zen click "[id^='btn-']"
+inspekt click "[id^='btn-']"
 
 # Attribute ends with
-zen click "[href$='.pdf']"
+inspekt click "[href$='.pdf']"
 
 # Multiple selectors
-zen highlight "h1, h2, h3"
+inspekt highlight "h1, h2, h3"
 
 # Complex combination
-zen click "nav > ul > li:first-child > a.active"
+inspekt click "nav > ul > li:first-child > a.active"
 ```
 
 ---
@@ -474,77 +474,77 @@ zen click "nav > ul > li:first-child > a.active"
 
 ```bash
 # Fill login form
-zen send "user@example.com" --selector "#email"
-zen send "password123" --selector "#password"
-zen click "#remember-me"
-zen click "#login-btn"
+inspekt send "user@example.com" --selector "#email"
+inspekt send "password123" --selector "#password"
+inspekt click "#remember-me"
+inspekt click "#login-btn"
 
 # Wait for redirect or error
-zen wait ".dashboard, .error-message" --visible --timeout 10
+inspekt wait ".dashboard, .error-message" --visible --timeout 10
 ```
 
 ### Example 2: Modal Interaction
 
 ```bash
 # Open modal
-zen click "#open-modal"
+inspekt click "#open-modal"
 
 # Wait for modal to appear
-zen wait ".modal-dialog" --visible
+inspekt wait ".modal-dialog" --visible
 
 # Interact with modal
-zen send "Test message" --selector ".modal textarea"
-zen click ".modal button.confirm"
+inspekt send "Test message" --selector ".modal textarea"
+inspekt click ".modal button.confirm"
 
 # Wait for modal to close
-zen wait ".modal-dialog" --hidden
+inspekt wait ".modal-dialog" --hidden
 ```
 
 ### Example 3: Dynamic Content
 
 ```bash
 # Click "Load More" button
-zen click ".load-more"
+inspekt click ".load-more"
 
 # Wait for spinner to disappear
-zen wait ".loading-spinner" --hidden
+inspekt wait ".loading-spinner" --hidden
 
 # Count new items
-zen eval "document.querySelectorAll('.item').length"
+inspekt eval "document.querySelectorAll('.item').length"
 ```
 
 ### Example 4: Multi-step Flow
 
 ```bash
 # Step 1: Fill first form
-zen send "John" --selector "#first-name"
-zen send "Doe" --selector "#last-name"
-zen click "#next-btn"
+inspekt send "John" --selector "#first-name"
+inspekt send "Doe" --selector "#last-name"
+inspekt click "#next-btn"
 
 # Step 2: Wait and fill second form
-zen wait "#email" --visible
-zen send "john@example.com" --selector "#email"
-zen send "1234567890" --selector "#phone"
-zen click "#submit-btn"
+inspekt wait "#email" --visible
+inspekt send "john@example.com" --selector "#email"
+inspekt send "1234567890" --selector "#phone"
+inspekt click "#submit-btn"
 
 # Step 3: Wait for confirmation
-zen wait ".success-message" --visible --text "Success"
+inspekt wait ".success-message" --visible --text "Success"
 ```
 
 ### Example 5: Visual Testing
 
 ```bash
 # Highlight all buttons
-zen highlight "button" --color blue
+inspekt highlight "button" --color blue
 
 # Inspect specific button
-zen inspect "button.primary"
+inspekt inspect "button.primary"
 
 # Take screenshot
-zen screenshot --selector "button.primary" --output button.png
+inspekt screenshot --selector "button.primary" --output button.png
 
 # Clear highlights
-zen highlight --clear
+inspekt highlight --clear
 ```
 
 ---
@@ -555,7 +555,7 @@ zen highlight --clear
 
 ```bash
 # Click only if element exists
-zen eval "
+inspekt eval "
   const button = document.querySelector('#optional-btn');
   if (button) {
     button.click();
@@ -569,7 +569,7 @@ zen eval "
 
 ```bash
 # Click all checkboxes
-zen eval "
+inspekt eval "
   document.querySelectorAll('input[type=checkbox]').forEach(cb => cb.click());
   return 'Clicked all checkboxes';
 "
@@ -578,7 +578,7 @@ zen eval "
 ### Wait with Polling
 
 ```bash
-zen eval "
+inspekt eval "
   async function waitForElement(selector, timeout = 30000) {
     const start = Date.now();
     while (Date.now() - start < timeout) {
@@ -597,7 +597,7 @@ zen eval "
 ### Hover Simulation
 
 ```bash
-zen eval "
+inspekt eval "
   const element = document.querySelector('.menu-item');
   const event = new MouseEvent('mouseover', {
     bubbles: true,
@@ -613,14 +613,14 @@ zen eval "
 
 ```bash
 # Focus element
-zen eval "document.querySelector('#email').focus()"
+inspekt eval "document.querySelector('#email').focus()"
 
 # Blur element
-zen eval "document.querySelector('#email').blur()"
+inspekt eval "document.querySelector('#email').blur()"
 
 # Type after focusing
-zen eval "document.querySelector('#email').focus()"
-zen send "test@example.com" --selector "#email"
+inspekt eval "document.querySelector('#email').focus()"
+inspekt send "test@example.com" --selector "#email"
 ```
 
 ---
@@ -636,7 +636,7 @@ Error: Element not found: .missing-selector
 
 **Solutions:**
 1. Verify selector is correct
-2. Wait for element to load: `zen wait ".selector" --visible`
+2. Wait for element to load: `inspekt wait ".selector" --visible`
 3. Check if element is in iframe (not supported directly)
 4. Use DevTools to test selector
 
@@ -651,16 +651,16 @@ Error: Element not found: .missing-selector
 **Solutions:**
 ```bash
 # Check if visible
-zen eval "document.querySelector('.btn')?.offsetParent !== null"
+inspekt eval "document.querySelector('.btn')?.offsetParent !== null"
 
 # Check if disabled
-zen eval "document.querySelector('.btn')?.disabled"
+inspekt eval "document.querySelector('.btn')?.disabled"
 
 # Force click with JavaScript
-zen eval "document.querySelector('.btn').click()"
+inspekt eval "document.querySelector('.btn').click()"
 
 # Dispatch click event
-zen eval "document.querySelector('.btn').dispatchEvent(new MouseEvent('click', {bubbles: true}))"
+inspekt eval "document.querySelector('.btn').dispatchEvent(new MouseEvent('click', {bubbles: true}))"
 ```
 
 ### Element Changes After Action
@@ -669,13 +669,13 @@ Some elements are replaced after interaction (e.g., React re-renders). Re-select
 
 ```bash
 # Wrong - selector may be stale
-zen click ".btn"
-zen eval "document.querySelector('.btn').textContent"
+inspekt click ".btn"
+inspekt eval "document.querySelector('.btn').textContent"
 
 # Correct - re-select after action
-zen click ".btn"
-zen wait ".success-message" --visible
-zen eval "document.querySelector('.success-message').textContent"
+inspekt click ".btn"
+inspekt wait ".success-message" --visible
+inspekt eval "document.querySelector('.success-message').textContent"
 ```
 
 ---
@@ -686,38 +686,38 @@ zen eval "document.querySelector('.success-message').textContent"
 
 ```bash
 # Good - specific
-zen click "#submit-btn"
-zen click "[data-testid='submit-button']"
+inspekt click "#submit-btn"
+inspekt click "[data-testid='submit-button']"
 
 # Avoid - too generic
-zen click "button"
-zen click ".btn"
+inspekt click "button"
+inspekt click ".btn"
 ```
 
 ### 2. Wait Before Interacting
 
 ```bash
 # Good - wait for element
-zen wait "#modal" --visible
-zen click "#modal .confirm-btn"
+inspekt wait "#modal" --visible
+inspekt click "#modal .confirm-btn"
 
 # Risky - element may not exist yet
-zen click "#modal .confirm-btn"
+inspekt click "#modal .confirm-btn"
 ```
 
 ### 3. Handle Errors Gracefully
 
 ```bash
 # Use optional chaining
-zen eval "document.querySelector('.maybe-missing')?.click() ?? 'Element not found'"
+inspekt eval "document.querySelector('.maybe-missing')?.click() ?? 'Element not found'"
 ```
 
 ### 4. Verify Actions
 
 ```bash
 # Click and verify
-zen click "#submit-btn"
-zen wait ".success-message" --visible --text "Saved"
+inspekt click "#submit-btn"
+inspekt wait ".success-message" --visible --text "Saved"
 ```
 
 ---
@@ -734,12 +734,12 @@ zen wait ".success-message" --visible --text "Saved"
 
 | Command | Purpose | Example |
 |---------|---------|---------|
-| `zen click "selector"` | Click element | `zen click "#submit"` |
-| `zen double-click "selector"` | Double-click | `zen double-click ".file"` |
-| `zen right-click "selector"` | Right-click | `zen right-click ".context"` |
-| `zen wait "selector"` | Wait for element | `zen wait ".modal" --visible` |
-| `zen send "text"` | Type text | `zen send "hello" --selector "#input"` |
-| `zen inspect "selector"` | Inspect element | `zen inspect "h1"` |
-| `zen inspected` | Get inspected details | `zen inspected` |
-| `zen highlight "selector"` | Highlight elements | `zen highlight "a" --color blue` |
-| `zen screenshot --selector` | Screenshot element | `zen screenshot --selector "h1"` |
+| `inspekt click "selector"` | Click element | `inspekt click "#submit"` |
+| `inspekt double-click "selector"` | Double-click | `inspekt double-click ".file"` |
+| `inspekt right-click "selector"` | Right-click | `inspekt right-click ".context"` |
+| `inspekt wait "selector"` | Wait for element | `inspekt wait ".modal" --visible` |
+| `inspekt send "text"` | Type text | `inspekt send "hello" --selector "#input"` |
+| `inspekt inspect "selector"` | Inspect element | `inspekt inspect "h1"` |
+| `inspekt inspected` | Get inspected details | `inspekt inspected` |
+| `inspekt highlight "selector"` | Highlight elements | `inspekt highlight "a" --color blue` |
+| `inspekt screenshot --selector` | Screenshot element | `inspekt screenshot --selector "h1"` |

@@ -14,6 +14,8 @@ content extraction.
 
 from __future__ import annotations
 
+import base64
+import io
 import json
 import re
 import subprocess
@@ -22,6 +24,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 import click
+import requests
+from PIL import Image
 
 from zen.app.cli.base import builtin_open, get_ai_language
 from zen.client import BridgeClient
@@ -508,23 +512,15 @@ def do(instruction, debug, no_execute, force_ai):
             # Determine execution based on match score
             should_execute = False
 
-            if match_score >= 1.0:
-                # Perfect match - auto-execute
-                click.echo(click.style(f"Perfect match! Executing action... [{match_method}]", fg="green", bold=True))
-                should_execute = True
-            elif match_score >= 0.8:
-                # Good match - ask for confirmation
+            if match_score >= 0.8:
+                # High confidence match (80%+) - auto-execute
                 click.echo()
-                click.echo(click.style(f"Found match (confidence: {match_score:.0%}) [{match_method}]", fg="yellow", bold=True))
+                click.echo(click.style(f"High confidence match (confidence: {match_score:.0%}) [{match_method}]", fg="green", bold=True))
                 click.echo(f"  → {matched_element.get('type')}: {matched_element.get('text', 'N/A')[:80]}")
                 if matched_element.get('href'):
                     click.echo(f"  → URL: {matched_element.get('href')}")
-                click.echo()
-
-                if not no_execute and click.confirm("Execute action?", default=True):
-                    should_execute = True
-                else:
-                    click.echo("Action cancelled.")
+                click.echo(click.style("Auto-executing...", fg="green"))
+                should_execute = True
             else:
                 # Low confidence - fall back to AI
                 matched_element = None
@@ -671,14 +667,19 @@ def do(instruction, debug, no_execute, force_ai):
 
                 should_execute = False
 
-                if top_probability >= 0.75:
-                    # High confidence - auto-execute
-                    click.echo(click.style("High confidence match! Executing action... [AI]", fg="green", bold=True))
+                if top_probability >= 0.8:
+                    # High confidence (80%+) - auto-execute
+                    click.echo(click.style(f"High confidence match (confidence: {top_probability:.0%}) [AI]", fg="green", bold=True))
+                    if top_element:
+                        click.echo(f"  → {top_element.get('type')}: {top_element.get('text', 'N/A')[:80]}")
+                        if top_element.get('href'):
+                            click.echo(f"  → URL: {top_element.get('href')}")
+                    click.echo(click.style("Auto-executing...", fg="green"))
                     should_execute = True
                 else:
                     # Lower confidence - ask for confirmation
                     click.echo()
-                    click.echo(click.style("Would you like to execute this action?", fg="yellow", bold=True))
+                    click.echo(click.style(f"Would you like to execute this action? (confidence: {top_probability:.0%})", fg="yellow", bold=True))
                     if top_element:
                         click.echo(f"  → {top_element.get('type')}: {top_element.get('text', 'N/A')[:80]}")
                         if top_element.get('href'):
@@ -1316,3 +1317,519 @@ def summarize(format, language, debug, force_refresh):
     except (ConnectionError, TimeoutError, RuntimeError) as e:
         click.echo(f"Error: {e}", err=True)
         sys.exit(1)
+
+
+@click.command()
+@click.option("--no-cache", is_flag=True, help="Don't save to cache")
+@click.option("--output", "-o", type=click.Path(), help="Save to specific file instead of cache")
+def index(no_cache, output):
+    """
+    Index the current page with full semantic structure and accessible names.
+
+    Creates a comprehensive Markdown representation of the page including:
+    - Page landmarks and semantic structure
+    - All headings with hierarchy
+    - Main content paragraphs
+    - Lists and their items
+    - Interactive elements (links, buttons, form controls) with accessible names
+    - Images with alt text
+
+    The indexed page is saved to cache and can be used by the 'zen ask' command
+    to answer questions about the page content.
+
+    Examples:
+        zen index                    # Index and cache current page
+        zen index --no-cache         # Index but don't cache
+        zen index -o page.md         # Save to specific file
+    """
+    client = BridgeClient()
+
+    if not client.is_alive():
+        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        sys.exit(1)
+
+    # Load and execute the index_page script
+    script_path = Path(__file__).parent.parent.parent / "scripts" / "index_page.js"
+
+    if not script_path.exists():
+        click.echo(f"Error: Script not found: {script_path}", err=True)
+        sys.exit(1)
+
+    try:
+        with builtin_open(script_path) as f:
+            script = f.read()
+
+        click.echo("Indexing page structure...", err=True)
+        result = client.execute(script, timeout=30.0)
+
+        if not result.get("ok"):
+            click.echo(f"Error: {result.get('error')}", err=True)
+            sys.exit(1)
+
+        # The script returns an object with markdown and optional largestImage
+        script_result = result.get("result", {})
+
+        # Handle both old format (string) and new format (object)
+        if isinstance(script_result, str):
+            # Old format: just markdown
+            indexed_content = script_result
+            largest_image = None
+        elif isinstance(script_result, dict):
+            # New format: object with markdown and largestImage
+            indexed_content = script_result.get("markdown", "")
+            largest_image = script_result.get("largestImage")
+        else:
+            click.echo("Error: Unexpected result format", err=True)
+            sys.exit(1)
+
+        if not indexed_content:
+            click.echo("Error: No content indexed", err=True)
+            sys.exit(1)
+
+        # If there's a largest image, get vision AI description
+        if largest_image:
+            try:
+                # Get image data URL (either from browser or download server-side)
+                image_data_url = largest_image.get("dataUrl")
+
+                # If we have a URL but no dataUrl, download and convert it
+                if not image_data_url and largest_image.get("url"):
+                    image_data_url = download_and_convert_image(largest_image["url"])
+
+                if image_data_url:
+                    click.echo("Analyzing largest image with vision AI...", err=True)
+                    vision_description = get_image_description(image_data_url)
+                else:
+                    click.echo("Warning: No image data available for analysis", err=True)
+                    vision_description = None
+
+                if vision_description:
+                    # Find the image in the markdown and add the description
+                    img_alt = largest_image.get("alt", "")
+                    img_width = largest_image.get("width", 0)
+                    img_height = largest_image.get("height", 0)
+
+                    click.echo(f"Inserting description for image: alt='{img_alt[:50]}...', size={img_width}x{img_height}", err=True)
+
+                    # Create pattern to find this specific image
+                    if img_alt:
+                        # Image with alt text (no regex escaping needed for plain string replace)
+                        pattern = f"![{img_alt}] ({img_width}x{img_height}px)"
+                        replacement = f"![{img_alt}] ({img_width}x{img_height}px)\n\nVisual description of this image: \"{vision_description}\""
+
+                        if pattern in indexed_content:
+                            indexed_content = indexed_content.replace(pattern, replacement, 1)
+                            click.echo("✓ Vision description inserted", err=True)
+                        else:
+                            click.echo(f"Warning: Could not find image pattern in markdown: {pattern}", err=True)
+                    else:
+                        # Image without alt text - add description at the top of main content
+                        # Find where main content starts (after the "---" separator)
+                        parts = indexed_content.split('---\n\n', 1)
+                        if len(parts) == 2:
+                            header = parts[0] + '---\n\n'
+                            content = parts[1]
+                            indexed_content = header + f"![Largest image on page (no alt text)] ({img_width}x{img_height}px)\n\nVisual description of this image: \"{vision_description}\"\n\n" + content
+                            click.echo("✓ Vision description inserted (no alt text)", err=True)
+                else:
+                    click.echo("Warning: No vision description received", err=True)
+
+            except Exception as e:
+                click.echo(f"Warning: Failed to analyze image: {e}", err=True)
+                # Continue without image description
+
+        # Output to stdout
+        click.echo(indexed_content)
+
+        # Save to cache or file if requested
+        if output:
+            # Save to specific file
+            output_path = Path(output)
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            with builtin_open(output_path, 'w', encoding='utf-8') as f:
+                f.write(indexed_content)
+            click.echo(f"\n✓ Saved to: {output_path}", err=True)
+
+        elif not no_cache:
+            # Save to cache directory
+            # Extract URL from the indexed content
+            url_match = re.search(r"\*\*URL:\*\* (.+)", indexed_content)
+            current_url = url_match.group(1) if url_match else "unknown"
+
+            # Create cache directory
+            cache_dir = Path.home() / ".cache" / "zen-bridge" / "indexed_pages"
+            cache_dir.mkdir(parents=True, exist_ok=True)
+
+            # Generate filename from URL (sanitize for filesystem)
+            import hashlib
+            url_hash = hashlib.sha256(current_url.encode()).hexdigest()[:12]
+
+            # Also create a readable filename from URL
+            from urllib.parse import urlparse
+            parsed = urlparse(current_url)
+            readable_name = parsed.netloc.replace(':', '_') + parsed.path.replace('/', '_')
+            readable_name = re.sub(r'[^\w\-_.]', '_', readable_name)[:50]
+
+            filename = f"{readable_name}_{url_hash}.md"
+            cache_path = cache_dir / filename
+
+            with builtin_open(cache_path, 'w', encoding='utf-8') as f:
+                f.write(indexed_content)
+
+            click.echo(f"\n✓ Cached to: {cache_path}", err=True)
+
+            # Also save a metadata file with URL and timestamp
+            import time
+            metadata = {
+                "url": current_url,
+                "timestamp": time.time(),
+                "filename": filename
+            }
+
+            metadata_path = cache_dir / f"{readable_name}_{url_hash}.json"
+            with builtin_open(metadata_path, 'w', encoding='utf-8') as f:
+                json.dump(metadata, f, indent=2)
+
+    except (ConnectionError, TimeoutError, RuntimeError) as e:
+        click.echo(f"Error: {e}", err=True)
+        sys.exit(1)
+
+
+@click.command()
+@click.argument("question", type=str)
+@click.option("--debug", is_flag=True, help="Show the full prompt instead of calling AI")
+@click.option("--no-cache", is_flag=True, help="Force re-index instead of using cache")
+def ask(question, debug, no_cache):
+    """
+    Ask a question about the current page using AI.
+
+    By default, this command uses the cached index of the current page
+    (created by 'zen index'). Use --no-cache to force re-indexing.
+
+    The AI has access to the full semantic structure, all text content,
+    interactive elements, accessible names, and vision AI descriptions.
+
+    Examples:
+        zen index                              # First, index the page
+        zen ask "What is this page about?"     # Uses cache
+        zen ask "What's the nutriscore?"       # Uses cache
+        zen ask "What's in the image?"         # Vision description from cache
+        zen ask "Summarize" --no-cache         # Force re-index
+    """
+    client = BridgeClient()
+
+    if not client.is_alive():
+        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        sys.exit(1)
+
+    # Check if mods is available
+    try:
+        subprocess.run(["mods", "--version"], capture_output=True, check=True)
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        click.echo("Error: 'mods' command not found. Please install mods first.", err=True)
+        click.echo("Visit: https://github.com/charmbracelet/mods", err=True)
+        sys.exit(1)
+
+    # Initialize content cache for AI response caching
+    content_cache = ContentCache()
+    indexed_content = None
+    current_url = None
+
+    # Get current URL (needed for AI response caching)
+    try:
+        url_script = "window.location.href"
+        url_result = client.execute(url_script, timeout=5.0)
+        if url_result.get("ok"):
+            current_url = url_result.get("result", "")
+    except Exception as e:
+        click.echo(f"Warning: Could not get URL: {e}", err=True)
+
+    # Check for cached AI response (always, regardless of --no-cache flag)
+    if current_url:
+        fingerprint = content_cache.create_ask_fingerprint(question)
+        question_hash = content_cache.get_question_hash(question)
+
+        cached = content_cache.get_cached_content(
+            current_url, "ask", fingerprint, question_hash
+        )
+
+        if cached:
+            # Found cached AI response
+            age_minutes = cached["age_seconds"] // 60
+            if age_minutes < 1:
+                age_str = "just now"
+            elif age_minutes < 60:
+                age_str = f"{age_minutes}m ago"
+            else:
+                age_str = f"{age_minutes // 60}h ago"
+
+            click.echo(f"✓ Using cached AI response ({age_str})", err=True)
+            click.echo()
+            click.echo(cached["output"])
+            return
+
+    # Try page index cache first (unless --no-cache is specified)
+    if not no_cache and current_url:
+        try:
+            # Look for cache file matching this URL
+            cache_dir = Path.home() / ".cache" / "zen-bridge" / "indexed_pages"
+
+            if cache_dir.exists():
+                import hashlib
+                url_hash = hashlib.sha256(current_url.encode()).hexdigest()[:12]
+
+                # Find cache file with this URL hash
+                cache_files = list(cache_dir.glob(f"*_{url_hash}.md"))
+
+                if cache_files:
+                    # Use the most recent one
+                    cache_file = max(cache_files, key=lambda p: p.stat().st_mtime)
+                    with builtin_open(cache_file, 'r', encoding='utf-8') as f:
+                        indexed_content = f.read()
+                    click.echo(f"✓ Using cached index for current page", err=True)
+                else:
+                    click.echo("No cache found for current page, indexing...", err=True)
+            else:
+                click.echo("No cache directory, indexing...", err=True)
+        except Exception as e:
+            click.echo(f"Warning: Could not check cache: {e}", err=True)
+
+    if not indexed_content:
+        # Index the current page
+        script_path = Path(__file__).parent.parent.parent / "scripts" / "index_page.js"
+
+        if not script_path.exists():
+            click.echo(f"Error: Script not found: {script_path}", err=True)
+            sys.exit(1)
+
+        try:
+            with builtin_open(script_path) as f:
+                script = f.read()
+
+            click.echo("Indexing current page...", err=True)
+            result = client.execute(script, timeout=30.0)
+
+            if not result.get("ok"):
+                click.echo(f"Error: {result.get('error')}", err=True)
+                sys.exit(1)
+
+            # Handle both old format (string) and new format (object)
+            script_result = result.get("result", {})
+            if isinstance(script_result, str):
+                indexed_content = script_result
+            elif isinstance(script_result, dict):
+                indexed_content = script_result.get("markdown", "")
+            else:
+                click.echo("Error: Unexpected result format", err=True)
+                sys.exit(1)
+
+            if not indexed_content:
+                click.echo("Error: No content indexed", err=True)
+                sys.exit(1)
+
+        except (ConnectionError, TimeoutError, RuntimeError) as e:
+            click.echo(f"Error: {e}", err=True)
+            sys.exit(1)
+
+    # Prepare the prompt for AI
+    prompt = """You are a helpful assistant that answers questions about web pages.
+
+You will be provided with a comprehensive index of a web page that includes:
+- Page structure with landmarks and headings
+- Main content text
+- All interactive elements (links, buttons, forms) with their accessible names
+- Images with alt text
+- Lists and other semantic information
+
+Answer the user's question based ONLY on the information provided in the page index.
+Be concise and accurate. If the information is not available in the index, say so.
+Provide specific references when possible (e.g., "In the Main Content section..." or "The navigation includes...").
+
+User Question: {question}
+
+---
+
+PAGE INDEX:
+
+{indexed_content}
+"""
+
+    full_input = prompt.format(question=question, indexed_content=indexed_content)
+
+    # Debug mode: show the full prompt instead of calling AI
+    if debug:
+        click.echo("=" * 80)
+        click.echo("DEBUG: Full prompt that would be sent to AI")
+        click.echo("=" * 80)
+        click.echo()
+        click.echo(full_input)
+        click.echo()
+        click.echo("=" * 80)
+        return
+
+    click.echo("Asking AI...", err=True)
+    click.echo()
+
+    # Call mods
+    try:
+        result = subprocess.run(
+            ["mods"], input=full_input, text=True, capture_output=True, check=True
+        )
+
+        ai_response = result.stdout
+        click.echo(ai_response)
+
+        # Store response in cache (if we have a URL)
+        if current_url and not debug:
+            fingerprint = content_cache.create_ask_fingerprint(question)
+            question_hash = content_cache.get_question_hash(question)
+            content_cache.store_content(current_url, "ask", fingerprint, ai_response, question_hash)
+
+    except subprocess.CalledProcessError as e:
+        click.echo(f"Error calling mods: {e}", err=True)
+        if e.stderr:
+            click.echo(e.stderr, err=True)
+        sys.exit(1)
+
+
+def download_and_convert_image(image_url: str, max_size: int = 800, quality: int = 60) -> str:
+    """
+    Download an image from a URL and convert it to a base64 data URL.
+
+    Args:
+        image_url: URL of the image to download
+        max_size: Maximum width/height in pixels (image will be resized if larger)
+        quality: JPEG quality (1-100)
+
+    Returns:
+        Base64-encoded data URL (data:image/jpeg;base64,...)
+    """
+    try:
+        # Download the image
+        click.echo(f"Downloading image from {image_url[:80]}...", err=True)
+        response = requests.get(image_url, timeout=10)
+        response.raise_for_status()
+
+        # Open image with PIL
+        img = Image.open(io.BytesIO(response.content))
+
+        # Convert to RGB if necessary (e.g., RGBA or palette mode)
+        if img.mode not in ('RGB', 'L'):
+            img = img.convert('RGB')
+
+        # Resize if too large
+        width, height = img.size
+        if width > max_size or height > max_size:
+            # Calculate new size maintaining aspect ratio
+            if width > height:
+                new_width = max_size
+                new_height = int(height * (max_size / width))
+            else:
+                new_height = max_size
+                new_width = int(width * (max_size / height))
+
+            img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+            click.echo(f"Resized image from {width}x{height} to {new_width}x{new_height}", err=True)
+
+        # Convert to JPEG in memory
+        buffer = io.BytesIO()
+        img.save(buffer, format='JPEG', quality=quality, optimize=True)
+        buffer.seek(0)
+
+        # Encode to base64
+        img_base64 = base64.b64encode(buffer.read()).decode('utf-8')
+        data_url = f"data:image/jpeg;base64,{img_base64}"
+
+        click.echo(f"✓ Image converted to base64 ({len(img_base64)} bytes)", err=True)
+        return data_url
+
+    except requests.RequestException as e:
+        click.echo(f"Error downloading image: {e}", err=True)
+        return ""
+    except Exception as e:
+        click.echo(f"Error processing image: {e}", err=True)
+        return ""
+
+
+def get_image_description(image_data_url: str) -> str:
+    """
+    Get a vision AI description of an image using the Thoth API.
+
+    Args:
+        image_data_url: Base64-encoded image data URL
+
+    Returns:
+        Description of the image
+    """
+    import os
+    import requests
+
+    try:
+        # Get API key from environment
+        api_key = os.environ.get("THOTH_API_KEY")
+        if not api_key:
+            click.echo("Warning: THOTH_API_KEY not set in environment, skipping image analysis", err=True)
+            return ""
+
+        # Extract base64 data from data URL
+        # Format: data:image/jpeg;base64,/9j/4AAQ...
+        if ';base64,' in image_data_url:
+            base64_data = image_data_url.split(';base64,')[1]
+        else:
+            return ""
+
+        # Call the Thoth vision API
+        response = requests.post(
+            "https://thoth.elevenways.be/v1/chat/completions",
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {api_key}"
+            },
+            json={
+                "model": "gpt-4o-mini",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": "Describe this image for users who cannot see it in max. 100 words."
+                            },
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/jpeg;base64,{base64_data}",
+                                    "detail": "low"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "max_tokens": 150
+            },
+            timeout=30.0
+        )
+
+        if response.status_code == 200:
+            result = response.json()
+            if "choices" in result and len(result["choices"]) > 0:
+                description = result["choices"][0]["message"]["content"].strip()
+                click.echo(f"✓ Got vision description ({len(description)} chars)", err=True)
+                return description
+            else:
+                click.echo(f"Warning: No choices in API response: {result}", err=True)
+                return ""
+        else:
+            click.echo(f"Warning: Vision API returned status {response.status_code}", err=True)
+            try:
+                error_body = response.json()
+                click.echo(f"Error details: {error_body}", err=True)
+            except:
+                click.echo(f"Response text: {response.text[:200]}", err=True)
+            return ""
+
+    except Exception as e:
+        click.echo(f"Warning: Failed to get image description: {e}", err=True)
+        import traceback
+        click.echo(traceback.format_exc(), err=True)
+        return ""

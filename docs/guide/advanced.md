@@ -1,6 +1,6 @@
 # Advanced Usage
 
-Master advanced patterns for Zen Bridge. Learn scripting techniques, shell integration, automation workflows, CI/CD integration, and performance optimization.
+Master advanced patterns for Inspekt. Learn scripting techniques, shell integration, automation workflows, CI/CD integration, and performance optimization.
 
 ## Overview
 
@@ -24,36 +24,36 @@ Add these to your `.bashrc` or `.zshrc`:
 ```bash
 # Quick page title
 zt() {
-  zen eval "document.title" --format raw
+  inspekt eval "document.title" --format raw
 }
 
 # Quick URL
 zu() {
-  zen eval "location.href" --format raw
+  inspekt eval "location.href" --format raw
 }
 
 # Extract all links
 zlinks() {
-  zen links --only-urls
+  inspekt links --only-urls
 }
 
 # Count elements
 zcount() {
   local selector="${1:-.item}"
-  zen eval "document.querySelectorAll('$selector').length" --format raw
+  inspekt eval "document.querySelectorAll('$selector').length" --format raw
 }
 
 # Monitor element content
 zwatch() {
   local selector="${1:-.main}"
-  watch -n 5 "zen eval \"document.querySelector('$selector').textContent\" --format raw"
+  watch -n 5 "inspekt eval \"document.querySelector('$selector').textContent\" --format raw"
 }
 
 # Quick screenshot
 zscreen() {
   local selector="${1:-body}"
   local output="screenshot-$(date +%Y%m%d-%H%M%S).png"
-  zen screenshot --selector "$selector" --output "$output"
+  inspekt screenshot --selector "$selector" --output "$output"
   echo "Saved: $output"
 }
 ```
@@ -63,16 +63,16 @@ zscreen() {
 ```bash
 # Short commands
 alias z='zen'
-alias ze='zen eval'
-alias zx='zen exec'
-alias zi='zen info'
-alias zl='zen links'
-alias zr='zen repl'
+alias ze='inspekt eval'
+alias zx='inspekt exec'
+alias zi='inspekt info'
+alias zl='inspekt links'
+alias zr='inspekt repl'
 
 # Common operations
-alias zt='zen eval "document.title" --format raw'
-alias zu='zen eval "location.href" --format raw'
-alias zlc='zen links --only-urls | wc -l'  # Link count
+alias zt='inspekt eval "document.title" --format raw'
+alias zu='inspekt eval "location.href" --format raw'
+alias zlc='inspekt links --only-urls | wc -l'  # Link count
 ```
 
 ### Shell Completions
@@ -107,7 +107,7 @@ complete -F _zen_completion zen
 ```bash
 #!/bin/bash
 
-if ! result=$(zen eval "document.title" 2>&1); then
+if ! result=$(inspekt eval "document.title" 2>&1); then
   echo "Error: $result" >&2
   exit 1
 fi
@@ -120,9 +120,9 @@ echo "Title: $result"
 #!/bin/bash
 
 # Try to get title, fallback to URL
-title=$(zen eval "document.title" --format raw 2>/dev/null)
+title=$(inspekt eval "document.title" --format raw 2>/dev/null)
 if [ -z "$title" ]; then
-  title=$(zen eval "location.href" --format raw)
+  title=$(inspekt eval "location.href" --format raw)
 fi
 
 echo "$title"
@@ -159,7 +159,7 @@ retry_command() {
 }
 
 # Usage
-retry_command zen eval "document.querySelector('.dynamic-content').textContent"
+retry_command inspekt eval "document.querySelector('.dynamic-content').textContent"
 ```
 
 ### Timeout Handling
@@ -168,7 +168,7 @@ retry_command zen eval "document.querySelector('.dynamic-content').textContent"
 #!/bin/bash
 
 # Run with timeout
-timeout 30 zen eval "await slowOperation()" --timeout 30 || {
+timeout 30 inspekt eval "await slowOperation()" --timeout 30 || {
   echo "Command timed out"
   exit 1
 }
@@ -191,9 +191,9 @@ pids=()
 for url in "${urls[@]}"; do
   (
     echo "Processing: $url"
-    zen open "$url" --wait
-    title=$(zen eval "document.title" --format raw)
-    links=$(zen links --only-urls | wc -l)
+    inspekt open "$url" --wait
+    title=$(inspekt eval "document.title" --format raw)
+    links=$(inspekt links --only-urls | wc -l)
     echo "$url,$title,$links" >> results.csv
   ) &
   pids+=($!)
@@ -220,27 +220,27 @@ echo "All pages processed"
 echo "Starting form automation..."
 
 # Navigate to form page
-zen open "https://example.com/contact"
+inspekt open "https://example.com/contact"
 
 # Wait for page load
-zen wait "form" --visible
+inspekt wait "form" --visible
 
 # Fill form fields
-zen send "John Doe" --selector "#name"
-zen send "john@example.com" --selector "#email"
-zen send "This is a test message" --selector "#message"
+inspekt send "John Doe" --selector "#name"
+inspekt send "john@example.com" --selector "#email"
+inspekt send "This is a test message" --selector "#message"
 
 # Check checkbox
-zen eval "document.querySelector('#agree').checked = true"
+inspekt eval "document.querySelector('#agree').checked = true"
 
 # Submit form
-zen click "#submit-btn"
+inspekt click "#submit-btn"
 
 # Wait for success message
-zen wait ".success-message" --visible --timeout 10
+inspekt wait ".success-message" --visible --timeout 10
 
 # Get confirmation
-confirmation=$(zen eval "document.querySelector('.success-message').textContent" --format raw)
+confirmation=$(inspekt eval "document.querySelector('.success-message').textContent" --format raw)
 echo "Success: $confirmation"
 ```
 
@@ -260,13 +260,13 @@ for page in $(seq 1 $total_pages); do
   echo "Scraping page $page/$total_pages..."
 
   # Navigate
-  zen open "${base_url}?page=${page}" --wait
+  inspekt open "${base_url}?page=${page}" --wait
 
   # Wait for products to load
-  zen wait ".product" --visible
+  inspekt wait ".product" --visible
 
   # Extract data
-  zen eval "
+  inspekt eval "
     Array.from(document.querySelectorAll('.product')).map(p => ({
       name: p.querySelector('.product-name')?.textContent.trim(),
       price: p.querySelector('.product-price')?.textContent.trim(),
@@ -300,8 +300,8 @@ echo "Interval: ${check_interval}s"
 
 while true; do
   # Navigate and extract status
-  zen open "$url" --wait
-  current_status=$(zen eval "document.querySelector('$selector').textContent" --format raw)
+  inspekt open "$url" --wait
+  current_status=$(inspekt eval "document.querySelector('$selector').textContent" --format raw)
 
   # Check for changes
   if [ -n "$last_status" ] && [ "$current_status" != "$last_status" ]; then
@@ -332,20 +332,20 @@ USERNAME="${ZEN_USERNAME:-user@example.com}"
 PASSWORD="${ZEN_PASSWORD:-password}"
 
 # Navigate to login page
-zen open "https://example.com/login"
+inspekt open "https://example.com/login"
 
 # Fill login form
-zen send "$USERNAME" --selector "input[name=email]"
-zen send "$PASSWORD" --selector "input[name=password]"
+inspekt send "$USERNAME" --selector "input[name=email]"
+inspekt send "$PASSWORD" --selector "input[name=password]"
 
 # Submit
-zen click "button[type=submit]"
+inspekt click "button[type=submit]"
 
 # Wait for dashboard
-zen wait ".dashboard" --visible --timeout 15
+inspekt wait ".dashboard" --visible --timeout 15
 
 # Extract dashboard data
-zen eval "
+inspekt eval "
   Array.from(document.querySelectorAll('.stat')).map(stat => ({
     label: stat.querySelector('.label')?.textContent.trim(),
     value: stat.querySelector('.value')?.textContent.trim()
@@ -379,7 +379,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install Zen Bridge
+      - name: Install Inspekt
         run: |
           pip install -e .
 
@@ -388,16 +388,16 @@ jobs:
           # Install browser and extension
           # (implementation depends on your setup)
 
-      - name: Start Zen Bridge server
+      - name: Start Inspekt server
         run: |
-          zen server start --daemon
+          inspekt server start --daemon
           sleep 2
 
       - name: Run browser tests
         run: |
-          zen open "file://$PWD/tests/test-page.html" --wait
-          zen eval "typeof runTests === 'function'" --format raw
-          result=$(zen eval "runTests()" --format json)
+          inspekt open "file://$PWD/tests/test-page.html" --wait
+          inspekt eval "typeof runTests === 'function'" --format raw
+          result=$(inspekt eval "runTests()" --format json)
           echo "$result"
 
           # Check results
@@ -409,7 +409,7 @@ jobs:
 
       - name: Stop server
         if: always()
-        run: pkill -f "zen server"
+        run: pkill -f "inspekt server"
 ```
 
 ### GitLab CI
@@ -420,13 +420,13 @@ test:
   image: python:3.11
   before_script:
     - pip install -e .
-    - zen server start --daemon
+    - inspekt server start --daemon
   script:
-    - zen open "file://$CI_PROJECT_DIR/tests/test-page.html" --wait
-    - zen eval "runTests()" --format json > results.json
+    - inspekt open "file://$CI_PROJECT_DIR/tests/test-page.html" --wait
+    - inspekt eval "runTests()" --format json > results.json
     - test $(jq -r '.failed' results.json) -eq 0
   after_script:
-    - pkill -f "zen server"
+    - pkill -f "inspekt server"
 ```
 
 ### Pre-commit Hook
@@ -438,16 +438,16 @@ test:
 echo "Running browser tests..."
 
 # Start server if not running
-if ! zen server status &>/dev/null; then
-  zen server start --daemon
+if ! inspekt server status &>/dev/null; then
+  inspekt server start --daemon
   sleep 2
   cleanup=true
 fi
 
 # Run tests
-zen open "file://$(pwd)/tests/index.html" --wait
+inspekt open "file://$(pwd)/tests/index.html" --wait
 
-result=$(zen eval "
+result=$(inspekt eval "
   if (typeof runTests !== 'function') {
     return {error: 'runTests not found'};
   }
@@ -458,7 +458,7 @@ failed=$(echo "$result" | jq -r '.failed // 0')
 
 # Cleanup if we started the server
 if [ "$cleanup" = "true" ]; then
-  pkill -f "zen server"
+  pkill -f "inspekt server"
 fi
 
 # Check results
@@ -479,19 +479,19 @@ echo "All tests passed!"
 
 ```bash
 # Extract specific fields
-zen eval "Array.from(document.querySelectorAll('.item')).map(i => ({
+inspekt eval "Array.from(document.querySelectorAll('.item')).map(i => ({
   title: i.querySelector('.title').textContent,
   price: i.querySelector('.price').textContent
 }))" --format json | jq '.[] | {title, price}'
 
 # Filter results
-zen links --json | jq '.links[] | select(.internal == false)'
+inspekt links --json | jq '.links[] | select(.internal == false)'
 
 # Aggregate data
-zen links --json | jq '.links | group_by(.internal) | map({internal: .[0].internal, count: length})'
+inspekt links --json | jq '.links | group_by(.internal) | map({internal: .[0].internal, count: length})'
 
 # Transform format
-zen info --json | jq '{page: .title, link: .url, domain: .domain}'
+inspekt info --json | jq '{page: .title, link: .url, domain: .domain}'
 ```
 
 ### CSV Export
@@ -499,10 +499,10 @@ zen info --json | jq '{page: .title, link: .url, domain: .domain}'
 ```bash
 # Export links to CSV
 echo "text,url,internal" > links.csv
-zen links --json | jq -r '.links[] | [.text, .url, .internal] | @csv' >> links.csv
+inspekt links --json | jq -r '.links[] | [.text, .url, .internal] | @csv' >> links.csv
 
 # Export table data
-zen eval "
+inspekt eval "
   const table = document.querySelector('table');
   const headers = Array.from(table.querySelectorAll('th')).map(th => th.textContent);
   const rows = Array.from(table.querySelectorAll('tbody tr')).map(tr =>
@@ -533,9 +533,9 @@ sqlite3 "$db_file" "CREATE TABLE IF NOT EXISTS pages (
 )"
 
 # Extract and insert data
-url=$(zen eval "location.href" --format raw)
-title=$(zen eval "document.title" --format raw)
-link_count=$(zen links --only-urls | wc -l)
+url=$(inspekt eval "location.href" --format raw)
+title=$(inspekt eval "document.title" --format raw)
+link_count=$(inspekt links --only-urls | wc -l)
 
 sqlite3 "$db_file" "INSERT INTO pages (url, title, link_count) VALUES (
   '$url', '$title', $link_count
@@ -554,7 +554,7 @@ export PGDATABASE="scraping"
 export PGUSER="scraper"
 
 # Extract and insert
-data=$(zen eval "({
+data=$(inspekt eval "({
   url: location.href,
   title: document.title,
   links: Array.from(document.links).length
@@ -575,7 +575,7 @@ psql -c "INSERT INTO pages (url, title, link_count) VALUES ('$url', '$title', $l
 
 ```bash
 # Good - single execution
-zen eval "({
+inspekt eval "({
   title: document.title,
   url: location.href,
   links: document.links.length,
@@ -584,9 +584,9 @@ zen eval "({
 })" --format json
 
 # Avoid - multiple executions
-# zen eval "document.title"
-# zen eval "location.href"
-# zen eval "document.links.length"
+# inspekt eval "document.title"
+# inspekt eval "location.href"
+# inspekt eval "document.links.length"
 # ...
 ```
 
@@ -594,10 +594,10 @@ zen eval "({
 
 ```bash
 # Good - specific selectors
-zen eval "document.querySelectorAll('.product .price')"
+inspekt eval "document.querySelectorAll('.product .price')"
 
 # Avoid - overly broad selectors
-zen eval "document.querySelectorAll('*')"
+inspekt eval "document.querySelectorAll('*')"
 ```
 
 ### Caching Results
@@ -631,14 +631,14 @@ get_cached_or_fetch() {
 }
 
 # Usage
-title=$(get_cached_or_fetch "page-title" "zen eval 'document.title' --format raw")
+title=$(get_cached_or_fetch "page-title" "inspekt eval 'document.title' --format raw")
 ```
 
 ### Minimize DOM Queries
 
 ```bash
 # Good - query once, reuse
-zen eval "
+inspekt eval "
   const container = document.querySelector('.container');
   const items = container.querySelectorAll('.item');
   return Array.from(items).map(item => ({
@@ -648,7 +648,7 @@ zen eval "
 "
 
 # Avoid - querying repeatedly
-zen eval "
+inspekt eval "
   Array.from(document.querySelectorAll('.item')).map(item => ({
     title: document.querySelector('.container .item .title').textContent,
     link: document.querySelector('.container .item a').href
@@ -672,7 +672,7 @@ sanitize_input() {
 
 user_input=$(sanitize_input "$1")
 
-zen eval "document.querySelector('#search').value = '$user_input'"
+inspekt eval "document.querySelector('#search').value = '$user_input'"
 ```
 
 ### Credential Management
@@ -686,8 +686,8 @@ export ZEN_PASSWORD="secure_password"
 # export ZEN_USERNAME=$(vault read -field=username secret/zen)
 # export ZEN_PASSWORD=$(vault read -field=password secret/zen)
 
-zen send "$ZEN_USERNAME" --selector "#username"
-zen send "$ZEN_PASSWORD" --selector "#password"
+inspekt send "$ZEN_USERNAME" --selector "#username"
+inspekt send "$ZEN_PASSWORD" --selector "#password"
 ```
 
 ### Avoid Logging Sensitive Data
@@ -716,7 +716,7 @@ log_action() {
 # Log all commands
 command="$*"
 log_action "$command"
-zen $command
+inspekt $command
 ```
 
 ---
@@ -727,43 +727,43 @@ zen $command
 
 ```bash
 # Good
-zen click "#submit-btn"
-zen eval "document.querySelector('.product[data-id=\"123\"]')"
+inspekt click "#submit-btn"
+inspekt eval "document.querySelector('.product[data-id=\"123\"]')"
 
 # Avoid
-zen click "button"
-zen eval "document.querySelector('div div div button')"
+inspekt click "button"
+inspekt eval "document.querySelector('div div div button')"
 ```
 
 ### 2. Handle Errors Gracefully
 
 ```bash
 # Good
-zen eval "document.querySelector('.optional')?.textContent || 'Not found'"
+inspekt eval "document.querySelector('.optional')?.textContent || 'Not found'"
 
 # Avoid (may crash)
-zen eval "document.querySelector('.optional').textContent"
+inspekt eval "document.querySelector('.optional').textContent"
 ```
 
 ### 3. Batch Related Operations
 
 ```bash
 # Good - single command
-zen eval "({title: document.title, links: document.links.length})"
+inspekt eval "({title: document.title, links: document.links.length})"
 
 # Avoid - multiple commands
-# zen eval "document.title"
-# zen eval "document.links.length"
+# inspekt eval "document.title"
+# inspekt eval "document.links.length"
 ```
 
 ### 4. Use Appropriate Timeouts
 
 ```bash
 # Quick operations
-zen eval "document.title" --timeout 5
+inspekt eval "document.title" --timeout 5
 
 # Slow operations
-zen eval "await fetch('/api/data').then(r => r.json())" --timeout 30
+inspekt eval "await fetch('/api/data').then(r => r.json())" --timeout 30
 ```
 
 ### 5. Test in Different Browsers
@@ -782,17 +782,17 @@ Different browsers have different behaviors. Test your scripts in:
 
 ```bash
 # Reduce timeout
-zen eval "document.title" --timeout 5
+inspekt eval "document.title" --timeout 5
 
 # Check for infinite loops
-zen eval "console.log('test'); document.title"
+inspekt eval "console.log('test'); document.title"
 ```
 
 ### High Memory Usage
 
 ```bash
 # Limit results
-zen eval "Array.from(document.querySelectorAll('.item')).slice(0, 100)"
+inspekt eval "Array.from(document.querySelectorAll('.item')).slice(0, 100)"
 
 # Clear caches periodically
 rm -rf "$HOME/.zen-cache"/*
@@ -803,8 +803,8 @@ rm -rf "$HOME/.zen-cache"/*
 ```bash
 # Add delays between requests
 for url in "${urls[@]}"; do
-  zen open "$url" --wait
-  zen eval "document.title"
+  inspekt open "$url" --wait
+  inspekt eval "document.title"
   sleep 2  # Be polite
 done
 ```

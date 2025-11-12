@@ -1,6 +1,6 @@
 # Command Development Guide
 
-This guide provides step-by-step instructions for adding new commands or modifying existing ones in Zen Bridge.
+This guide provides step-by-step instructions for adding new commands or modifying existing ones in Inspekt.
 
 ## Table of Contents
 
@@ -53,7 +53,7 @@ zen_bridge/
 │   ├── do.prompt
 │   └── summary.prompt
 ├── tests/
-└── pyproject.toml                      # Entry point: zen = "zen.app.cli:main"
+└── pyproject.toml                      # Entry point: inspekt = "zen.app.cli:main"
 ```
 
 **Important**: Note that:
@@ -148,7 +148,7 @@ If your command needs to execute JavaScript in the browser:
    ```
 3. Test the script manually first:
    ```bash
-   zen eval --file zen/scripts/my_new_script.js --format json
+   inspekt eval --file zen/scripts/my_new_script.js --format json
    ```
 
 ### Step 3: Create AI Prompt (if needed)
@@ -177,14 +177,14 @@ def my_command(my_arg, my_option, debug):
     what it analyzes, and what output it produces.
 
     Examples:
-        zen my-command "example input"
-        zen my-command "input" --my-option
+        inspekt my-command "example input"
+        inspekt my-command "input" --my-option
     """
     client = BridgeClient()
 
     # 1. Check if server is alive
     if not client.is_alive():
-        click.echo("Error: Bridge server is not running. Start it with: zen server start", err=True)
+        click.echo("Error: Bridge server is not running. Start it with: inspekt server start", err=True)
         sys.exit(1)
 
     # 2. Check for external dependencies (if needed)
@@ -328,10 +328,10 @@ When modifying paths, remember:
 
 ```bash
 # Test that command appears in main help
-zen --help | grep my-command
+inspekt --help | grep my-command
 
 # Test command-specific help
-zen my-command --help
+inspekt my-command --help
 ```
 
 **Expected**: Clean, readable help text with examples.
@@ -340,7 +340,7 @@ zen my-command --help
 
 ```bash
 # Test with --debug flag (if applicable) to verify files load
-zen my-command "test" --debug 2>&1 | head -20
+inspekt my-command "test" --debug 2>&1 | head -20
 
 # Check error messages for path issues
 # Should NOT see "Script not found" or "Prompt file not found"
@@ -354,10 +354,10 @@ If command uses JavaScript:
 
 ```bash
 # Test the script directly first
-zen eval --file zen/scripts/my_script.js --format json
+inspekt eval --file zen/scripts/my_script.js --format json
 
 # Then test through the command
-zen my-command "test input" --debug
+inspekt my-command "test input" --debug
 ```
 
 **Expected**: JavaScript executes without errors, returns expected data structure.
@@ -366,9 +366,9 @@ zen my-command "test input" --debug
 
 ```bash
 # Test with real input (may require server + browser)
-zen server start --daemon
+inspekt server start --daemon
 # Open browser with userscript active
-zen my-command "real input"
+inspekt my-command "real input"
 ```
 
 **Expected**: Command executes successfully end-to-end.
@@ -378,12 +378,12 @@ zen my-command "real input"
 Test error cases:
 ```bash
 # Server not running
-zen server stop
-zen my-command "test"  # Should show clear error
+inspekt server stop
+inspekt my-command "test"  # Should show clear error
 
 # Invalid input
-zen my-command ""  # Should handle gracefully
-zen my-command "ñ∂ƒ©˙∆"  # Should handle special characters
+inspekt my-command ""  # Should handle gracefully
+inspekt my-command "ñ∂ƒ©˙∆"  # Should handle special characters
 ```
 
 **Expected**: Clear error messages, no crashes.
@@ -399,14 +399,14 @@ zen my-command "ñ∂ƒ©˙∆"  # Should handle special characters
 
 ```bash
 # Verify you didn't break other commands
-zen describe --help
-zen outline --help
-zen links --help
-zen summarize --help
+inspekt describe --help
+inspekt outline --help
+inspekt links --help
+inspekt summarize --help
 
 # Test a few existing commands
-zen outline --help
-zen info --help
+inspekt outline --help
+inspekt info --help
 ```
 
 **Expected**: All commands still work.
@@ -521,11 +521,11 @@ click.echo(actual_output)              # Goes to stdout
 
 ```bash
 # Full test cycle
-zen my-command --help                   # 1. Help text
-zen my-command "test" --debug 2>&1      # 2. Path resolution
-zen eval --file zen/scripts/test.js     # 3. Script execution
-zen my-command "real input"             # 4. Full functionality
-zen my-command ""                       # 5. Error handling
+inspekt my-command --help                   # 1. Help text
+inspekt my-command "test" --debug 2>&1      # 2. Path resolution
+inspekt eval --file zen/scripts/test.js     # 3. Script execution
+inspekt my-command "real input"             # 4. Full functionality
+inspekt my-command ""                       # 5. Error handling
 ```
 
 ---
@@ -545,7 +545,7 @@ If you break existing commands:
 
 ## Example: Complete Workflow
 
-Let's add a hypothetical `zen analyze` command:
+Let's add a hypothetical `inspekt analyze` command:
 
 ```bash
 # 1. Create JavaScript script
@@ -559,7 +559,7 @@ cat > zen/scripts/analyze_page.js << 'EOF'
 EOF
 
 # 2. Test script directly
-zen eval --file zen/scripts/analyze_page.js --format json
+inspekt eval --file zen/scripts/analyze_page.js --format json
 
 # 3. Create AI prompt
 cat > prompts/analyze.prompt << 'EOF'
@@ -578,17 +578,17 @@ pip install -e . --force-reinstall --no-deps
 pyenv rehash
 
 # 7. Test help
-zen analyze --help
+inspekt analyze --help
 
 # 8. Test with debug
-zen analyze "test" --debug
+inspekt analyze "test" --debug
 
 # 9. Test full functionality
-zen analyze "test"
+inspekt analyze "test"
 
 # 10. Test error handling
-zen server stop
-zen analyze "test"  # Should show server error
+inspekt server stop
+inspekt analyze "test"  # Should show server error
 ```
 
 ---

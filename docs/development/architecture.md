@@ -1,10 +1,10 @@
 # Architecture
 
-Zen Bridge follows a modern **4-layer architecture** with clear separation of concerns, strong type safety, and async-first design principles.
+Inspekt follows a modern **4-layer architecture** with clear separation of concerns, strong type safety, and async-first design principles.
 
 ## Overview
 
-Zen Bridge bridges the gap between terminal workflows and browser automation, enabling JavaScript execution in the browser from the command line.
+Inspekt bridges the gap between terminal workflows and browser automation, enabling JavaScript execution in the browser from the command line.
 
 ### Key Principles
 
@@ -277,7 +277,7 @@ sequenceDiagram
     participant Server
     participant Browser
 
-    User->>CLI: zen eval "document.title"
+    User->>CLI: inspekt eval "document.title"
     CLI->>Service: executor.execute()
     Service->>Client: client.execute()
     Client->>Server: POST /run
@@ -332,7 +332,7 @@ sequenceDiagram
     participant W as WebSocket
     participant B as Browser
 
-    U->>C: zen eval "code"
+    U->>C: inspekt eval "code"
     C->>H: POST /run {code}
     H->>W: Store request
     W->>B: Send execute message

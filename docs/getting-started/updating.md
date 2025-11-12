@@ -1,17 +1,17 @@
-# Updating Zen Bridge
+# Updating Inspekt
 
-Keep Zen Bridge up to date to get the latest features, bug fixes, and improvements.
+Keep Inspekt up to date to get the latest features, bug fixes, and improvements.
 
 ---
 
 ## Updating the CLI
 
-The Zen Bridge CLI is installed via pip and can be updated with a single command.
+The Inspekt CLI is installed via pip and can be updated with a single command.
 
 ### Check Current Version
 
 ```bash
-zen --version
+inspekt--version
 ```
 
 ### Update to Latest Version
@@ -29,10 +29,10 @@ pipx upgrade zen-bridge
 ### Verify Update
 
 ```bash
-zen --version
+inspekt--version
 # Should show the new version
 
-zen server restart
+inspektserver restart
 # Restart the server to use the new version
 ```
 
@@ -83,7 +83,7 @@ window.__ZEN_BRIDGE_VERSION__
 Or look for the version in the console on page load:
 
 ```
-[Zen Bridge] Connected via WebSocket
+[Inspekt] Connected via WebSocket
 ```
 
 ---
@@ -159,7 +159,7 @@ pip cache purge
 pip install --upgrade --force-reinstall --no-cache-dir zen-bridge
 
 # Verify
-zen --version
+inspekt--version
 ```
 
 ### Userscript Update Issues
@@ -194,7 +194,7 @@ Check the [GitHub Releases](https://github.com/roelvangils/zen-bridge/releases) 
 pip index versions zen-bridge
 
 # Compare with your version
-zen --version
+inspekt--version
 ```
 
 ### Userscript
@@ -252,7 +252,7 @@ pipx install zen-bridge==2.0.0 --force
 ## Best Practices
 
 1. **Always update both CLI and userscript together** for compatibility
-2. **Restart the server** after CLI updates: `zen server restart`
+2. **Restart the server** after CLI updates: `inspektserver restart`
 3. **Reload browser tabs** after userscript updates
 4. **Check the changelog** before updating for breaking changes
 5. **Test after updates** to ensure everything works
@@ -267,6 +267,6 @@ If you encounter issues during updates:
 2. Visit [GitHub Issues](https://github.com/roelvangils/zen-bridge/issues)
 3. Include your version numbers when reporting problems:
    ```bash
-   zen --version
+   inspekt--version
    # And userscript version from console
    ```

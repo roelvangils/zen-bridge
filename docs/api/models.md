@@ -1,12 +1,12 @@
 # Models API Reference
 
-Complete reference for all Pydantic models used in Zen Bridge protocol and configuration.
+Complete reference for all Pydantic models used in Inspekt protocol and configuration.
 
 ---
 
 ## Overview
 
-Zen Bridge uses Pydantic v2 for data validation and serialization. All models provide:
+Inspekt uses Pydantic v2 for data validation and serialization. All models provide:
 
 - Automatic validation
 - Type safety
@@ -804,7 +804,7 @@ config = ControlConfig(**config_dict)
 
 ### ZenConfig
 
-Complete Zen Bridge configuration.
+Complete Inspekt configuration.
 
 ```python
 class ZenConfig(BaseModel):
@@ -1021,7 +1021,7 @@ from pathlib import Path
 from zen.domain.models import ZenConfig
 
 # Load from file
-config_path = Path.home() / ".config" / "zen-bridge" / "config.json"
+config_path = Path.home() / ".config" / "inspekt" / "config.json"
 if config_path.exists():
     with open(config_path) as f:
         config_dict = json.load(f)

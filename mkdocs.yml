@@ -1,9 +1,9 @@
-site_name: Zen Browser Bridge
-site_description: Execute JavaScript in your browser from the command line
+site_name: Inspekt
+site_description: Browser automation and inspection from the command line
 site_author: Roel van Gils
-site_url: https://roelvangils.github.io/zen-bridge/
-repo_url: https://github.com/roelvangils/zen-bridge
-repo_name: roelvangils/zen-bridge
+site_url: https://roelvangils.github.io/inspekt/
+repo_url: https://github.com/roelvangils/inspekt
+repo_name: roelvangils/inspekt
 edit_uri: edit/main/docs/
 
 theme:
@@ -67,7 +67,7 @@ extra:
     default: latest
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/roelvangils/zen-bridge
+      link: https://github.com/roelvangils/inspekt
   analytics:
     provider: google
     property: !ENV GOOGLE_ANALYTICS_KEY
@@ -143,7 +143,7 @@ nav:
   - API Reference:
       - CLI Commands: api/commands.md
       - Command Reference:
-          - zen do: commands/do.md
+          - inspekt do: commands/do.md
       - Services: api/services.md
       - Models: api/models.md
       - Protocol: api/protocol.md

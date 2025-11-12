@@ -1,6 +1,6 @@
 # License
 
-Zen Browser Bridge is released under the **MIT License**.
+Inspekt is released under the **MIT License**.
 
 ---
 
@@ -22,7 +22,7 @@ The MIT License is one of the most permissive open-source licenses. In plain Eng
 
 ### You CAN:
 
-- **Use** - Use Zen Bridge for personal or commercial projects
+- **Use** - Use Inspekt for personal or commercial projects
 - **Modify** - Change the source code to fit your needs
 - **Distribute** - Share the software with others
 - **Sublicense** - Include it in proprietary software
@@ -41,7 +41,7 @@ The MIT License is one of the most permissive open-source licenses. In plain Eng
 
 ## Third-Party Licenses
 
-Zen Bridge depends on several excellent open-source projects. We are grateful to their maintainers:
+Inspekt depends on several excellent open-source projects. We are grateful to their maintainers:
 
 ### Core Dependencies
 
@@ -91,9 +91,9 @@ The MIT License is compatible with:
 
 ## Attribution
 
-If you use Zen Bridge in your project, attribution is appreciated but not required. You can credit it as:
+If you use Inspekt in your project, attribution is appreciated but not required. You can credit it as:
 
-> This project uses [Zen Browser Bridge](https://github.com/roelvangils/zen-bridge) by Roel van Gils, licensed under the MIT License.
+> This project uses [Inspekt](https://github.com/roelvangils/inspekt) by Roel van Gils, licensed under the MIT License.
 
 ---
 

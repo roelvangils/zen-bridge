@@ -1,14 +1,14 @@
-# Zen Browser Bridge
+# Inspekt
 
-**Execute JavaScript in your browser from the command line.**
+**Browser automation and inspection from the command line.**
 
-A powerful CLI tool for browser automation, debugging, and interactive development. Control your browser, extract data, automate tasks, and interact with web pages—all from your terminal.
+A powerful CLI tool for browser automation, inspection, debugging, and interactive development. Control your browser, inspect elements, extract data, automate tasks, and interact with web pages—all from your terminal.
 
 ---
 
 ## Overview
 
-Zen Browser Bridge creates a WebSocket connection between your terminal and browser, enabling you to:
+Inspekt creates a WebSocket connection between your terminal and browser, enabling you to:
 
 - Execute JavaScript code directly in any browser tab
 - Extract data from authenticated sessions
@@ -18,24 +18,24 @@ Zen Browser Bridge creates a WebSocket connection between your terminal and brow
 
 ```bash
 # Execute JavaScript and get instant results
-zen eval "document.title"
+inspekteval "document.title"
 # => "Example Domain"
 
 # Extract all links from a page
-zen links --only-external --only-urls > external-links.txt
+inspektlinks --only-external --only-urls > external-links.txt
 
 # Start an interactive JavaScript REPL
-zen repl
+inspektrepl
 
 # Control your browser with keyboard navigation
-zen control
+inspektcontrol
 ```
 
 ---
 
 ## Architecture Overview
 
-Zen Bridge uses a clean 4-layer architecture to bridge your terminal and browser:
+Inspekt uses a clean 4-layer architecture to bridge your terminal and browser:
 
 ```mermaid
 graph TB
@@ -62,7 +62,7 @@ graph TB
 Run JavaScript code in your active browser tab from the terminal. Full access to the DOM, browser APIs, and page context.
 
 ```bash
-zen eval "Array.from(document.querySelectorAll('h1, h2, h3')).map(h => h.textContent)"
+inspekteval "Array.from(document.querySelectorAll('h1, h2, h3')).map(h => h.textContent)"
 ```
 
 ### :keyboard: Interactive REPL
@@ -81,8 +81,8 @@ zen> Array.from(document.links).slice(0, 3).map(a => a.href)
 Article summarization and page descriptions powered by AI. Requires [mods](https://github.com/charmbracelet/mods) to be installed.
 
 ```bash
-zen summarize  # Concise article summary
-zen describe   # Natural-language page description for screen readers
+inspektsummarize  # Concise article summary
+inspektdescribe   # Natural-language page description for screen readers
 ```
 
 ### :point_up_2: Element Interaction
@@ -90,9 +90,9 @@ zen describe   # Natural-language page description for screen readers
 Click, inspect, highlight, and wait for elements using CSS selectors.
 
 ```bash
-zen click "button#submit"
-zen highlight "h1, h2" --color blue
-zen wait ".modal-dialog" --visible --timeout 10
+inspektclick "button#submit"
+inspekthighlight "h1, h2" --color blue
+inspektwait ".modal-dialog" --visible --timeout 10
 ```
 
 ### :control_knobs: Keyboard Control
@@ -100,7 +100,7 @@ zen wait ".modal-dialog" --visible --timeout 10
 Navigate pages entirely from your keyboard with auto-refocus across page loads.
 
 ```bash
-zen control
+inspektcontrol
 # Tab → Enter → Page loads → Element auto-refocuses → Continue navigating
 ```
 
@@ -109,9 +109,9 @@ zen control
 Extract links, images, tables, metadata, and more with built-in commands and custom scripts.
 
 ```bash
-zen links --only-external --enrich-external  # Get external links with metadata
-zen outline                                   # Display page heading hierarchy
-zen info --extended                          # Extract comprehensive page info
+inspektlinks --only-external --enrich-external  # Get external links with metadata
+inspektoutline                                   # Display page heading hierarchy
+inspektinfo --extended                          # Extract comprehensive page info
 ```
 
 ### :floppy_disk: File Downloads
@@ -119,8 +119,8 @@ zen info --extended                          # Extract comprehensive page info
 Interactive file finder and downloader for images, documents, videos, audio, and archives.
 
 ```bash
-zen download  # Interactive selection
-zen download --list  # List all downloadable files
+inspektdownload  # Interactive selection
+inspektdownload --list  # List all downloadable files
 ```
 
 ### :eyes: Real-time Monitoring
@@ -128,7 +128,7 @@ zen download --list  # List all downloadable files
 Watch keyboard events and browser activity as they happen.
 
 ```bash
-zen watch input  # Monitor keyboard input in real-time
+inspektwatch input  # Monitor keyboard input in real-time
 ```
 
 ---
@@ -145,7 +145,7 @@ zen watch input  # Monitor keyboard input in real-time
 
 ```bash
 # Clone the repository
-git clone https://github.com/roelvangils/zen-bridge.git
+git clone https://github.com/roelvangils/inspekt.git
 cd zen-bridge
 
 # Install in development mode
@@ -163,7 +163,7 @@ Install a userscript manager in your browser:
 Then copy the userscript content:
 
 ```bash
-zen userscript  # Display the userscript code
+inspektuserscript  # Display the userscript code
 ```
 
 Create a new userscript in your userscript manager and paste the code.
@@ -171,7 +171,7 @@ Create a new userscript in your userscript manager and paste the code.
 ### 3. Start the Server
 
 ```bash
-zen server start --daemon
+inspektserver start --daemon
 ```
 
 That's it! You're ready to control your browser from the terminal.
@@ -182,12 +182,12 @@ That's it! You're ready to control your browser from the terminal.
 
 ## Quick Example
 
-Here's a practical example showing the power of Zen Browser Bridge:
+Here's a practical example showing the power of Inspekt:
 
 !!! example "Example: Extract External Links"
     **Command:**
     ```bash
-    zen links --only-external --enrich-external
+    inspektlinks --only-external --enrich-external
     ```
 
     **Output:**
@@ -213,7 +213,7 @@ Here's a practical example showing the power of Zen Browser Bridge:
 
     ```bash
     # Navigate to a page in your browser, then:
-    zen links --only-external --only-urls | sort | uniq > external-links.txt
+    inspektlinks --only-external --only-urls | sort | uniq > external-links.txt
 
     # Result: All unique external links saved to a file
     ```
@@ -222,19 +222,19 @@ Here's a practical example showing the power of Zen Browser Bridge:
 
     ```bash
     # Fill out a login form
-    zen eval "document.querySelector('#email').value = 'user@example.com'"
-    zen eval "document.querySelector('#password').value = 'secret'"
-    zen click "button[type=submit]"
+    inspekteval "document.querySelector('#email').value = 'user@example.com'"
+    inspekteval "document.querySelector('#password').value = 'secret'"
+    inspektclick "button[type=submit]"
 
     # Wait for success message
-    zen wait ".success-message" --visible
+    inspektwait ".success-message" --visible
     ```
 
 === "Data Scraping"
 
     ```bash
     # Extract product information (while logged in)
-    zen eval "
+    inspekteval "
       Array.from(document.querySelectorAll('.product')).map(p => ({
         name: p.querySelector('.name').textContent,
         price: p.querySelector('.price').textContent,
@@ -247,20 +247,20 @@ Here's a practical example showing the power of Zen Browser Bridge:
 
     ```bash
     # Get page outline
-    zen outline
+    inspektoutline
 
     # Extract all metadata
-    zen exec zen/scripts/extract_metadata.js --format json
+    inspektexec zen/scripts/extract_metadata.js --format json
 
     # Check external links status
-    zen links --enrich-external --json
+    inspektlinks --enrich-external --json
     ```
 
 ---
 
 ## What's New in v2.0
 
-Zen Browser Bridge 2.0 brings major architectural improvements while maintaining full backward compatibility:
+Inspekt 2.0 brings major architectural improvements while maintaining full backward compatibility:
 
 ### :building_construction: Modular Architecture
 
@@ -327,7 +327,7 @@ Full backward compatibility with v1.x - upgrade seamlessly without changing your
 
     ---
 
-    Customize Zen Bridge for your workflow with control mode, AI settings, and more.
+    Customize Inspekt for your workflow with control mode, AI settings, and more.
 
     [:octicons-arrow-right-24: Configuration Guide](getting-started/configuration.md)
 
@@ -343,7 +343,7 @@ Full backward compatibility with v1.x - upgrade seamlessly without changing your
 
     ---
 
-    Contribute to Zen Bridge or build custom extensions.
+    Contribute to Inspekt or build custom extensions.
 
     [:octicons-arrow-right-24: Development Guide](development/architecture.md)
 
@@ -351,7 +351,7 @@ Full backward compatibility with v1.x - upgrade seamlessly without changing your
 
 ---
 
-## Why Zen Browser Bridge?
+## Why Inspekt?
 
 ### Traditional Browser Automation is Complex
 
@@ -363,21 +363,21 @@ Tools like Selenium and Playwright require:
 - Learning complex APIs
 - Writing verbose code
 
-### Zen Bridge is Simple
+### Inspekt is Simple
 
 Just install a userscript and start executing commands:
 
 ```bash
-zen eval "document.title"
+inspekteval "document.title"
 ```
 
 That's it. No browser drivers, no setup complexity, just instant browser control.
 
 ### Feature Comparison
 
-See how Zen Bridge compares to traditional browser automation tools:
+See how Inspekt compares to traditional browser automation tools:
 
-| Feature | Zen Bridge | Puppeteer | Selenium |
+| Feature | Inspekt | Puppeteer | Selenium |
 |---------|------------|-----------|----------|
 | Setup Time | < 2 min | 10+ min | 15+ min |
 | CLI Access | ✅ Yes | ❌ No | ❌ No |
@@ -402,14 +402,14 @@ See how Zen Bridge compares to traditional browser automation tools:
 
 ## Community & Support
 
-- **GitHub Issues** - [Report bugs and request features](https://github.com/roelvangils/zen-bridge/issues)
-- **GitHub Discussions** - [Ask questions and share workflows](https://github.com/roelvangils/zen-bridge/discussions)
+- **GitHub Issues** - [Report bugs and request features](https://github.com/roelvangils/inspekt/issues)
+- **GitHub Discussions** - [Ask questions and share workflows](https://github.com/roelvangils/inspekt/discussions)
 - **Contributing** - [Development guide](development/contributing.md)
 
 ---
 
 ## License
 
-Zen Browser Bridge is open source software released under the [MIT License](about/license.md).
+Inspekt is open source software released under the [MIT License](about/license.md).
 
 Created by **Roel van Gils** - Inspired by the original KM JS Bridge concept.

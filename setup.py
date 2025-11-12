@@ -9,13 +9,13 @@ if readme_file.exists():
     long_description = readme_file.read_text(encoding="utf-8")
 
 setup(
-    name="zen-bridge",
+    name="inspekt",
     version="1.0.0",
-    description="Execute JavaScript in your browser from the command line",
+    description="Browser automation and inspection from the command line",
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="Roel van Gils",
-    url="https://github.com/roelvangils/zen-bridge",
+    url="https://github.com/roelvangils/inspekt",
     packages=find_packages(),
     include_package_data=True,
     python_requires=">=3.7",
@@ -25,7 +25,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "zen=zen.app.cli:main",
+            "inspekt=zen.app.cli:main",
         ],
     },
     classifiers=[
@@ -42,5 +42,5 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Utilities",
     ],
-    keywords="browser automation javascript cli development-tools",
+    keywords="browser automation javascript cli development-tools inspection accessibility",
 )

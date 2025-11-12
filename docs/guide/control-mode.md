@@ -1,10 +1,10 @@
 # Control Mode
 
-Master keyboard-only navigation with Zen Bridge Control Mode. Navigate pages entirely from your terminal using Tab, Enter, and Arrow keys.
+Master keyboard-only navigation with Inspekt Control Mode. Navigate pages entirely from your terminal using Tab, Enter, and Arrow keys.
 
 ## Overview
 
-`zen control` provides keyboard-only navigation for accessibility testing and hands-free browsing. It's perfect for:
+`inspekt control` provides keyboard-only navigation for accessibility testing and hands-free browsing. It's perfect for:
 
 - **Accessibility testing** - Verify keyboard navigation
 - **Hands-free browsing** - Navigate without a mouse
@@ -15,7 +15,7 @@ Master keyboard-only navigation with Zen Bridge Control Mode. Navigate pages ent
 ## Starting Control Mode
 
 ```bash
-zen control
+inspekt control
 ```
 
 **What happens:**
@@ -78,14 +78,14 @@ Focus: Privacy Policy (link)
 Control mode persists across page navigations:
 
 ```bash
-zen control
+inspekt control
 # Tab to a link
 # Press Enter → Page loads
 # → Focus automatically returns to the link
 # Continue tabbing from there
 ```
 
-This is **unique** to Zen Bridge - the focus persists even after navigation!
+This is **unique** to Inspekt - the focus persists even after navigation!
 
 ### Text-to-Speech (macOS)
 
@@ -150,7 +150,7 @@ Edit `config.json` in project root:
 ### Example 1: Form Navigation
 
 ```bash
-zen control
+inspekt control
 
 # Tab to first field → "Email Input"
 # Type: test@example.com
@@ -164,7 +164,7 @@ zen control
 ### Example 2: Link Navigation
 
 ```bash
-zen control
+inspekt control
 
 # Tab through navigation → "Home", "About", "Contact"
 # Tab to main content link → "Read More"
@@ -176,7 +176,7 @@ zen control
 ### Example 3: Modal Interaction
 
 ```bash
-zen control
+inspekt control
 
 # Tab to button → "Open Modal"
 # Press Enter → Modal opens
@@ -188,7 +188,7 @@ zen control
 ### Example 4: Accessibility Audit
 
 ```bash
-zen control
+inspekt control
 
 # Tab through entire page
 # Verify:
@@ -208,17 +208,17 @@ zen control
 **Take screenshots of focused elements:**
 ```bash
 # Start control mode in one terminal
-zen control
+inspekt control
 
 # In another terminal:
-zen eval "document.activeElement"
-zen screenshot --selector "$0" --output focused.png
+inspekt eval "document.activeElement"
+inspekt screenshot --selector "$0" --output focused.png
 ```
 
 **Extract focused element info:**
 ```bash
 # While in control mode (other terminal):
-zen eval "
+inspekt eval "
   const el = document.activeElement;
   return {
     tag: el.tagName,
@@ -232,7 +232,7 @@ zen eval "
 **Verify focus order:**
 ```bash
 # While in control mode (other terminal):
-zen eval "
+inspekt eval "
   const focusable = Array.from(document.querySelectorAll(
     'a, button, input, select, textarea, [tabindex]:not([tabindex=\"-1\"])'
   ));
@@ -248,7 +248,7 @@ zen eval "
 ### Test Focus Traps
 
 ```bash
-zen control
+inspekt control
 
 # Navigate into component
 # Try to Tab out
@@ -258,7 +258,7 @@ zen control
 ### Test Skip Links
 
 ```bash
-zen control
+inspekt control
 
 # First Tab should focus skip link
 # Press Enter
@@ -268,7 +268,7 @@ zen control
 ### Test Keyboard Shortcuts
 
 ```bash
-zen control
+inspekt control
 
 # Try:
 # - Ctrl+F for search
@@ -302,7 +302,7 @@ Test with keyboard + voice:
 # Enable text-to-speech
 # Edit config.json: "speak-all": true
 
-zen control
+inspekt control
 # Navigate and listen to announcements
 # Verify meaningful names
 # Check announcement order
@@ -313,11 +313,11 @@ zen control
 Test focus behavior:
 
 ```bash
-zen control
+inspekt control
 # Open modal → Focus should enter modal
 # Close modal → Focus should return to trigger
 # Submit form → Focus should go to success message
-# Navigate → Focus should persist (unique to Zen Bridge!)
+# Navigate → Focus should persist (unique to Inspekt!)
 ```
 
 ### 4. Keyboard-Only Workflows
@@ -325,7 +325,7 @@ zen control
 Browse without a mouse:
 
 ```bash
-zen control
+inspekt control
 # Navigate entirely from terminal
 # Perfect for accessibility demos
 # Great for focus management testing
@@ -477,7 +477,7 @@ say "Email Input"
 1. Check element has focus styles
 2. Try forcing outline:
    ```bash
-   zen eval "document.activeElement.style.outline = '3px solid red'"
+   inspekt eval "document.activeElement.style.outline = '3px solid red'"
    ```
 3. Some elements have `outline: none` - accessibility issue!
 
@@ -488,7 +488,7 @@ say "Email Input"
 **Solutions:**
 1. Don't press `q` or `Ctrl+D` immediately
 2. Check terminal supports raw mode
-3. Try `zen control --help` first
+3. Try `inspekt control --help` first
 
 ### Can't Exit Control Mode
 
@@ -517,7 +517,7 @@ say "Email Input"
 Don't just test on example pages - test your actual site:
 
 ```bash
-zen control
+inspekt control
 # Navigate your production site
 # Verify real user workflows
 ```
@@ -543,7 +543,7 @@ Test with actual screen readers too:
 - **VoiceOver** (macOS)
 - **Orca** (Linux)
 
-Zen Bridge control mode is a **supplement**, not a replacement.
+Inspekt control mode is a **supplement**, not a replacement.
 
 ### 4. Test Different Browsers
 
@@ -551,13 +551,13 @@ Keyboard behavior varies by browser:
 
 ```bash
 # Test in Chrome
-zen control
+inspekt control
 
 # Test in Firefox
-zen control
+inspekt control
 
 # Test in Safari
-zen control
+inspekt control
 ```
 
 ---
@@ -573,7 +573,7 @@ zen control
 
 | Command | Action |
 |---------|--------|
-| `zen control` | Start keyboard control mode |
+| `inspekt control` | Start keyboard control mode |
 | `Tab` | Navigate forward |
 | `Shift+Tab` | Navigate backward |
 | `Enter` | Activate focused element |

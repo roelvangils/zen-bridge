@@ -1,5 +1,5 @@
 // Send keys to the active element in the browser
-(function(text, delayMs, clearFirst) {
+(function(text, delayMs, clearFirst, typoRate) {
     return new Promise(function(resolve) {
         var activeEl = document.activeElement;
 
@@ -212,36 +212,24 @@
 
             var char = text[i];
 
-            // In human mode, occasionally make typos (3% chance for letters)
-            if (isHumanMode && Math.random() < 0.03 && keyboardLayout[char]) {
+            // In human mode, occasionally make typos (configurable rate for letters)
+            if (isHumanMode && Math.random() < typoRate && keyboardLayout[char]) {
                 var wrongChar = getAdjacentKey(char);
-                var backspaceCount = Math.random() < 0.5 ? 1 : 2;  // 50% chance of double backspace
 
                 // Type wrong character
                 insertChar(wrongChar);
 
                 // Realize mistake after short delay (100-200ms)
                 setTimeout(function() {
-                    // Press backspace once or twice
-                    var backspacesPressed = 0;
-                    function doBackspace() {
-                        if (backspacesPressed < backspaceCount) {
-                            pressBackspace();
-                            backspacesPressed++;
-                            // Short delay between backspaces if doing two (50-100ms)
-                            if (backspacesPressed < backspaceCount) {
-                                setTimeout(doBackspace, 50 + Math.random() * 50);
-                            } else {
-                                // After backspacing, type the correct character
-                                setTimeout(function() {
-                                    insertChar(char);
-                                    i++;
-                                    continueTyping();
-                                }, 50 + Math.random() * 50);
-                            }
-                        }
-                    }
-                    doBackspace();
+                    // Press backspace once to delete the wrong character
+                    pressBackspace();
+
+                    // After backspacing, type the correct character
+                    setTimeout(function() {
+                        insertChar(char);
+                        i++;
+                        continueTyping();
+                    }, 50 + Math.random() * 50);
                 }, 100 + Math.random() * 100);
                 return;  // Exit early, continuation handled in callback
             }
@@ -275,4 +263,4 @@
 
         typeNextChar();
     });
-})(TEXT_PLACEHOLDER, DELAY_PLACEHOLDER, CLEAR_PLACEHOLDER)
+})(TEXT_PLACEHOLDER, DELAY_PLACEHOLDER, CLEAR_PLACEHOLDER, TYPO_RATE_PLACEHOLDER)

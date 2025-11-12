@@ -1,6 +1,6 @@
 # Basic Commands
 
-Learn the essential commands for everyday use with Zen Bridge. This guide covers the most common commands you'll use for executing code, getting page information, managing the server, and working interactively.
+Learn the essential commands for everyday use with Inspekt. This guide covers the most common commands you'll use for executing code, getting page information, managing the server, and working interactively.
 
 ## Server Management
 
@@ -10,21 +10,21 @@ Before you can use any commands, the bridge server must be running.
 
 === "Background Mode (Recommended)"
     ```bash
-    zen server start --daemon
+    inspekt server start --daemon
     ```
 
     Starts the server in the background. You can close your terminal and the server keeps running.
 
 === "Foreground Mode"
     ```bash
-    zen server start
+    inspekt server start
     ```
 
     Starts the server in foreground mode. Useful for debugging. Press `Ctrl+C` to stop.
 
 === "Custom Port"
     ```bash
-    zen server start --port 9000 --daemon
+    inspekt server start --port 9000 --daemon
     ```
 
     Start on a different port (default is 8765).
@@ -35,7 +35,7 @@ Before you can use any commands, the bridge server must be running.
 ### Checking Server Status
 
 ```bash
-zen server status
+inspekt server status
 ```
 
 **Example output:**
@@ -53,13 +53,13 @@ Shows:
 ### Stopping the Server
 
 ```bash
-zen server stop
+inspekt server stop
 ```
 
 Only works if the server is running in foreground mode. For daemon mode, use:
 
 ```bash
-pkill -f "zen server"
+pkill -f "inspekt server"
 ```
 
 !!! warning "Daemon Mode Limitation"
@@ -69,12 +69,12 @@ pkill -f "zen server"
 
 ## Executing JavaScript Code
 
-The `zen eval` command is your primary way to execute JavaScript in the browser.
+The `inspekt eval` command is your primary way to execute JavaScript in the browser.
 
 ### Basic Syntax
 
 ```bash
-zen eval "javascript_code_here"
+inspekt eval "javascript_code_here"
 ```
 
 ### Simple Expressions
@@ -83,19 +83,19 @@ Get quick information from the page:
 
 ```bash
 # Page title
-zen eval "document.title"
+inspekt eval "document.title"
 # Output: Example Domain
 
 # Page URL
-zen eval "location.href"
+inspekt eval "location.href"
 # Output: https://example.com/
 
 # Number of links
-zen eval "document.links.length"
+inspekt eval "document.links.length"
 # Output: 15
 
 # Get domain
-zen eval "location.hostname"
+inspekt eval "location.hostname"
 # Output: example.com
 ```
 
@@ -105,13 +105,13 @@ Use arrays, objects, and methods:
 
 ```bash
 # Extract all links
-zen eval "Array.from(document.links).map(a => a.href)"
+inspekt eval "Array.from(document.links).map(a => a.href)"
 
 # Get multiple properties
-zen eval "({url: location.href, title: document.title, links: document.links.length})"
+inspekt eval "({url: location.href, title: document.title, links: document.links.length})"
 
 # Filter elements
-zen eval "Array.from(document.querySelectorAll('a')).filter(a => a.hostname !== location.hostname).map(a => a.href)"
+inspekt eval "Array.from(document.querySelectorAll('a')).filter(a => a.hostname !== location.hostname).map(a => a.href)"
 ```
 
 ### Multi-line Code
@@ -119,7 +119,7 @@ zen eval "Array.from(document.querySelectorAll('a')).filter(a => a.hostname !== 
 For complex logic, use proper JavaScript syntax:
 
 ```bash
-zen eval "
+inspekt eval "
   const links = Array.from(document.querySelectorAll('a'));
   const internal = links.filter(a => a.hostname === location.hostname);
   const external = links.filter(a => a.hostname !== location.hostname);
@@ -140,13 +140,13 @@ Pipe JavaScript code from files or other commands:
 
 ```bash
 # From a file
-cat script.js | zen eval
+cat script.js | inspekt eval
 
 # From echo
-echo "document.title" | zen eval
+echo "document.title" | inspekt eval
 
 # From heredoc
-zen eval <<'EOF'
+inspekt eval <<'EOF'
 const images = document.querySelectorAll('img');
 return Array.from(images).map(img => ({
   src: img.src,
@@ -161,17 +161,17 @@ EOF
 
 ## Executing Files
 
-The `zen exec` command executes JavaScript from a file.
+The `inspekt exec` command executes JavaScript from a file.
 
 ### Basic Usage
 
 ```bash
-zen exec script.js
+inspekt exec script.js
 ```
 
 Same as:
 ```bash
-zen eval --file script.js
+inspekt eval --file script.js
 ```
 
 ### Example Script
@@ -190,28 +190,28 @@ return products.map(product => ({
 
 **Execute:**
 ```bash
-zen exec script.js --format json > products.json
+inspekt exec script.js --format json > products.json
 ```
 
 ### Built-in Scripts
 
-Zen Bridge includes ready-to-use scripts:
+Inspekt includes ready-to-use scripts:
 
 ```bash
 # Extract all images with metadata
-zen exec zen/scripts/extract_images.js --format json
+inspekt exec zen/scripts/extract_images.js --format json
 
 # Extract table data
-zen exec zen/scripts/extract_table.js --format json
+inspekt exec zen/scripts/extract_table.js --format json
 
 # Get SEO metadata
-zen exec zen/scripts/extract_metadata.js --format json
+inspekt exec zen/scripts/extract_metadata.js --format json
 
 # Performance metrics
-zen exec zen/scripts/performance_metrics.js --format json
+inspekt exec zen/scripts/performance_metrics.js --format json
 
 # Inject jQuery
-zen exec zen/scripts/inject_jquery.js
+inspekt exec zen/scripts/inject_jquery.js
 ```
 
 ---
@@ -223,7 +223,7 @@ Get comprehensive information about the current page.
 ### Basic Info
 
 ```bash
-zen info
+inspekt info
 ```
 
 **Output:**
@@ -247,7 +247,7 @@ Shows:
 ### Extended Information
 
 ```bash
-zen info --extended
+inspekt info --extended
 ```
 
 Includes additional details:
@@ -263,14 +263,14 @@ Includes additional details:
 ### JSON Output
 
 ```bash
-zen info --json
+inspekt info --json
 ```
 
 Outputs all information as JSON for parsing with `jq` or other tools:
 
 ```bash
-zen info --json | jq '.url'
-zen info --json | jq '.title'
+inspekt info --json | jq '.url'
+inspekt info --json | jq '.title'
 ```
 
 ---
@@ -282,7 +282,7 @@ Start a live JavaScript session to experiment interactively.
 ### Starting the REPL
 
 ```bash
-zen repl
+inspekt repl
 ```
 
 **Output:**
@@ -378,7 +378,7 @@ Control how results are displayed using the `--format` flag.
 ### Auto Format (Default)
 
 ```bash
-zen eval "document.title"
+inspekt eval "document.title"
 ```
 
 Intelligently formats based on the result type:
@@ -390,7 +390,7 @@ Intelligently formats based on the result type:
 ### JSON Format
 
 ```bash
-zen eval "({title: document.title, url: location.href})" --format json
+inspekt eval "({title: document.title, url: location.href})" --format json
 ```
 
 **Output:**
@@ -403,13 +403,13 @@ zen eval "({title: document.title, url: location.href})" --format json
 
 Perfect for piping to `jq`:
 ```bash
-zen eval "({title: document.title, url: location.href})" --format json | jq '.title'
+inspekt eval "({title: document.title, url: location.href})" --format json | jq '.title'
 ```
 
 ### Raw Format
 
 ```bash
-zen eval "document.title" --format raw
+inspekt eval "document.title" --format raw
 ```
 
 **Output:**
@@ -419,7 +419,7 @@ Example Domain
 
 No extra formatting - perfect for shell variables:
 ```bash
-TITLE=$(zen eval "document.title" --format raw)
+TITLE=$(inspekt eval "document.title" --format raw)
 echo "Page title is: $TITLE"
 ```
 
@@ -429,13 +429,13 @@ Add URL and title to output:
 
 ```bash
 # Add URL
-zen eval "document.links.length" --url
+inspekt eval "document.links.length" --url
 
 # Add title
-zen eval "document.links.length" --title
+inspekt eval "document.links.length" --title
 
 # Add both
-zen eval "document.links.length" --url --title
+inspekt eval "document.links.length" --url --title
 ```
 
 **Output:**
@@ -454,13 +454,13 @@ Commands have a default 10-second timeout. Adjust for slow operations.
 
 ```bash
 # Default timeout (10 seconds)
-zen eval "document.title"
+inspekt eval "document.title"
 
 # Custom timeout (30 seconds)
-zen eval "await slowOperation()" --timeout 30
+inspekt eval "await slowOperation()" --timeout 30
 
 # Short timeout (5 seconds)
-zen eval "document.title" --timeout 5
+inspekt eval "document.title" --timeout 5
 ```
 
 !!! warning "Timeouts"
@@ -478,7 +478,7 @@ zen eval "document.title" --timeout 5
 View installation instructions for the browser userscript.
 
 ```bash
-zen userscript
+inspekt userscript
 ```
 
 Displays:
@@ -494,52 +494,52 @@ Displays:
 
 ```bash
 # Title
-zen eval "document.title"
+inspekt eval "document.title"
 
 # URL
-zen eval "location.href"
+inspekt eval "location.href"
 
 # Domain
-zen eval "location.hostname"
+inspekt eval "location.hostname"
 
 # Full page info
-zen info
+inspekt info
 ```
 
 ### Count Elements
 
 ```bash
 # All links
-zen eval "document.links.length"
+inspekt eval "document.links.length"
 
 # All images
-zen eval "document.images.length"
+inspekt eval "document.images.length"
 
 # Specific selector
-zen eval "document.querySelectorAll('.product').length"
+inspekt eval "document.querySelectorAll('.product').length"
 ```
 
 ### Extract Text
 
 ```bash
 # Page text
-zen eval "document.body.textContent"
+inspekt eval "document.body.textContent"
 
 # Heading text
-zen eval "document.querySelector('h1').textContent"
+inspekt eval "document.querySelector('h1').textContent"
 
 # All headings
-zen eval "Array.from(document.querySelectorAll('h1,h2,h3')).map(h => h.textContent)"
+inspekt eval "Array.from(document.querySelectorAll('h1,h2,h3')).map(h => h.textContent)"
 ```
 
 ### Check Existence
 
 ```bash
 # Element exists
-zen eval "document.querySelector('.modal') !== null"
+inspekt eval "document.querySelector('.modal') !== null"
 
 # Element visible
-zen eval "document.querySelector('.modal')?.offsetParent !== null"
+inspekt eval "document.querySelector('.modal')?.offsetParent !== null"
 ```
 
 ---
@@ -551,10 +551,10 @@ zen eval "document.querySelector('.modal')?.offsetParent !== null"
 **Server not running:**
 ```
 Error: Bridge server is not running
-Please start the server with: zen server start
+Please start the server with: inspekt server start
 ```
 
-**Solution:** Start the server with `zen server start --daemon`
+**Solution:** Start the server with `inspekt server start --daemon`
 
 **No browser connection:**
 ```
@@ -588,8 +588,8 @@ TypeError: Cannot read property 'click' of null
 ### Use Shell Variables
 
 ```bash
-TITLE=$(zen eval "document.title" --format raw)
-URL=$(zen eval "location.href" --format raw)
+TITLE=$(inspekt eval "document.title" --format raw)
+URL=$(inspekt eval "location.href" --format raw)
 
 echo "Title: $TITLE"
 echo "URL: $URL"
@@ -599,25 +599,25 @@ echo "URL: $URL"
 
 ```bash
 # Count links
-zen eval "Array.from(document.links).map(a => a.href).join('\n')" --format raw | wc -l
+inspekt eval "Array.from(document.links).map(a => a.href).join('\n')" --format raw | wc -l
 
 # Filter with grep
-zen eval "Array.from(document.links).map(a => a.href).join('\n')" --format raw | grep "github"
+inspekt eval "Array.from(document.links).map(a => a.href).join('\n')" --format raw | grep "github"
 
 # Process with jq
-zen eval "Array.from(document.links).map(a => ({text: a.textContent, href: a.href}))" --format json | jq '.[0]'
+inspekt eval "Array.from(document.links).map(a => ({text: a.textContent, href: a.href}))" --format json | jq '.[0]'
 ```
 
 ### Async/Await Support
 
 ```bash
-zen eval "await fetch('/api/data').then(r => r.json())"
+inspekt eval "await fetch('/api/data').then(r => r.json())"
 ```
 
 ### Console Logging
 
 ```bash
-zen eval "console.log('Debug info'); document.title"
+inspekt eval "console.log('Debug info'); document.title"
 ```
 
 Check your browser console to see the log output.
@@ -636,13 +636,13 @@ Check your browser console to see the log output.
 
 | Command | Purpose | Example |
 |---------|---------|---------|
-| `zen server start --daemon` | Start server in background | - |
-| `zen server status` | Check server status | - |
-| `zen eval "code"` | Execute JavaScript | `zen eval "document.title"` |
-| `zen exec file.js` | Execute file | `zen exec script.js` |
-| `zen info` | Get page info | `zen info --extended` |
-| `zen repl` | Interactive mode | - |
-| `zen userscript` | View userscript info | - |
+| `inspekt server start --daemon` | Start server in background | - |
+| `inspekt server status` | Check server status | - |
+| `inspekt eval "code"` | Execute JavaScript | `inspekt eval "document.title"` |
+| `inspekt exec file.js` | Execute file | `inspekt exec script.js` |
+| `inspekt info` | Get page info | `inspekt info --extended` |
+| `inspekt repl` | Interactive mode | - |
+| `inspekt userscript` | View userscript info | - |
 
 ---
 

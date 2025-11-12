@@ -1,6 +1,6 @@
 # Contributing Guide
 
-Thank you for your interest in contributing to Zen Bridge! This guide will help you get started with development and make your first contribution.
+Thank you for your interest in contributing to Inspekt! This guide will help you get started with development and make your first contribution.
 
 ## Quick Start
 
@@ -20,8 +20,8 @@ Thank you for your interest in contributing to Zen Bridge! This guide will help 
     curl -LsSf https://astral.sh/uv/install.sh | sh
 
     # Clone repository
-    git clone https://github.com/roelvangils/zen-bridge.git
-    cd zen-bridge
+    git clone https://github.com/roelvangils/inspekt.git
+    cd inspekt
 
     # Create virtual environment and install
     uv venv
@@ -36,8 +36,8 @@ Thank you for your interest in contributing to Zen Bridge! This guide will help 
 
     ```bash
     # Clone repository
-    git clone https://github.com/roelvangils/zen-bridge.git
-    cd zen-bridge
+    git clone https://github.com/roelvangils/inspekt.git
+    cd inspekt
 
     # Create virtual environment
     python3 -m venv .venv
@@ -54,8 +54,8 @@ Thank you for your interest in contributing to Zen Bridge! This guide will help 
 
     ```bash
     # Clone repository
-    git clone https://github.com/roelvangils/zen-bridge.git
-    cd zen-bridge
+    git clone https://github.com/roelvangils/inspekt.git
+    cd inspekt
 
     # Install dependencies
     poetry install
@@ -68,7 +68,7 @@ Thank you for your interest in contributing to Zen Bridge! This guide will help 
 
 ```bash
 # Check version
-zen --version
+inspekt --version
 
 # Check all dependencies installed
 python -c "import zen; print(zen.__version__)"
@@ -81,13 +81,13 @@ python -c "import zen; print(zen.__version__)"
 In one terminal:
 
 ```bash
-zen server start
+inspekt server start
 ```
 
 Expected output:
 
 ```
-Zen Bridge WebSocket Server (aiohttp)
+Inspekt WebSocket Server (aiohttp)
 WebSocket: ws://127.0.0.1:8766/ws
 HTTP API: http://127.0.0.1:8765
 
@@ -107,21 +107,21 @@ Ready for connections!
 5. Click "Create a new script"
 6. Paste contents and save
 7. Open any website (e.g., https://example.com)
-8. Check console: `[Zen Bridge] Connected via WebSocket`
+8. Check console: `[Inspekt] Connected via WebSocket`
 
 ### 3. Test Basic Commands
 
 ```bash
 # Test evaluation
-zen eval "document.title"
+inspekt eval "document.title"
 
 # Test data extraction
-zen extract-links
+inspekt extract-links
 
 # Test control mode
-zen control start
-zen control next
-zen control click
+inspekt control start
+inspekt control next
+inspekt control click
 ```
 
 ## Development Workflow
@@ -381,7 +381,7 @@ pytest tests/integration/
 pytest tests/unit/test_models.py::TestExecuteRequest
 
 # With coverage report
-pytest --cov=zen --cov-report=html
+pytest --cov=inspekt --cov-report=html
 open htmlcov/index.html
 ```
 
@@ -438,7 +438,7 @@ Target: **80%+ overall**, **90%+ for services**
 Check coverage:
 
 ```bash
-pytest --cov=zen --cov-report=term-missing
+pytest --cov=inspekt --cov-report=term-missing
 ```
 
 ## Commit Guidelines
@@ -633,7 +633,7 @@ python zen/bridge_ws.py
 vim zen/app/cli/my_commands.py
 
 # Terminal 3: Test
-zen my-command test-arg
+inspekt my-command test-arg
 ```
 
 ## Debugging Tips
@@ -643,7 +643,7 @@ zen my-command test-arg
 **Server side**:
 
 ```bash
-zen server start  # Already verbose
+inspekt server start  # Already verbose
 ```
 
 **Browser side** - Edit `userscript_ws.js`:
@@ -656,7 +656,7 @@ const VERBOSE = true;  // Set to true
 
 ```bash
 # Is server running?
-zen server status
+inspekt server status
 
 # Health check
 curl http://127.0.0.1:8765/health
@@ -675,7 +675,7 @@ curl http://127.0.0.1:8765/notifications
 
 ### Command Not Working
 
-1. Test simple command: `zen eval "1+1"`
+1. Test simple command: `inspekt eval "1+1"`
 2. Check browser console for JavaScript errors
 3. Check server logs
 4. Verify userscript is loaded
@@ -684,7 +684,7 @@ curl http://127.0.0.1:8765/notifications
 ## Getting Help
 
 - **Documentation**: See [Architecture](architecture.md), [Testing](testing.md)
-- **GitHub Issues**: [Open an issue](https://github.com/roelvangils/zen-bridge/issues)
+- **GitHub Issues**: [Open an issue](https://github.com/roelvangils/inspekt/issues)
 - **Discussions**: Use GitHub Discussions for questions
 - **Bug Reports**: Include reproducible example
 
@@ -709,4 +709,4 @@ By contributing, you agree that your contributions will be licensed under the MI
 
 ---
 
-**Thank you for contributing to Zen Bridge!** 🎉
+**Thank you for contributing to Inspekt!** 🎉

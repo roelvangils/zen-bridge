@@ -50,6 +50,15 @@
             </ul>
         </section>
 
+        <section class="permissions">
+            <h2>🔐 Allowed Domains</h2>
+            <div id="current-domain-status" class="domain-status"></div>
+            <div id="allowed-domains-list" class="domains-list"></div>
+            <div class="permissions-note">
+                You must explicitly allow each domain before Zen Bridge can control it.
+            </div>
+        </section>
+
         <section class="commands">
             <h2>📝 Common Commands</h2>
             <div class="command-list">
@@ -87,6 +96,7 @@
         </footer>
     </div>
 
+    <script src="../permissions.js"></script>
     <script src="popup.js"></script>
 </body>
 </html>

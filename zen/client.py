@@ -144,9 +144,13 @@ class BridgeClient:
             except Exception:
                 return None  # Failed to get version
 
-            # Extension version 4.x.x is always compatible
-            if install_type == "ext" and installed_version.startswith("4."):
-                return None  # Extension is compatible, no warning needed
+            # Extension version 4.x.x is always compatible (no version check needed)
+            if install_type == "ext":
+                if installed_version.startswith("4."):
+                    return None  # Extension is compatible, no warning
+                elif not installed_version or installed_version == "unknown":
+                    # Extension detected but version unknown - still OK
+                    return None  # Extension bypasses version check
 
             if not installed_version or installed_version == "unknown":
                 # Userscript not installed or old version without version variable
@@ -240,6 +244,22 @@ class BridgeClient:
 
                 if response.status_code == 200:
                     data = response.json()
+
+                    # Check if result contains CSP error
+                    if data.get("status") == "completed" and not data.get("ok"):
+                        error = data.get("error", "")
+                        if "EvalError" in error or "Content Security Policy" in error:
+                            raise RuntimeError(
+                                "Content Security Policy (CSP) blocks JavaScript execution on this page.\n\n"
+                                "This website has security restrictions that prevent eval() and dynamic code execution.\n\n"
+                                "Common affected sites: GitHub, Gmail, banking sites, government portals, extension pages.\n\n"
+                                "Solutions:\n"
+                                "  • Navigate to a different website without strict CSP\n"
+                                "  • Test on simple sites like example.com or wikipedia.org\n"
+                                "  • Check browser console (F12) for Zen Bridge CSP warnings\n\n"
+                                f"Current site: {data.get('url', 'unknown')}\n\n"
+                                f"Technical details: {error[:200]}"
+                            )
 
                     if data.get("status") == "pending":
                         # Check for CSP blocking (after 2 seconds of waiting)

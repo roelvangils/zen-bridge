@@ -1,6 +1,6 @@
-# Caching in Zen Bridge
+# Caching in Inspekt
 
-Zen Bridge implements intelligent content caching to dramatically speed up repeated operations and reduce AI API calls.
+Inspekt implements intelligent content caching to dramatically speed up repeated operations and reduce AI API calls.
 
 ## Overview
 
@@ -8,15 +8,15 @@ Three commands use caching with different strategies:
 
 | Command | Cache Type | Default TTL | Similarity Threshold |
 |---------|------------|-------------|---------------------|
-| `zen do` | Action mapping | 24 hours | 80% |
-| `zen describe` | Content fingerprinting | 12 hours | 85% |
-| `zen summarize` | Content fingerprinting | 7 days | 90% |
+| `inspekt do` | Action mapping | 24 hours | 80% |
+| `inspekt describe` | Content fingerprinting | 12 hours | 85% |
+| `inspekt summarize` | Content fingerprinting | 7 days | 90% |
 
 ## Cache Location
 
 All caches are stored in a single SQLite database:
 ```
-~/.config/zen-bridge/action_cache.db
+~/.config/inspekt/action_cache.db
 ```
 
 ## Configuration
@@ -53,9 +53,9 @@ Edit `config.json` to customize caching behavior:
 
 ---
 
-## zen do Caching
+## inspekt do Caching
 
-See [zen do documentation](commands/do.md) for full details.
+See [inspekt do documentation](commands/do.md) for full details.
 
 **What's cached**: Action → Element mappings per URL
 
@@ -66,15 +66,15 @@ See [zen do documentation](commands/do.md) for full details.
 **Example**:
 ```bash
 # First time - uses AI
-zen do "about us"  → [AI] 3 seconds
+inspekt do "about us"  → [AI] 3 seconds
 
 # Second time - uses cache
-zen do "about us"  → [CACHED] instant!
+inspekt do "about us"  → [CACHED] instant!
 ```
 
 ---
 
-## zen describe Caching
+## inspekt describe Caching
 
 **What's cached**: AI-generated page descriptions
 
@@ -90,18 +90,18 @@ zen do "about us"  → [CACHED] instant!
 **Example**:
 ```bash
 # First visit
-zen describe
+inspekt describe
 → Analyzing page structure...
 → Generating description... [AI]
 → ✓ Description cached for future use
 
 # Second visit (page unchanged)
-zen describe
+inspekt describe
 → ✓ Using cached description (similarity: 95%, cached 2 hours ago) [CACHED]
 → [instant description]
 
 # Page was updated
-zen describe
+inspekt describe
 → Page changed significantly (similarity: 70%)
 → Generating description... [AI]
 → ✓ Updated cache
@@ -112,9 +112,9 @@ zen describe
 Caches are stored separately per language:
 
 ```bash
-zen describe --language nl  # Creates NL cache entry
-zen describe --language en  # Creates separate EN cache entry
-zen describe               # Uses auto-detected language
+inspekt describe --language nl  # Creates NL cache entry
+inspekt describe --language en  # Creates separate EN cache entry
+inspekt describe               # Uses auto-detected language
 ```
 
 ### Force Refresh
@@ -122,7 +122,7 @@ zen describe               # Uses auto-detected language
 Bypass cache and generate fresh description:
 
 ```bash
-zen describe --force-refresh
+inspekt describe --force-refresh
 → Generating fresh description... [AI - Force Refresh]
 ```
 
@@ -145,7 +145,7 @@ zen describe --force-refresh
 
 ---
 
-## zen summarize Caching
+## inspekt summarize Caching
 
 **What's cached**: AI-generated article summaries
 
@@ -160,18 +160,18 @@ zen describe --force-refresh
 **Example**:
 ```bash
 # First read
-zen summarize
+inspekt summarize
 → Extracting article content...
 → Generating summary for: "Article Title" [AI]
 → ✓ Summary cached for future use
 
 # Second read (article unchanged)
-zen summarize
+inspekt summarize
 → ✓ Using cached summary (similarity: 100%, cached 1 day ago) [CACHED]
 → [instant summary]
 
 # Article was updated
-zen summarize
+inspekt summarize
 → Article content changed (similarity: 75%)
 → Generating summary for: "Article Title" [AI]
 → ✓ Updated cache
@@ -190,15 +190,15 @@ This efficiently detects content changes without hashing the entire article.
 Like `describe`, summaries are cached per language:
 
 ```bash
-zen summarize --language nl  # NL summary
-zen summarize --language en  # EN summary
-zen summarize               # Auto-detected
+inspekt summarize --language nl  # NL summary
+inspekt summarize --language en  # EN summary
+inspekt summarize               # Auto-detected
 ```
 
 ### Force Refresh
 
 ```bash
-zen summarize --force-refresh
+inspekt summarize --force-refresh
 → Generating fresh summary for: "Article Title" [AI - Force Refresh]
 ```
 
@@ -227,17 +227,17 @@ After a few uses:
 
 | Command | Expected Hit Rate | Reason |
 |---------|------------------|---------|
-| `zen do` | 60-80% | Repeated actions on same pages |
-| `zen describe` | 40-60% | Static pages revisited within 12h |
-| `zen summarize` | 70-90% | Articles rarely change |
+| `inspekt do` | 60-80% | Repeated actions on same pages |
+| `inspekt describe` | 40-60% | Static pages revisited within 12h |
+| `inspekt summarize` | 70-90% | Articles rarely change |
 
 ### Speed Improvements
 
 | Command | Without Cache | With Cache | Speedup |
 |---------|--------------|------------|---------|
-| `zen do` | 2-5 seconds | 0.1-0.5s | **10-50x** |
-| `zen describe` | 3-8 seconds | 0.1s | **30-80x** |
-| `zen summarize` | 4-10 seconds | 0.1s | **40-100x** |
+| `inspekt do` | 2-5 seconds | 0.1-0.5s | **10-50x** |
+| `inspekt describe` | 3-8 seconds | 0.1s | **30-80x** |
+| `inspekt summarize` | 4-10 seconds | 0.1s | **40-100x** |
 
 ---
 
@@ -249,10 +249,10 @@ Commands show which method was used:
 [CACHED]              - Retrieved from cache
 [AI]                  - Fresh AI generation
 [AI - Force Refresh]  - Forced fresh generation
-[LITERAL]             - zen do: Literal text match
-[COMMON]              - zen do: Common action match
-[FUZZY]               - zen do: Fuzzy text match
-[SYNONYM]             - zen do: Synonym match
+[LITERAL]             - inspekt do: Literal text match
+[COMMON]              - inspekt do: Common action match
+[FUZZY]               - inspekt do: Fuzzy text match
+[SYNONYM]             - inspekt do: Synonym match
 ```
 
 ---
@@ -263,25 +263,25 @@ Commands show which method was used:
 
 Coming soon:
 ```bash
-zen cache stats              # All caches
-zen cache stats describe     # Describe cache only
-zen cache stats summarize    # Summarize cache only
-zen cache stats do           # Do cache only
+inspekt cache stats              # All caches
+inspekt cache stats describe     # Describe cache only
+inspekt cache stats summarize    # Summarize cache only
+inspekt cache stats do           # Do cache only
 ```
 
 ### Clear Cache
 
 To clear all caches:
 ```bash
-rm ~/.config/zen-bridge/action_cache.db
+rm ~/.config/inspekt/action_cache.db
 ```
 
 To clear specific command cache (coming soon):
 ```bash
-zen cache clear describe
-zen cache clear summarize
-zen cache clear do
-zen cache clear all
+inspekt cache clear describe
+inspekt cache clear summarize
+inspekt cache clear do
+inspekt cache clear all
 ```
 
 ### Database Schema
@@ -331,7 +331,7 @@ CREATE TABLE content_cache (
 cat config.json | grep -A 10 "describe"
 
 # Test with debug to see fingerprint
-zen describe --debug
+inspekt describe --debug
 ```
 
 ### Wrong Language Cached
@@ -340,7 +340,7 @@ zen describe --debug
 
 **Solution**: Each language has separate cache entry. The cache key includes language:
 ```bash
-zen describe --language nl  # Force NL and cache it
+inspekt describe --language nl  # Force NL and cache it
 ```
 
 ### Cache Takes Too Much Space
@@ -396,7 +396,7 @@ Only use `--force-refresh` when you know content has changed. Otherwise, let the
 
 Check your cache database to see hit rates:
 ```bash
-sqlite3 ~/.config/zen-bridge/action_cache.db "SELECT command, SUM(hit_count) FROM content_cache GROUP BY command"
+sqlite3 ~/.config/inspekt/action_cache.db "SELECT command, SUM(hit_count) FROM content_cache GROUP BY command"
 ```
 
 ### 5. Different Languages Need Separate Cache
@@ -440,5 +440,5 @@ The cache uses several optimizations:
 
 ## See Also
 
-- [zen do Command](commands/do.md) - Detailed action caching
+- [inspekt do Command](commands/do.md) - Detailed action caching
 - [Configuration Guide](getting-started/configuration.md) - All config options

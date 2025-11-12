@@ -517,8 +517,15 @@ def info(extended, output_json):
                 click.echo("Error: No data returned from browser.", err=True)
                 sys.exit(1)
 
-            # Get userscript version
-            userscript_version = client.get_userscript_version() or "unknown"
+            # Get userscript/extension version and type
+            version_code = "(window.__ZEN_BRIDGE_VERSION__ || 'unknown') + '|' + (window.__ZEN_BRIDGE_EXTENSION__ ? 'extension' : 'userscript')"
+            version_result = client.execute(version_code, timeout=2.0)
+            if version_result.get("ok"):
+                version_info = version_result.get("result", "unknown|userscript")
+                userscript_version, bridge_type = version_info.split("|") if "|" in version_info else (version_info, "userscript")
+            else:
+                userscript_version = "unknown"
+                bridge_type = "userscript"
 
             # If extended, also run the extended_info.js script
             if extended:
@@ -1194,7 +1201,8 @@ def info(extended, output_json):
                             click.echo(f"  {meta['http-equiv']}: {meta.get('content', '')}")
 
             click.echo("")
-            click.echo(f"Userscript version: {userscript_version}")
+            bridge_label = "Extension" if bridge_type == "extension" else "Userscript"
+            click.echo(f"Zen Bridge: {bridge_label} v{userscript_version}")
         else:
             click.echo(f"Error: {result.get('error')}", err=True)
             sys.exit(1)

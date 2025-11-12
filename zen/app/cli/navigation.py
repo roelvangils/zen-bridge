@@ -6,7 +6,11 @@ This module provides commands for browser navigation:
 - back: Go back in history
 - forward: Go forward in history
 - reload: Reload the current page
-- previous/next/refresh: Hidden aliases for back/forward/reload
+- pageup: Scroll up one page
+- pagedown: Scroll down one page
+- top: Scroll to top of page
+- bottom: Scroll to bottom of page
+- previous/next/refresh/pgup/pgdown/home/end: Hidden aliases
 """
 
 import json
@@ -196,3 +200,103 @@ def refresh(hard):
     # Just call the reload function
     ctx = click.get_current_context()
     ctx.invoke(reload, hard=hard)
+
+
+@click.command()
+def pageup():
+    """
+    Scroll up one page (one viewport height).
+
+    Example:
+        zen pageup
+    """
+    executor = get_executor()
+
+    code = "window.scrollBy(0, -window.innerHeight); true;"
+
+    result = executor.execute(code, timeout=10.0)
+    executor.check_result_ok(result)
+
+    click.echo("✓ Scrolled up one page")
+
+
+@click.command(hidden=True)
+def pgup():
+    """Alias for 'pageup' command."""
+    ctx = click.get_current_context()
+    ctx.invoke(pageup)
+
+
+@click.command()
+def pagedown():
+    """
+    Scroll down one page (one viewport height).
+
+    Example:
+        zen pagedown
+    """
+    executor = get_executor()
+
+    code = "window.scrollBy(0, window.innerHeight); true;"
+
+    result = executor.execute(code, timeout=10.0)
+    executor.check_result_ok(result)
+
+    click.echo("✓ Scrolled down one page")
+
+
+@click.command(hidden=True)
+def pgdown():
+    """Alias for 'pagedown' command."""
+    ctx = click.get_current_context()
+    ctx.invoke(pagedown)
+
+
+@click.command()
+def top():
+    """
+    Scroll to the top of the page.
+
+    Example:
+        zen top
+    """
+    executor = get_executor()
+
+    code = "window.scrollTo(0, 0); true;"
+
+    result = executor.execute(code, timeout=10.0)
+    executor.check_result_ok(result)
+
+    click.echo("✓ Scrolled to top")
+
+
+@click.command(hidden=True)
+def home():
+    """Alias for 'top' command."""
+    ctx = click.get_current_context()
+    ctx.invoke(top)
+
+
+@click.command()
+def bottom():
+    """
+    Scroll to the bottom of the page.
+
+    Example:
+        zen bottom
+    """
+    executor = get_executor()
+
+    code = "window.scrollTo(0, document.body.scrollHeight); true;"
+
+    result = executor.execute(code, timeout=10.0)
+    executor.check_result_ok(result)
+
+    click.echo("✓ Scrolled to bottom")
+
+
+@click.command(hidden=True)
+def end():
+    """Alias for 'bottom' command."""
+    ctx = click.get_current_context()
+    ctx.invoke(bottom)
