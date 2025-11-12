@@ -5,7 +5,7 @@
  */
 
 const ZenPermissions = {
-    STORAGE_KEY: 'zen_allowed_domains',
+    STORAGE_KEY: 'inspekt_allowed_domains',
 
     /**
      * Get the domain from a URL
@@ -131,7 +131,7 @@ const ZenPermissions = {
                 <div style="text-align: center; margin-bottom: 24px;">
                     <div style="font-size: 48px; margin-bottom: 16px;">⚡</div>
                     <h2 style="margin: 0 0 12px 0; color: #333; font-size: 24px; font-weight: 600;">
-                        Zen Browser Bridge
+                        Inspekt
                     </h2>
                     <p style="margin: 0; color: #666; font-size: 14px;">
                         Allow CLI control of this website?
@@ -148,7 +148,7 @@ const ZenPermissions = {
                     </div>
 
                     <div style="font-size: 13px; color: #666; line-height: 1.5;">
-                        Zen Bridge will be able to:
+                        Inspekt will be able to:
                         <ul style="margin: 8px 0 0 0; padding-left: 20px;">
                             <li>Execute commands from your CLI</li>
                             <li>Read and modify page content</li>
@@ -161,7 +161,7 @@ const ZenPermissions = {
                     <div style="display: flex; align-items: start;">
                         <span style="margin-right: 8px;">⚠️</span>
                         <div style="font-size: 13px; color: #856404; line-height: 1.5;">
-                            <strong>Important:</strong> Only allow Zen Bridge on websites you trust.
+                            <strong>Important:</strong> Only allow Inspekt on websites you trust.
                             This grants your local CLI full control over this domain.
                         </div>
                     </div>
