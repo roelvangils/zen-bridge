@@ -4,12 +4,16 @@
     box-sizing: border-box;
 }
 
+:root {
+    color-scheme: light dark;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     font-size: 13px;
     line-height: 1.5;
-    color: #333;
-    background: #f5f5f5;
+    color: light-dark(#333, #e0e0e0);
+    background: light-dark(#f5f5f5, #1e1e1e);
     overflow-y: auto;
 }
 
@@ -28,7 +32,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 8px rgba(0, 102, 255, 0.2);
+    box-shadow: 0 2px 8px light-dark(rgba(0, 102, 255, 0.2), rgba(0, 102, 255, 0.4));
 }
 
 .panel-title {
@@ -38,13 +42,26 @@ body {
 }
 
 .logo {
-    filter: brightness(0) invert(1);
+    height: 24px;
+    width: 24px;
+    object-fit: contain;
 }
 
 .panel-title h1 {
     font-size: 18px;
     font-weight: 600;
     margin: 0;
+}
+
+.panel-title h1 .by-text {
+    font-weight: 300;
+    font-size: 14px;
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 .connection-status {
@@ -55,6 +72,32 @@ body {
     padding: 6px 12px;
     border-radius: 12px;
     font-size: 12px;
+}
+
+.theme-toggle {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.theme-toggle:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.05);
+}
+
+.theme-toggle:active {
+    transform: scale(0.95);
+}
+
+.theme-icon {
+    font-size: 20px;
 }
 
 .status-indicator {
@@ -82,15 +125,18 @@ body {
 /* Main Content */
 /* Server Callout */
 .server-callout {
-    background: linear-gradient(135deg, #fff4e6 0%, #ffe8cc 100%);
-    border: 2px solid #ff9800;
+    background: light-dark(
+        linear-gradient(135deg, #fff4e6 0%, #ffe8cc 100%),
+        linear-gradient(135deg, #3d2f1f 0%, #4d3a24 100%)
+    );
+    border: 2px solid light-dark(#ff9800, #ff9800);
     border-radius: 8px;
     padding: 16px;
     margin: 16px;
     display: flex;
     gap: 12px;
     align-items: flex-start;
-    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.15);
+    box-shadow: 0 2px 8px light-dark(rgba(255, 152, 0, 0.15), rgba(255, 152, 0, 0.3));
     animation: slideIn 0.3s ease-out;
 }
 
@@ -118,13 +164,13 @@ body {
 .callout-title {
     font-size: 14px;
     font-weight: 600;
-    color: #e65100;
+    color: light-dark(#e65100, #ffb74d);
     margin-bottom: 6px;
 }
 
 .callout-message {
     font-size: 13px;
-    color: #5d4037;
+    color: light-dark(#5d4037, #d7ccc8);
     margin-bottom: 10px;
 }
 
@@ -132,8 +178,8 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    background: white;
-    border: 1px solid #ff9800;
+    background: light-dark(white, #2d2d2d);
+    border: 1px solid light-dark(#ff9800, #ff9800);
     border-radius: 6px;
     padding: 10px 12px;
     margin-bottom: 8px;
@@ -142,7 +188,7 @@ body {
 .callout-command code {
     font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
     font-size: 13px;
-    color: #0066ff;
+    color: light-dark(#0066ff, #66b3ff);
     font-weight: 600;
     flex: 1;
 }
@@ -158,12 +204,12 @@ body {
 }
 
 .callout-command .copy-btn:hover {
-    background: rgba(255, 152, 0, 0.1);
+    background: light-dark(rgba(255, 152, 0, 0.1), rgba(255, 152, 0, 0.2));
 }
 
 .callout-hint {
     font-size: 12px;
-    color: #795548;
+    color: light-dark(#795548, #bcaaa4);
     font-style: italic;
 }
 
@@ -174,28 +220,28 @@ body {
 }
 
 .panel-section {
-    background: white;
+    background: light-dark(white, #2d2d2d);
     border-radius: 8px;
     padding: 20px;
     margin-bottom: 16px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 3px light-dark(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.3));
 }
 
 .panel-section h2 {
     font-size: 14px;
     font-weight: 600;
     margin-bottom: 16px;
-    color: #0066ff;
+    color: light-dark(#0066ff, #66b3ff);
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
 .placeholder {
-    color: #999;
+    color: light-dark(#999, #888);
     font-style: italic;
     padding: 12px;
-    background: #f9f9f9;
+    background: light-dark(#f9f9f9, #252525);
     border-radius: 4px;
     text-align: center;
 }
@@ -206,17 +252,17 @@ body {
 }
 
 .element-card {
-    border: 2px solid #0066ff;
+    border: 2px solid light-dark(#0066ff, #66b3ff);
     border-radius: 6px;
     padding: 16px;
-    background: #f8faff;
+    background: light-dark(#f8faff, #1a2332);
 }
 
 .element-tag {
     font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
     font-size: 16px;
     font-weight: 600;
-    color: #0066ff;
+    color: light-dark(#0066ff, #66b3ff);
     margin-bottom: 8px;
 }
 
@@ -234,12 +280,12 @@ body {
 
 .info-label {
     font-weight: 600;
-    color: #666;
+    color: light-dark(#666, #aaa);
     min-width: 100px;
 }
 
 .info-value {
-    color: #333;
+    color: light-dark(#333, #e0e0e0);
     font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
     flex: 1;
     word-break: break-all;
@@ -251,8 +297,8 @@ body {
     border-radius: 10px;
     font-size: 11px;
     font-weight: 600;
-    background: #e0f2fe;
-    color: #0066ff;
+    background: light-dark(#e0f2fe, #1a3a52);
+    color: light-dark(#0066ff, #66b3ff);
     margin-left: 4px;
 }
 
@@ -268,19 +314,19 @@ body {
     flex-direction: column;
     align-items: flex-start;
     padding: 16px;
-    border: 2px solid #e5e7eb;
+    border: 2px solid light-dark(#e5e7eb, #404040);
     border-radius: 8px;
-    background: white;
+    background: light-dark(white, #2d2d2d);
     cursor: pointer;
     transition: all 0.2s;
     text-align: left;
 }
 
 .action-btn:hover:not(:disabled) {
-    border-color: #0066ff;
-    background: #f8faff;
+    border-color: light-dark(#0066ff, #66b3ff);
+    background: light-dark(#f8faff, #1a2332);
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 102, 255, 0.1);
+    box-shadow: 0 4px 8px light-dark(rgba(0, 102, 255, 0.1), rgba(0, 102, 255, 0.3));
 }
 
 .action-btn:active:not(:disabled) {
@@ -300,13 +346,13 @@ body {
 .btn-label {
     font-weight: 600;
     font-size: 13px;
-    color: #333;
+    color: light-dark(#333, #e0e0e0);
     margin-bottom: 4px;
 }
 
 .btn-hint {
     font-size: 11px;
-    color: #999;
+    color: light-dark(#999, #888);
 }
 
 /* Element History */
@@ -320,15 +366,15 @@ body {
     align-items: center;
     gap: 10px;
     padding: 8px 12px;
-    border: 1px solid #e5e7eb;
+    border: 1px solid light-dark(#e5e7eb, #404040);
     border-radius: 6px;
     margin-bottom: 8px;
     transition: all 0.2s;
 }
 
 .history-item:hover {
-    border-color: #0066ff;
-    background: #f8faff;
+    border-color: light-dark(#0066ff, #66b3ff);
+    background: light-dark(#f8faff, #1a2332);
 }
 
 .history-highlight-btn,
@@ -337,8 +383,8 @@ body {
     width: 32px;
     height: 32px;
     border: none;
-    background: #f0f4ff;
-    color: #0066ff;
+    background: light-dark(#f0f4ff, #1a2332);
+    color: light-dark(#0066ff, #66b3ff);
     border-radius: 6px;
     font-size: 16px;
     cursor: pointer;
@@ -350,9 +396,9 @@ body {
 
 .history-highlight-btn:hover,
 .history-elements-btn:hover {
-    background: #0066ff;
+    background: light-dark(#0066ff, #66b3ff);
     transform: scale(1.1);
-    box-shadow: 0 2px 8px rgba(0, 102, 255, 0.3);
+    box-shadow: 0 2px 8px light-dark(rgba(0, 102, 255, 0.3), rgba(0, 102, 255, 0.5));
 }
 
 .history-highlight-btn:active,
@@ -371,13 +417,13 @@ body {
 .history-tag {
     font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
     font-size: 13px;
-    color: #0066ff;
+    color: light-dark(#0066ff, #66b3ff);
     font-weight: 600;
 }
 
 .history-time {
     font-size: 11px;
-    color: #999;
+    color: light-dark(#999, #888);
 }
 
 /* Quick Reference */
@@ -389,32 +435,32 @@ body {
 .ref-group h3 {
     font-size: 13px;
     font-weight: 600;
-    color: #333;
+    color: light-dark(#333, #e0e0e0);
     margin-bottom: 12px;
     padding-bottom: 8px;
-    border-bottom: 2px solid #e5e7eb;
+    border-bottom: 2px solid light-dark(#e5e7eb, #404040);
 }
 
 .ref-item {
     margin-bottom: 12px;
     padding: 12px;
-    background: #f9f9f9;
+    background: light-dark(#f9f9f9, #252525);
     border-radius: 6px;
-    border-left: 3px solid #0066ff;
+    border-left: 3px solid light-dark(#0066ff, #66b3ff);
 }
 
 .ref-item code {
     display: block;
     font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
     font-size: 12px;
-    color: #0066ff;
+    color: light-dark(#0066ff, #66b3ff);
     font-weight: 600;
     margin-bottom: 4px;
 }
 
 .ref-item p {
     font-size: 12px;
-    color: #666;
+    color: light-dark(#666, #aaa);
     margin: 0;
 }
 
@@ -436,7 +482,7 @@ body {
 }
 
 .setting-item:hover {
-    background: #f9f9f9;
+    background: light-dark(#f9f9f9, #252525);
 }
 
 .setting-item input[type="checkbox"] {
@@ -447,14 +493,14 @@ body {
 
 .setting-item span {
     font-size: 13px;
-    color: #333;
+    color: light-dark(#333, #e0e0e0);
 }
 
 /* Footer */
 .panel-footer {
-    background: white;
+    background: light-dark(white, #2d2d2d);
     padding: 16px 20px;
-    border-top: 1px solid #e5e7eb;
+    border-top: 1px solid light-dark(#e5e7eb, #404040);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -463,22 +509,22 @@ body {
 }
 
 .footer-link {
-    color: #0066ff;
+    color: light-dark(#0066ff, #66b3ff);
     text-decoration: none;
     transition: color 0.2s;
 }
 
 .footer-link:hover {
-    color: #0052cc;
+    color: light-dark(#0052cc, #85c5ff);
     text-decoration: underline;
 }
 
 .separator {
-    color: #ccc;
+    color: light-dark(#ccc, #555);
 }
 
 .version {
-    color: #999;
+    color: light-dark(#999, #888);
 }
 
 /* Scrollbar styling */
@@ -487,16 +533,16 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: light-dark(#f1f1f1, #1e1e1e);
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #ccc;
+    background: light-dark(#ccc, #555);
     border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #999;
+    background: light-dark(#999, #777);
 }
 
 /* Utility classes */
@@ -509,6 +555,6 @@ body {
 }
 
 @keyframes successFlash {
-    0%, 100% { background: white; }
-    50% { background: #d1fae5; }
+    0%, 100% { background: light-dark(white, #2d2d2d); }
+    50% { background: light-dark(#d1fae5, #064e3b); }
 }

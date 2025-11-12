@@ -10,15 +10,17 @@
         <!-- Header -->
         <div class="panel-header">
             <div class="panel-title">
-                <svg class="logo" width="20" height="20" viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="45" fill="none" stroke="#0066ff" stroke-width="8"/>
-                    <path d="M30 50 L50 30 L70 50 L50 70 Z" fill="#0066ff"/>
-                </svg>
-                <h1>Inspekt</h1>
+                <img src="icons/elevenways.svg" class="logo" alt="Eleven Ways">
+                <h1>Inspekt <span class="by-text">by Eleven Ways</span></h1>
             </div>
-            <div class="connection-status">
-                <span class="status-indicator" id="statusIndicator"></span>
-                <span class="status-text" id="statusText">Checking...</span>
+            <div class="header-controls">
+                <div class="connection-status">
+                    <span class="status-indicator" id="statusIndicator"></span>
+                    <span class="status-text" id="statusText">Checking...</span>
+                </div>
+                <button class="theme-toggle" id="themeToggle" title="Toggle theme (Auto/Light/Dark)">
+                    <span class="theme-icon">🌓</span>
+                </button>
             </div>
         </div>
 

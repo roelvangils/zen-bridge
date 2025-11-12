@@ -12,12 +12,15 @@ let settings = {
     showNotifications: true,
     trackHistory: true
 };
+let theme = 'auto'; // 'auto', 'light', or 'dark'
 
 // DOM elements
 const statusIndicator = document.getElementById('statusIndicator');
 const statusText = document.getElementById('statusText');
 const serverCallout = document.getElementById('serverCallout');
 const btnCopyServerCommand = document.getElementById('copyServerCommand');
+const btnThemeToggle = document.getElementById('themeToggle');
+const themeIcon = document.querySelector('.theme-icon');
 const inspectedElement = document.getElementById('inspectedElement');
 const elementHistoryContainer = document.getElementById('elementHistory');
 const btnPickElement = document.getElementById('btnPickElement');
@@ -30,6 +33,7 @@ const btnHighlight = document.getElementById('btnHighlight');
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     loadSettings();
+    loadTheme();
     setupEventListeners();
     checkConnectionStatus();
     startElementMonitoring();
@@ -61,6 +65,9 @@ function updateSettingsUI() {
 
 // Setup event listeners
 function setupEventListeners() {
+    // Theme toggle button
+    btnThemeToggle.addEventListener('click', cycleTheme);
+
     // Server callout copy button
     btnCopyServerCommand.addEventListener('click', () => {
         copyToClipboard('inspekt server start', 'Server start command');
@@ -705,4 +712,57 @@ function showInElementsPanel() {
             }
         }
     );
+}
+
+// Theme management
+function loadTheme() {
+    chrome.storage.local.get(['inspektTheme'], (result) => {
+        if (result.inspektTheme) {
+            theme = result.inspektTheme;
+        }
+        applyTheme();
+    });
+}
+
+function applyTheme() {
+    const root = document.documentElement;
+
+    // Update icon
+    const icons = {
+        'auto': '🌓',
+        'light': '☀️',
+        'dark': '🌙'
+    };
+    themeIcon.textContent = icons[theme] || '🌓';
+
+    // Update tooltip
+    btnThemeToggle.title = `Theme: ${theme.charAt(0).toUpperCase() + theme.slice(1)} (click to cycle)`;
+
+    // Apply color-scheme
+    if (theme === 'auto') {
+        root.style.colorScheme = 'light dark';
+    } else if (theme === 'light') {
+        root.style.colorScheme = 'light';
+    } else if (theme === 'dark') {
+        root.style.colorScheme = 'dark';
+    }
+}
+
+function cycleTheme() {
+    // Cycle: auto → light → dark → auto
+    if (theme === 'auto') {
+        theme = 'light';
+    } else if (theme === 'light') {
+        theme = 'dark';
+    } else {
+        theme = 'auto';
+    }
+
+    // Save preference
+    chrome.storage.local.set({ inspektTheme: theme });
+
+    // Apply
+    applyTheme();
+
+    console.log('[Inspekt Panel] Theme changed to:', theme);
 }
