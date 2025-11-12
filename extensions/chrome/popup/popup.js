@@ -1,5 +1,5 @@
 /**
- * Zen Browser Bridge - Popup Script (Chrome)
+ * Inspekt - Popup Script (Chrome)
  *
  * Handles the settings panel UI and displays connection status
  */
@@ -37,8 +37,8 @@ async function checkConnectionStatus() {
         const results = await chrome.scripting.executeScript({
             target: { tabId: tab.id },
             func: () => {
-                return (window.__zen_ws__ && window.__zen_ws__.readyState === 1) ? 'connected' :
-                       (window.__ZEN_BRIDGE_EXTENSION__ ? 'loaded' : 'not-loaded');
+                return (window.__INSPEKT_WS_CONNECTED__ === true) ? 'connected' :
+                       (window.__INSPEKT_BRIDGE_EXTENSION__ ? 'loaded' : 'not-loaded');
             }
         });
 
@@ -61,9 +61,9 @@ async function checkConnectionStatus() {
         }
 
     } catch (error) {
-        console.error('[Zen Bridge Popup] Error checking status:', error);
+        console.error('[Inspekt Popup] Error checking status:', error);
         setStatus(statusDot, statusText, 'disconnected',
-            'Server not running. Run: zen server start');
+            'Server not running. Run: inspekt server start');
     }
 }
 
@@ -156,7 +156,7 @@ async function loadAllowedDomains() {
         }
 
     } catch (error) {
-        console.error('[Zen Bridge Popup] Error loading domains:', error);
+        console.error('[Inspekt Popup] Error loading domains:', error);
         currentDomainStatus.innerHTML = '<div class="no-domains">Unable to load domain information</div>';
     }
 }
