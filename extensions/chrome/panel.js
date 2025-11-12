@@ -93,9 +93,10 @@ function setupEventListeners() {
 // Check WebSocket connection status
 function checkConnectionStatus() {
     chrome.devtools.inspectedWindow.eval(
-        `fetch('http://localhost:8766', { method: 'GET' })
-            .then(() => true)
-            .catch(() => false)`,
+        `(function() {
+            const ws = window.__inspekt_ws__;
+            return ws && ws.readyState === WebSocket.OPEN;
+        })()`,
         (result, error) => {
             if (error || !result) {
                 updateConnectionStatus(false);

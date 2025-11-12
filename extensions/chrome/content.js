@@ -11,16 +11,16 @@
     'use strict';
 
     // Expose version and status in content script world (isolated)
-    window.__ZEN_BRIDGE_VERSION__ = '4.2.1';
-    window.__ZEN_BRIDGE_EXTENSION__ = true;
-    window.__ZEN_BRIDGE_CSP_BLOCKED__ = false; // Extension bypasses CSP!
+    window.__INSPEKT_BRIDGE_VERSION__ = '4.2.1';
+    window.__INSPEKT_BRIDGE_EXTENSION__ = true;
+    window.__INSPEKT_BRIDGE_CSP_BLOCKED__ = false; // Extension bypasses CSP!
 
     // CRITICAL: Inject into MAIN world via background script
     // (inline script injection is blocked by CSP, even from content scripts)
     chrome.runtime.sendMessage({
         type: 'INJECT_MAIN_WORLD_VARS'
     }).then(() => {
-        console.log('[Zen Bridge] Main world variables injected');
+        console.log('[Inspekt] Main world variables injected');
     }).catch(() => {
         // Background script might not be ready yet, that's okay
     });
@@ -30,7 +30,7 @@
     let reconnectTimer = null;
     const RECONNECT_DELAY = 3000;
 
-    console.log('%c[Zen Bridge Extension]%c Loaded (CSP bypass enabled)',
+    console.log('%c[Inspekt Extension]%c Loaded (CSP bypass enabled)',
         'color: #0066ff; font-weight: bold', 'color: inherit');
 
     function isFrontTab() {
@@ -43,19 +43,19 @@
             return;
         }
 
-        console.log('[Zen Bridge] Connecting to WebSocket server...');
+        console.log('[Inspekt] Connecting to WebSocket server...');
 
         try {
             ws = new WebSocket(WS_URL);
 
             ws.onopen = () => {
-                console.log('%c[Zen Bridge]%c Connected via WebSocket',
+                console.log('%c[Inspekt]%c Connected via WebSocket',
                     'color: #0066ff; font-weight: bold', 'color: inherit');
                 if (reconnectTimer) {
                     clearTimeout(reconnectTimer);
                     reconnectTimer = null;
                 }
-                window.__zen_ws__ = ws;
+                window.__inspekt_ws__ = ws;
 
                 // Send browser info to server
                 const browserInfo = {
@@ -100,7 +100,7 @@
                             }));
                         } catch (err) {
                             // If background script fails, send error back
-                            console.error('[Zen Bridge] Background script error:', err);
+                            console.error('[Inspekt] Background script error:', err);
                             ws.send(JSON.stringify({
                                 type: 'result',
                                 request_id: requestId,
@@ -117,23 +117,23 @@
                     }
 
                 } catch (err) {
-                    console.error('[Zen Bridge] Error handling message:', err);
+                    console.error('[Inspekt] Error handling message:', err);
                 }
             };
 
             ws.onclose = (event) => {
-                console.log('[Zen Bridge] Disconnected (code:', event.code, '). Reconnecting...');
+                console.log('[Inspekt] Disconnected (code:', event.code, '). Reconnecting...');
                 ws = null;
-                window.__zen_ws__ = null;
+                window.__inspekt_ws__ = null;
                 scheduleReconnect();
             };
 
             ws.onerror = (error) => {
-                console.error('[Zen Bridge] WebSocket error:', error);
+                console.error('[Inspekt] WebSocket error:', error);
             };
 
         } catch (err) {
-            console.error('[Zen Bridge] Failed to connect:', err);
+            console.error('[Inspekt] Failed to connect:', err);
             scheduleReconnect();
         }
     }
@@ -167,10 +167,10 @@
         } else if (document.visibilityState === 'hidden') {
             // Tab became hidden - disconnect to save resources
             if (ws && ws.readyState === WebSocket.OPEN) {
-                console.log('[Zen Bridge] Tab hidden, closing connection');
+                console.log('[Inspekt] Tab hidden, closing connection');
                 ws.close();
                 ws = null;
-                window.__zen_ws__ = null;
+                window.__inspekt_ws__ = null;
             }
         }
     });
@@ -184,10 +184,10 @@
             // Check if domain is allowed (will show opt-in modal if not)
             const allowed = await ZenPermissions.checkAndRequest();
             if (allowed) {
-                console.log('[Zen Bridge] Domain authorized, connecting...');
+                console.log('[Inspekt] Domain authorized, connecting...');
                 connect();
             } else {
-                console.log('[Zen Bridge] Domain not authorized. Connection blocked.');
+                console.log('[Inspekt] Domain not authorized. Connection blocked.');
             }
         }
     }
