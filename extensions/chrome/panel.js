@@ -115,21 +115,19 @@ function setupEventListeners() {
 // Check WebSocket connection status
 function checkConnectionStatus() {
     chrome.devtools.inspectedWindow.eval(
-        `(function() {
-            const ws = window.__inspekt_ws__;
-            return ws && ws.readyState === WebSocket.OPEN;
-        })()`,
+        `window.__INSPEKT_WS_CONNECTED__ === true`,
         (result, error) => {
-            if (error || !result) {
+            if (error) {
+                console.error('[Inspekt Panel] Error checking connection:', error);
                 updateConnectionStatus(false);
             } else {
-                updateConnectionStatus(true);
+                updateConnectionStatus(result === true);
             }
         }
     );
 
-    // Recheck every 5 seconds
-    setTimeout(checkConnectionStatus, 5000);
+    // Recheck every 2 seconds for faster updates
+    setTimeout(checkConnectionStatus, 2000);
 }
 
 // Update connection status UI

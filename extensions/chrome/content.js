@@ -57,6 +57,14 @@
                 }
                 window.__inspekt_ws__ = ws;
 
+                // Notify background script of connection status
+                chrome.runtime.sendMessage({
+                    type: 'WS_STATUS_UPDATE',
+                    connected: true
+                }).catch(() => {
+                    // Background script might not be ready
+                });
+
                 // Send browser info to server
                 const browserInfo = {
                     type: 'browser_info',
@@ -125,6 +133,15 @@
                 console.log('[Inspekt] Disconnected (code:', event.code, '). Reconnecting...');
                 ws = null;
                 window.__inspekt_ws__ = null;
+
+                // Notify background script of disconnection
+                chrome.runtime.sendMessage({
+                    type: 'WS_STATUS_UPDATE',
+                    connected: false
+                }).catch(() => {
+                    // Background script might not be ready
+                });
+
                 scheduleReconnect();
             };
 
