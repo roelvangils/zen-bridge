@@ -109,7 +109,7 @@ def describe(language, debug, force_refresh):
 
     # Check if mods is available
     try:
-        subprocess.run(["mods", "--version"], capture_output=True, check=True)
+        subprocess.run(["/opt/homebrew/bin/mods", "--version"], capture_output=True, check=True)
     except (subprocess.CalledProcessError, FileNotFoundError):
         click.echo("Error: 'mods' command not found. Please install mods first.", err=True)
         click.echo("Visit: https://github.com/charmbracelet/mods", err=True)
@@ -218,7 +218,7 @@ def describe(language, debug, force_refresh):
         # Call mods
         try:
             result = subprocess.run(
-                ["mods"], input=full_input, text=True, capture_output=True, check=True
+                ["/opt/homebrew/bin/mods"], input=full_input, text=True, capture_output=True, check=True
             )
 
             output = result.stdout
@@ -384,7 +384,7 @@ def do(instruction, debug, no_execute, force_ai):
 
     # Check if mods is available
     try:
-        subprocess.run(["mods", "--version"], capture_output=True, check=True)
+        subprocess.run(["/opt/homebrew/bin/mods", "--version"], capture_output=True, check=True)
     except (subprocess.CalledProcessError, FileNotFoundError):
         click.echo("Error: 'mods' command not found. Please install mods first.", err=True)
         click.echo("Visit: https://github.com/charmbracelet/mods", err=True)
@@ -591,7 +591,7 @@ def do(instruction, debug, no_execute, force_ai):
         # Call mods
         try:
             result = subprocess.run(
-                ["mods"], input=full_input, text=True, capture_output=True, check=True
+                ["/opt/homebrew/bin/mods"], input=full_input, text=True, capture_output=True, check=True
             )
 
             # Parse the JSON response
@@ -1158,7 +1158,7 @@ def summarize(format, language, debug, force_refresh):
     # Check if mods is available
     if format == "summary":
         try:
-            subprocess.run(["mods", "--version"], capture_output=True, check=True)
+            subprocess.run(["/opt/homebrew/bin/mods", "--version"], capture_output=True, check=True)
         except (subprocess.CalledProcessError, FileNotFoundError):
             click.echo("Error: 'mods' command not found. Please install mods first.", err=True)
             click.echo("Visit: https://github.com/charmbracelet/mods", err=True)
@@ -1291,7 +1291,7 @@ def summarize(format, language, debug, force_refresh):
         # Call mods
         try:
             result = subprocess.run(
-                ["mods"], input=full_input, text=True, capture_output=True, check=True
+                ["/opt/homebrew/bin/mods"], input=full_input, text=True, capture_output=True, check=True
             )
 
             output = result.stdout
@@ -1524,7 +1524,7 @@ def ask(question, debug, no_cache):
 
     # Check if mods is available
     try:
-        subprocess.run(["mods", "--version"], capture_output=True, check=True)
+        subprocess.run(["/opt/homebrew/bin/mods", "--version"], capture_output=True, check=True)
     except (subprocess.CalledProcessError, FileNotFoundError):
         click.echo("Error: 'mods' command not found. Please install mods first.", err=True)
         click.echo("Visit: https://github.com/charmbracelet/mods", err=True)
@@ -1673,7 +1673,7 @@ PAGE INDEX:
     # Call mods
     try:
         result = subprocess.run(
-            ["mods"], input=full_input, text=True, capture_output=True, check=True
+            ["/opt/homebrew/bin/mods"], input=full_input, text=True, capture_output=True, check=True
         )
 
         ai_response = result.stdout

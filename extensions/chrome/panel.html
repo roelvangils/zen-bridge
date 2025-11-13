@@ -56,38 +56,30 @@
 
             <!-- Quick Actions Section -->
             <section class="panel-section">
-                <h2><span class="material-icons md-18">bolt</span> Quick Actions</h2>
-                <div class="actions-grid">
-                    <button class="action-btn" id="btnPickElement">
-                        <span class="material-icons btn-icon">gps_fixed</span>
-                        <span class="btn-label">Pick Element</span>
-                        <span class="btn-hint">Select element on page</span>
+                <div class="section-header">
+                    <h2><span class="material-icons md-18">bolt</span> Quick Actions</h2>
+                    <button class="manage-btn" id="manageActionsBtn" title="Manage actions">
+                        <span class="material-icons md-18">settings</span>
+                        <span class="manage-btn-label">Manage</span>
                     </button>
-                    <button class="action-btn" id="btnInspected" disabled>
-                        <span class="material-icons btn-icon">search</span>
-                        <span class="btn-label">inspekt inspected</span>
-                        <span class="btn-hint">Show element details</span>
-                    </button>
-                    <button class="action-btn" id="btnCopySelector" disabled>
-                        <span class="material-icons btn-icon">content_copy</span>
-                        <span class="btn-label">Copy Selector</span>
-                        <span class="btn-hint">Copy CSS selector</span>
-                    </button>
-                    <button class="action-btn" id="btnCopyCommand" disabled>
-                        <span class="material-icons btn-icon">code</span>
-                        <span class="btn-label">Copy Click Command</span>
-                        <span class="btn-hint">inspekt click "selector"</span>
-                    </button>
-                    <button class="action-btn" id="btnShowInElements" disabled>
-                        <span class="material-icons btn-icon">push_pin</span>
-                        <span class="btn-label">Show in Elements</span>
-                        <span class="btn-hint">Switch to Elements tab</span>
-                    </button>
-                    <button class="action-btn" id="btnHighlight" disabled>
-                        <span class="material-icons btn-icon">auto_awesome</span>
-                        <span class="btn-label">Highlight Element</span>
-                        <span class="btn-hint">Flash element briefly</span>
-                    </button>
+                </div>
+
+                <!-- Manage Panel (inline expansion) -->
+                <div id="managePanel" class="manage-panel" style="display: none;">
+                    <div class="manage-header">
+                        <span class="manage-title">Removed Actions</span>
+                        <button class="manage-close" title="Close">
+                            <span class="material-icons md-18">close</span>
+                        </button>
+                    </div>
+                    <div class="manage-content" id="manageContent">
+                        <!-- Dynamically populated by manage-panel.js -->
+                    </div>
+                </div>
+
+                <!-- Actions Grid (dynamically populated) -->
+                <div class="actions-grid" id="actionsGrid">
+                    <!-- Dynamically populated by quick-actions-manager.js -->
                 </div>
             </section>
 

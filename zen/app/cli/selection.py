@@ -45,8 +45,10 @@ def get_selection_data():
 def html_to_markdown(html_content):
     """Convert HTML to Markdown using html2markdown CLI."""
     try:
+        # Use full path to html2markdown to work when called from GUI apps
+        # that don't have /opt/homebrew/bin in PATH
         result = subprocess.run(
-            ["html2markdown"],
+            ["/opt/homebrew/bin/html2markdown"],
             input=html_content,
             capture_output=True,
             text=True,

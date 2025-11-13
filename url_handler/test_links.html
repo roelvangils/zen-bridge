@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inspekt URL Scheme Examples</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #0066ff;
+        }
+        .section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+        .section h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        a {
+            display: inline-block;
+            padding: 8px 16px;
+            margin: 5px;
+            background: #0066ff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        a:hover {
+            background: #0052cc;
+        }
+        code {
+            background: #e0e0e0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 13px;
+        }
+        .description {
+            color: #666;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔗 Inspekt URL Scheme Examples</h1>
+    <p>Click any link below to trigger Inspekt commands via the <code>inspekt://</code> protocol.</p>
+
+    <div class="section">
+        <h2>📄 Page Information</h2>
+        <a href="inspekt://info">Get Page Info</a>
+        <p class="description">Shows information about the current page</p>
+    </div>
+
+    <div class="section">
+        <h2>🧭 Navigation</h2>
+        <a href="inspekt://open?url=https://example.com">Open Example.com</a>
+        <a href="inspekt://back">Go Back</a>
+        <a href="inspekt://forward">Go Forward</a>
+        <a href="inspekt://reload">Reload Page</a>
+        <p class="description">Navigate to URLs or control browser history</p>
+    </div>
+
+    <div class="section">
+        <h2>⚙️ Execute JavaScript</h2>
+        <a href="inspekt://eval?code=document.title">Get Page Title (clipboard)</a>
+        <a href="inspekt://eval?code=document.title&output=notification">Get Title (notification)</a>
+        <a href="inspekt://eval?code=document.title&output=both">Get Title (both)</a>
+        <a href="inspekt://eval?code=document.querySelectorAll('a').length">Count Links</a>
+        <a href="inspekt://eval?code=alert('Hello from inspekt://')">Show Alert</a>
+        <p class="description">Run JavaScript code in the browser</p>
+    </div>
+
+    <div class="section">
+        <h2>📤 Output Modes</h2>
+        <p>All commands support these output modes (add <code>&output=mode</code>):</p>
+        <ul>
+            <li><strong>clipboard</strong> (default) - Copy to clipboard + brief notification</li>
+            <li><strong>notification</strong> - Show in macOS notification</li>
+            <li><strong>both</strong> - Clipboard + full notification</li>
+            <li><strong>silent</strong> - No output (errors still notify)</li>
+        </ul>
+        <a href="inspekt://info?output=clipboard">Info → Clipboard</a>
+        <a href="inspekt://info?output=notification">Info → Notification</a>
+        <a href="inspekt://info?output=both">Info → Both</a>
+    </div>
+
+    <div class="section">
+        <h2>✂️ Text Selection</h2>
+        <a href="inspekt://selection?format=text">Get Selected Text</a>
+        <a href="inspekt://selection?format=html">Get Selected HTML</a>
+        <a href="inspekt://selection?format=markdown">Get Selected Markdown</a>
+        <p class="description">Extract text selection in different formats</p>
+    </div>
+
+    <div class="section">
+        <h2>🖱️ Interaction</h2>
+        <a href="inspekt://click?selector=button">Click Button</a>
+        <a href="inspekt://type?text=Hello%20World&selector=input">Type Text</a>
+        <a href="inspekt://paste?text=Quick%20paste">Paste Text</a>
+        <p class="description">Interact with page elements</p>
+    </div>
+
+    <div class="section">
+        <h2>🔍 Inspection</h2>
+        <a href="inspekt://inspect?selector=h1">Inspect H1</a>
+        <a href="inspekt://screenshot?selector=body">Screenshot Page</a>
+        <p class="description">Inspect elements and capture screenshots</p>
+    </div>
+
+    <div class="section">
+        <h2>🍪 Cookies</h2>
+        <a href="inspekt://cookies?action=list">List All Cookies</a>
+        <a href="inspekt://cookies?action=set&name=test&value=hello">Set Cookie</a>
+        <a href="inspekt://cookies?action=get&name=test">Get Cookie</a>
+        <a href="inspekt://cookies?action=delete&name=test">Delete Cookie</a>
+        <p class="description">Manage browser cookies</p>
+    </div>
+
+    <div class="section">
+        <h2>🤖 AI Commands</h2>
+        <a href="inspekt://summarize">Summarize Page</a>
+        <a href="inspekt://summarize?output=dialog">Summarize (show dialog)</a>
+        <a href="inspekt://describe">Describe Page</a>
+        <a href="inspekt://outline">Page Outline</a>
+        <a href="inspekt://ask?q=What is this page about?">Ask Question</a>
+        <p class="description">AI-powered content analysis (requires browser connection and article content)</p>
+    </div>
+
+    <div class="section">
+        <h2>💡 Usage Tips</h2>
+        <ul>
+            <li>Create bookmarklets with these URLs</li>
+            <li>Use in Alfred workflows or Shortcuts.app</li>
+            <li>Trigger from any app that supports URL schemes</li>
+            <li>Combine with AppleScript for automation</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>📝 Test Input Field</h2>
+        <p>Click "Type Text" or "Paste Text" above after focusing this field:</p>
+        <input type="text" placeholder="Focus me first..." style="width: 100%; padding: 10px; font-size: 16px;">
+    </div>
+</body>
+</html>

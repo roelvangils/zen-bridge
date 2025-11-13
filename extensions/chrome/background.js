@@ -81,7 +81,84 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         });
         return false;
     }
+
+    if (message.type === 'COPY_IMAGE_TO_CLIPBOARD') {
+        // Handle clipboard write from DevTools panel (which has restricted permissions)
+        copyImageToClipboard(message.blob)
+            .then(() => sendResponse({ ok: true }))
+            .catch(error => sendResponse({ ok: false, error: String(error) }));
+        return true; // Keep channel open for async response
+    }
 });
+
+/**
+ * Copy image blob to clipboard via offscreen document
+ * DevTools panels have restricted clipboard access, and service workers don't have ClipboardItem
+ * So we use an offscreen document which has full DOM APIs
+ */
+async function copyImageToClipboard(dataUrl) {
+    try {
+        // Ensure offscreen document exists
+        await setupOffscreenDocument();
+
+        console.log('[Zen Bridge] Sending clipboard write request to offscreen document...');
+
+        // Get the offscreen document context
+        const offscreenContexts = await chrome.runtime.getContexts({
+            contextTypes: ['OFFSCREEN_DOCUMENT'],
+            documentUrls: [chrome.runtime.getURL('offscreen.html')]
+        });
+
+        if (offscreenContexts.length === 0) {
+            throw new Error('Offscreen document not found');
+        }
+
+        // Send message directly to the offscreen document
+        const response = await chrome.runtime.sendMessage({
+            type: 'OFFSCREEN_COPY_IMAGE',
+            dataUrl: dataUrl,
+            target: 'offscreen'
+        });
+
+        console.log('[Zen Bridge] Response from offscreen:', response);
+
+        if (!response || !response.success) {
+            throw new Error(response?.error || 'Failed to copy via offscreen document');
+        }
+
+        console.log('[Zen Bridge] Image copied to clipboard via offscreen document');
+    } catch (error) {
+        console.error('[Zen Bridge] Failed to copy image to clipboard:', error);
+        throw error;
+    }
+}
+
+/**
+ * Setup offscreen document for clipboard operations
+ */
+async function setupOffscreenDocument() {
+    // Check if offscreen document already exists
+    const existingContexts = await chrome.runtime.getContexts({
+        contextTypes: ['OFFSCREEN_DOCUMENT'],
+        documentUrls: [chrome.runtime.getURL('offscreen.html')]
+    });
+
+    if (existingContexts.length > 0) {
+        return; // Already exists
+    }
+
+    // Create offscreen document
+    await chrome.offscreen.createDocument({
+        url: 'offscreen.html',
+        reasons: ['CLIPBOARD'],
+        justification: 'Copy screenshots to clipboard from DevTools panel'
+    });
+
+    console.log('[Zen Bridge] Offscreen document created for clipboard operations');
+
+    // Longer delay to ensure offscreen document is fully loaded and ready
+    await new Promise(resolve => setTimeout(resolve, 300));
+}
 
 /**
  * Update WebSocket connection status in main world

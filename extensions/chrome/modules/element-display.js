@@ -8,12 +8,8 @@ export class ElementDisplay {
         this.currentElement = null;
         this.inspectedElement = document.getElementById('inspectedElement');
 
-        // Action buttons
-        this.btnInspected = document.getElementById('btnInspected');
-        this.btnCopySelector = document.getElementById('btnCopySelector');
-        this.btnCopyCommand = document.getElementById('btnCopyCommand');
-        this.btnShowInElements = document.getElementById('btnShowInElements');
-        this.btnHighlight = document.getElementById('btnHighlight');
+        // Note: Action buttons are now managed by QuickActionsManager
+        // No longer need to reference them here
     }
 
     /**
@@ -22,7 +18,7 @@ export class ElementDisplay {
      */
     update(element) {
         this.currentElement = element;
-        this.enableActionButtons();
+        // Note: Button states are now handled by QuickActionsManager.updateElementStates()
         this.renderElementCard(element);
     }
 
@@ -32,17 +28,6 @@ export class ElementDisplay {
      */
     getCurrentElement() {
         return this.currentElement;
-    }
-
-    /**
-     * Enable action buttons
-     */
-    enableActionButtons() {
-        this.btnInspected.disabled = false;
-        this.btnCopySelector.disabled = false;
-        this.btnCopyCommand.disabled = false;
-        this.btnShowInElements.disabled = false;
-        this.btnHighlight.disabled = false;
     }
 
     /**
@@ -126,11 +111,6 @@ export class ElementDisplay {
         this.currentElement = null;
         this.inspectedElement.innerHTML = '<p class="placeholder">No element selected. Right-click an element and select "Inspect".</p>';
 
-        // Disable action buttons
-        this.btnInspected.disabled = true;
-        this.btnCopySelector.disabled = true;
-        this.btnCopyCommand.disabled = true;
-        this.btnShowInElements.disabled = true;
-        this.btnHighlight.disabled = true;
+        // Note: Button states are now handled by QuickActionsManager.updateElementStates()
     }
 }

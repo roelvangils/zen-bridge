@@ -12,14 +12,11 @@ import { ThemeManager } from './modules/theme-manager.js';
 import { ElementMonitor } from './modules/element-monitor.js';
 import { ElementDisplay } from './modules/element-display.js';
 import { HistoryManager } from './modules/history-manager.js';
+import { QuickActionsManager } from './modules/quick-actions-manager.js';
 
 // Import components
 import { ElementHighlighter } from './components/element-highlighter.js';
 import { ElementPicker } from './components/element-picker.js';
-
-// Import utilities
-import { copyToClipboard } from './utils/clipboard.js';
-import { evalInPage } from './utils/devtools.js';
 
 // Manager instances
 let connectionManager;
@@ -28,51 +25,66 @@ let themeManager;
 let elementMonitor;
 let elementDisplay;
 let historyManager;
+let quickActionsManager;
 let elementHighlighter;
 let elementPicker;
 
-// DOM elements - Quick Actions
-const btnPickElement = document.getElementById('btnPickElement');
-const btnInspected = document.getElementById('btnInspected');
-const btnCopySelector = document.getElementById('btnCopySelector');
-const btnCopyCommand = document.getElementById('btnCopyCommand');
-const btnShowInElements = document.getElementById('btnShowInElements');
-const btnHighlight = document.getElementById('btnHighlight');
-
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    initializeManagers();
-    setupQuickActions();
+    console.log('[Inspekt Panel] DOMContentLoaded - Starting initialization...');
 
-    console.log('[Inspekt Panel] Initialized (Modular Architecture)');
+    try {
+        initializeManagers();
+        console.log('[Inspekt Panel] Initialized (Modular Architecture with Configurable Quick Actions)');
+    } catch (error) {
+        console.error('[Inspekt Panel] Initialization error:', error);
+    }
 });
 
 /**
  * Initialize all managers and components
  */
 function initializeManagers() {
+    console.log('[Panel] Initializing managers...');
+
     // Core managers
+    console.log('[Panel] Creating core managers...');
     connectionManager = new ConnectionManager();
     settingsManager = new SettingsManager();
     themeManager = new ThemeManager();
 
     // Element handling
+    console.log('[Panel] Creating element handlers...');
     elementDisplay = new ElementDisplay();
     historyManager = new HistoryManager();
     elementMonitor = new ElementMonitor();
 
     // Components
+    console.log('[Panel] Creating components...');
     elementHighlighter = new ElementHighlighter(elementDisplay);
     elementPicker = new ElementPicker();
 
-    // Initialize all managers
+    // Initialize all managers (non-async)
+    console.log('[Panel] Initializing managers...');
     connectionManager.init();
     settingsManager.init();
     themeManager.init();
     elementHighlighter.init();
     elementPicker.init();
 
+    // Quick Actions Manager (async init)
+    console.log('[Panel] Creating QuickActionsManager...');
+    quickActionsManager = new QuickActionsManager({
+        elementDisplay,
+        elementPicker,
+        elementHighlighter,
+        settingsManager
+    });
+    console.log('[Panel] QuickActionsManager created, calling init...');
+    quickActionsManager.init();
+
     // Start element monitoring
+    console.log('[Panel] Starting element monitoring...');
     elementMonitor.init();
 
     // Listen for element changes
@@ -85,84 +97,6 @@ function initializeManagers() {
             historyManager.add(element);
         }
     });
-}
 
-/**
- * Setup Quick Actions event listeners
- */
-function setupQuickActions() {
-    // Pick Element
-    btnPickElement.addEventListener('click', () => {
-        elementPicker.activate();
-    });
-
-    // Inspekt Inspected - Copy command
-    btnInspected.addEventListener('click', (e) => {
-        copyToClipboard(e, 'inspekt inspected', 'Command', settingsManager.getSettings());
-    });
-
-    // Copy Selector
-    btnCopySelector.addEventListener('click', (e) => {
-        const currentElement = elementDisplay.getCurrentElement();
-        if (currentElement && currentElement.selector) {
-            copyToClipboard(e, currentElement.selector, 'Selector', settingsManager.getSettings());
-        }
-    });
-
-    // Copy Click Command
-    btnCopyCommand.addEventListener('click', (e) => {
-        const currentElement = elementDisplay.getCurrentElement();
-        if (currentElement && currentElement.selector) {
-            copyToClipboard(
-                e,
-                `inspekt click "${currentElement.selector}"`,
-                'Click command',
-                settingsManager.getSettings()
-            );
-        }
-    });
-
-    // Show in Elements
-    btnShowInElements.addEventListener('click', () => {
-        showInElementsPanel();
-    });
-
-    // Highlight Element
-    btnHighlight.addEventListener('click', () => {
-        elementHighlighter.highlight();
-    });
-}
-
-/**
- * Show current element in Elements panel
- */
-function showInElementsPanel() {
-    const currentElement = elementDisplay.getCurrentElement();
-    if (!currentElement) return;
-
-    evalInPage(
-        `(function() {
-            const el = window.__INSPEKT_INSPECTED_ELEMENT__;
-            if (el) {
-                inspect(el);
-                return true;
-            }
-            return false;
-        })()`,
-        (result, error) => {
-            if (error) {
-                console.error('[Inspekt Panel] Error showing in Elements:', error);
-                return;
-            }
-
-            if (result) {
-                btnShowInElements.classList.add('success-flash');
-                setTimeout(() => btnShowInElements.classList.remove('success-flash'), 500);
-
-                console.log('[Inspekt Panel] Element highlighted in Elements panel');
-            } else {
-                console.error('[Inspekt Panel] Could not find element');
-            }
-        }
-    );
+    console.log('[Panel] All managers initialized');
 }

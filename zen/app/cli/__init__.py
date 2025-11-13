@@ -13,6 +13,7 @@ from zen import __version__
 from zen.app.cli.base import CustomGroup
 
 # Import command modules
+from zen.app.cli import api as api_module
 from zen.app.cli import cookies as cookies_module
 from zen.app.cli import exec as exec_module
 from zen.app.cli import extraction as extraction_module
@@ -82,6 +83,9 @@ cli.add_command(selection_module.selected, name="selected")  # deprecated, kept 
 
 # Server management commands (from server.py)
 cli.add_command(server_module.server, name="server")  # group
+
+# API server management commands (from api.py)
+cli.add_command(api_module.api, name="api")  # group
 
 # Content extraction commands (from extraction.py)
 cli.add_command(extraction_module.describe, name="describe")

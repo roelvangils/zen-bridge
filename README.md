@@ -119,27 +119,58 @@ inspektserver status
 
 ## 🚀 Quick Start
 
+### CLI Usage
+
 ```bash
 # Execute JavaScript code
-inspekteval "document.title"
+zen eval "document.title"
 
 # Get page information
-inspektinfo
+zen info
 
 # Extract all links
-inspektlinks --only-external
+zen links --only-external
 
 # Start interactive REPL
-inspektrepl
+zen repl
 
 # Summarize article with AI
-inspektsummarize
+zen summarize
 
 # Control browser with keyboard
-inspektcontrol
+zen control
 
 # Get help with all commands and flags
-inspekt--help
+zen --help
+```
+
+### HTTP API Usage
+
+```bash
+# Start the API server (runs on http://localhost:8767)
+uvicorn zen.app.api.server:app --host 127.0.0.1 --port 8767
+
+# Or in the background
+uvicorn zen.app.api.server:app --host 127.0.0.1 --port 8767 &
+
+# Check API health
+curl http://localhost:8767/health
+
+# Get page information
+curl http://localhost:8767/api/extraction/info
+
+# Execute JavaScript
+curl -X POST http://localhost:8767/api/execution/eval \
+  -H "Content-Type: application/json" \
+  -d '{"code": "document.title"}'
+
+# Navigate to a URL
+curl -X POST http://localhost:8767/api/navigation/open \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://example.com", "wait": true}'
+
+# View API documentation
+open http://localhost:8767/docs
 ```
 
 ## 📖 Usage Guide
@@ -753,6 +784,154 @@ inspektcontrol --help
 **Customizable Prompts:**
 - `prompts/summary.prompt` - AI summarization prompt
 - `prompts/describe.prompt` - Page description prompt
+
+## 🌐 HTTP API
+
+Zen Bridge includes a FastAPI-powered REST API that exposes all CLI commands as HTTP endpoints. This allows you to control the browser from any HTTP client, integrate with other tools, or build web-based frontends.
+
+### Starting the API Server
+
+```bash
+# Start the API server
+uvicorn zen.app.api.server:app --host 127.0.0.1 --port 8767
+
+# Or with auto-reload for development
+uvicorn zen.app.api.server:app --host 127.0.0.1 --port 8767 --reload
+
+# Or run in the background
+uvicorn zen.app.api.server:app --host 127.0.0.1 --port 8767 &
+```
+
+### Interactive Documentation
+
+FastAPI automatically generates interactive API documentation:
+
+- **Swagger UI**: http://localhost:8767/docs
+- **ReDoc**: http://localhost:8767/redoc
+- **OpenAPI Schema**: http://localhost:8767/openapi.json
+
+### Available Endpoints
+
+#### Navigation (`/api/navigation/`)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/open` | POST | Navigate to a URL |
+| `/back` | POST | Go back in history |
+| `/forward` | POST | Go forward in history |
+| `/reload` | POST | Reload current page |
+| `/pageup` | POST | Scroll up one page |
+| `/pagedown` | POST | Scroll down one page |
+| `/top` | POST | Scroll to top |
+| `/bottom` | POST | Scroll to bottom |
+
+#### Execution (`/api/execution/`)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/eval` | POST | Execute JavaScript code |
+
+#### Extraction (`/api/extraction/`)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/info` | GET | Get page information |
+| `/links` | GET | Extract all links |
+
+### Example API Calls
+
+**Health Check:**
+```bash
+curl http://localhost:8767/health
+```
+
+**Get Page Info:**
+```bash
+curl http://localhost:8767/api/extraction/info | jq
+```
+
+**Execute JavaScript:**
+```bash
+curl -X POST http://localhost:8767/api/execution/eval \
+  -H "Content-Type: application/json" \
+  -d '{
+    "code": "document.querySelector(\"h1\").textContent",
+    "timeout": 5.0
+  }' | jq
+```
+
+**Navigate to URL:**
+```bash
+curl -X POST http://localhost:8767/api/navigation/open \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com",
+    "wait": true,
+    "timeout": 30
+  }' | jq
+```
+
+**Extract Links:**
+```bash
+curl "http://localhost:8767/api/extraction/links?include_text=true" | jq
+```
+
+**Scroll Page:**
+```bash
+curl -X POST http://localhost:8767/api/navigation/pagedown
+curl -X POST http://localhost:8767/api/navigation/top
+```
+
+### Response Format
+
+All API endpoints return JSON in this format:
+
+```json
+{
+  "ok": true,
+  "result": <command result>,
+  "error": null,
+  "url": "https://example.com",
+  "title": "Page Title"
+}
+```
+
+When an error occurs:
+
+```json
+{
+  "ok": false,
+  "result": null,
+  "error": "Error message here",
+  "url": null,
+  "title": null
+}
+```
+
+### HTTP Status Codes
+
+- `200 OK` - Command executed successfully
+- `400 Bad Request` - Invalid parameters
+- `500 Internal Server Error` - Command execution failed
+- `503 Service Unavailable` - Bridge server not running
+- `504 Gateway Timeout` - Command timeout
+
+### Architecture
+
+The API follows the same hexagonal architecture as the CLI:
+
+```
+HTTP Request → FastAPI Router → Service Layer → Bridge Executor → Browser
+                                       ↓
+                                  Same services
+                                  used by CLI
+```
+
+This means:
+- ✅ **No code duplication** - CLI and API share the same business logic
+- ✅ **Consistent behavior** - Both interfaces produce identical results
+- ✅ **Easy maintenance** - Add a new command once, get CLI + API for free
+- ✅ **Type safety** - Pydantic models validate all requests/responses
 
 ## 🏗 Architecture
 

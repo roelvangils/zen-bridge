@@ -219,4 +219,65 @@
 
     initializeConnection();
 
+    // Message listener for DevTools panel requests
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        if (message.action === 'getElementBounds') {
+            // Get element bounds for screenshot
+            try {
+                const element = document.querySelector(message.selector);
+                if (element) {
+                    const rect = element.getBoundingClientRect();
+                    sendResponse({
+                        success: true,
+                        bounds: {
+                            x: rect.x,
+                            y: rect.y,
+                            width: rect.width,
+                            height: rect.height,
+                            top: rect.top,
+                            left: rect.left,
+                            right: rect.right,
+                            bottom: rect.bottom
+                        }
+                    });
+                } else {
+                    sendResponse({
+                        success: false,
+                        error: 'Element not found'
+                    });
+                }
+            } catch (error) {
+                sendResponse({
+                    success: false,
+                    error: error.message
+                });
+            }
+            return true; // Keep message channel open for async response
+        } else if (message.action === 'scrollIntoView') {
+            // Scroll element into view
+            try {
+                const element = document.querySelector(message.selector);
+                if (element) {
+                    element.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center',
+                        inline: 'center'
+                    });
+                    sendResponse({ success: true });
+                } else {
+                    sendResponse({
+                        success: false,
+                        error: 'Element not found'
+                    });
+                }
+            } catch (error) {
+                sendResponse({
+                    success: false,
+                    error: error.message
+                });
+            }
+            return true;
+        }
+    });
+
 })();
