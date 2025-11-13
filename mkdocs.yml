@@ -132,6 +132,7 @@ nav:
       - Updating: getting-started/updating.md
   - User Guide:
       - Overview: guide/overview.md
+      - CLI vs HTTP API: guide/cli-vs-api.md
       - Basic Commands: guide/basic-commands.md
       - JavaScript Execution: guide/javascript-execution.md
       - Element Interaction: guide/element-interaction.md
@@ -142,6 +143,8 @@ nav:
       - Advanced Usage: guide/advanced.md
   - API Reference:
       - CLI Commands: api/commands.md
+      - HTTP API Guide: api/http-api.md
+      - URL Scheme (inspekt://): url-scheme.md
       - Command Reference:
           - inspekt do: commands/do.md
       - Services: api/services.md
