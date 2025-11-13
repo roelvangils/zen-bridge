@@ -2,7 +2,9 @@ import { getCurrentElementWithValidation } from "./utils/element-helpers.js";
 import {
   captureElementScreenshot,
   scrollElementIntoView,
-  showScreenshotModal
+  showScreenshotModal,
+  hideElementOutline,
+  showElementOutline
 } from "./utils/screenshot-helpers.js";
 
 /**
@@ -47,8 +49,17 @@ export async function handleTakeNodeScreenshot(context) {
         // Small delay to allow scroll to complete
         await new Promise((resolve) => setTimeout(resolve, 200));
 
+        // Hide outline before capturing
+        await hideElementOutline(currentElement.selector);
+
+        // Small delay to ensure outline is hidden
+        await new Promise((resolve) => setTimeout(resolve, 50));
+
         // Capture screenshot
         const blob = await captureElementScreenshot(currentElement);
+
+        // Restore outline after capture
+        await showElementOutline(currentElement.selector);
 
         // Convert blob to data URL for display
         const dataUrl = await new Promise((resolve) => {
@@ -70,6 +81,9 @@ export async function handleTakeNodeScreenshot(context) {
 
         console.log("[Screenshot] Screenshot captured and displayed");
       } catch (error) {
+        // Restore outline on error
+        await showElementOutline(currentElement.selector);
+
         // Show error feedback
         if (label) {
           label.textContent = "Screenshot failed";
@@ -83,7 +97,15 @@ export async function handleTakeNodeScreenshot(context) {
       // Tile not found, proceed without visual feedback
       await scrollElementIntoView(currentElement.selector);
       await new Promise((resolve) => setTimeout(resolve, 200));
+
+      // Hide outline before capturing
+      await hideElementOutline(currentElement.selector);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
       const blob = await captureElementScreenshot(currentElement);
+
+      // Restore outline after capture
+      await showElementOutline(currentElement.selector);
 
       const dataUrl = await new Promise((resolve) => {
         const reader = new FileReader();
@@ -96,6 +118,14 @@ export async function handleTakeNodeScreenshot(context) {
     }
   } catch (error) {
     console.error("[Screenshot] Failed to take screenshot:", error);
+
+    // Ensure outline is restored even on unexpected errors
+    try {
+      await showElementOutline(currentElement.selector);
+    } catch (outlineError) {
+      console.warn("[Screenshot] Could not restore outline:", outlineError);
+    }
+
     alert("Failed to take screenshot. Please try again.");
   }
 }

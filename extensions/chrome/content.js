@@ -289,6 +289,44 @@
                 });
             }
             return true;
+        } else if (message.action === 'hideOutline') {
+            // Hide the element picker outline temporarily
+            try {
+                const outline = document.querySelector('[data-inspekt-outline]');
+                if (outline) {
+                    outline.style.display = 'none';
+                    console.log('[Content Script] Outline hidden');
+                    sendResponse({ success: true });
+                } else {
+                    console.warn('[Content Script] No outline found to hide');
+                    sendResponse({ success: true }); // Not an error if outline doesn't exist
+                }
+            } catch (error) {
+                sendResponse({
+                    success: false,
+                    error: error.message
+                });
+            }
+            return true;
+        } else if (message.action === 'showOutline') {
+            // Restore the element picker outline
+            try {
+                const outline = document.querySelector('[data-inspekt-outline]');
+                if (outline) {
+                    outline.style.display = '';
+                    console.log('[Content Script] Outline restored');
+                    sendResponse({ success: true });
+                } else {
+                    console.warn('[Content Script] No outline found to restore');
+                    sendResponse({ success: true }); // Not an error if outline doesn't exist
+                }
+            } catch (error) {
+                sendResponse({
+                    success: false,
+                    error: error.message
+                });
+            }
+            return true;
         }
     });
 

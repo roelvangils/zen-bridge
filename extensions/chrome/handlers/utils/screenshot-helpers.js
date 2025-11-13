@@ -223,6 +223,65 @@ function escapeHtml(str) {
 }
 
 /**
+ * Temporarily hide element outline for screenshot
+ * @param {string} selector - Element selector
+ * @returns {Promise<boolean>} True if outline was hidden
+ */
+export async function hideElementOutline(selector) {
+    return new Promise((resolve, reject) => {
+        const tabId = chrome.devtools.inspectedWindow.tabId;
+
+        chrome.tabs.sendMessage(
+            tabId,
+            {
+                action: 'hideOutline',
+                selector: selector
+            },
+            (response) => {
+                if (chrome.runtime.lastError) {
+                    console.warn('[Screenshot] Could not hide outline:', chrome.runtime.lastError.message);
+                    resolve(false);
+                    return;
+                }
+
+                if (response && response.success) {
+                    resolve(true);
+                } else {
+                    resolve(false);
+                }
+            }
+        );
+    });
+}
+
+/**
+ * Restore element outline after screenshot
+ * @param {string} selector - Element selector
+ * @returns {Promise<void>}
+ */
+export async function showElementOutline(selector) {
+    return new Promise((resolve, reject) => {
+        const tabId = chrome.devtools.inspectedWindow.tabId;
+
+        chrome.tabs.sendMessage(
+            tabId,
+            {
+                action: 'showOutline',
+                selector: selector
+            },
+            (response) => {
+                if (chrome.runtime.lastError) {
+                    console.warn('[Screenshot] Could not restore outline:', chrome.runtime.lastError.message);
+                    resolve();
+                    return;
+                }
+                resolve();
+            }
+        );
+    });
+}
+
+/**
  * Scroll element into view if needed
  * @param {string} selector - Element selector
  * @returns {Promise<void>}
