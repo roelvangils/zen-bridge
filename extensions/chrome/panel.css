@@ -98,6 +98,7 @@ body {
 
 .theme-icon {
     font-size: 20px;
+    color: white;
 }
 
 .status-indicator {
@@ -170,6 +171,7 @@ body {
     font-size: 24px;
     line-height: 1;
     flex-shrink: 0;
+    color: light-dark(#ff9800, #ffb74d);
 }
 
 .callout-content {
@@ -216,6 +218,13 @@ body {
     padding: 4px;
     border-radius: 4px;
     transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.callout-command .copy-btn .material-icons {
+    color: light-dark(#ff9800, #ffb74d);
 }
 
 .callout-command .copy-btn:hover {
@@ -250,6 +259,10 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+.panel-section h2 .material-icons {
+    color: light-dark(#0066ff, #66b3ff);
 }
 
 .placeholder {
@@ -356,6 +369,7 @@ body {
 .btn-icon {
     font-size: 24px;
     margin-bottom: 8px;
+    color: light-dark(#0066ff, #66b3ff);
 }
 
 .btn-label {
@@ -409,11 +423,22 @@ body {
     transition: all 0.2s;
 }
 
+.history-highlight-btn .material-icons,
+.history-elements-btn .material-icons {
+    font-size: 18px;
+    color: light-dark(#0066ff, #66b3ff);
+}
+
 .history-highlight-btn:hover,
 .history-elements-btn:hover {
     background: light-dark(#0066ff, #66b3ff);
     transform: scale(1.1);
     box-shadow: 0 2px 8px light-dark(rgba(0, 102, 255, 0.3), rgba(0, 102, 255, 0.5));
+}
+
+.history-highlight-btn:hover .material-icons,
+.history-elements-btn:hover .material-icons {
+    color: white;
 }
 
 .history-highlight-btn:active,

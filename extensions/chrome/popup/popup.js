@@ -47,7 +47,7 @@ async function checkConnectionStatus() {
 
             if (status === 'connected') {
                 setStatus(statusDot, statusText, 'connected',
-                    '✓ Connected to localhost:8766');
+                    '<span class="material-icons md-inline">check</span> Connected to localhost:8766');
             } else if (status === 'loaded') {
                 setStatus(statusDot, statusText, 'checking',
                     'Extension loaded, connecting to server...');
@@ -107,7 +107,7 @@ async function loadAllowedDomains() {
             <div>
                 <div class="domain-name">Current: ${currentDomain}</div>
                 <span class="domain-badge ${isCurrentAllowed ? 'allowed' : 'denied'}">
-                    ${isCurrentAllowed ? '✓ Allowed' : '✗ Not Allowed'}
+                    ${isCurrentAllowed ? '<span class="material-icons md-inline">check</span> Allowed' : '<span class="material-icons md-inline">close</span> Not Allowed'}
                 </span>
             </div>
             ${!isCurrentAllowed ? `

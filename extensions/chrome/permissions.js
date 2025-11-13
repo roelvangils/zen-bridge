@@ -129,7 +129,7 @@ const ZenPermissions = {
 
             modal.innerHTML = `
                 <div style="text-align: center; margin-bottom: 24px;">
-                    <div style="font-size: 48px; margin-bottom: 16px;">⚡</div>
+                    <div style="font-size: 48px; margin-bottom: 16px;"><span class="material-icons" style="font-size: 48px; color: #0066ff;">bolt</span></div>
                     <h2 style="margin: 0 0 12px 0; color: #333; font-size: 24px; font-weight: 600;">
                         Inspekt
                     </h2>
@@ -140,7 +140,7 @@ const ZenPermissions = {
 
                 <div style="background: #f5f5f5; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
                     <div style="display: flex; align-items: center; margin-bottom: 12px;">
-                        <span style="font-size: 24px; margin-right: 12px;">🌐</span>
+                        <span class="material-icons" style="font-size: 24px; margin-right: 12px; color: #0066ff;">language</span>
                         <div>
                             <div style="font-weight: 600; color: #333; font-size: 16px;">${domain}</div>
                             <div style="color: #666; font-size: 13px;">This domain</div>
@@ -159,7 +159,7 @@ const ZenPermissions = {
 
                 <div style="background: #fff3cd; border: 1px solid #ffc107; padding: 12px; border-radius: 6px; margin-bottom: 24px;">
                     <div style="display: flex; align-items: start;">
-                        <span style="margin-right: 8px;">⚠️</span>
+                        <span class="material-icons" style="margin-right: 8px; color: #ffc107;">warning</span>
                         <div style="font-size: 13px; color: #856404; line-height: 1.5;">
                             <strong>Important:</strong> Only allow Inspekt on websites you trust.
                             This grants your local CLI full control over this domain.
