@@ -98,20 +98,40 @@ async function cropImage(dataUrl, rect) {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
 
-            // Set canvas size to element size
+            // Use device pixel ratio from the page context (passed in rect)
+            // DevTools panel DPR might differ from page DPR
+            const dpr = rect.devicePixelRatio || window.devicePixelRatio || 1;
+
+            console.log('[Screenshot Helpers] Device pixel ratio (page):', rect.devicePixelRatio);
+            console.log('[Screenshot Helpers] Device pixel ratio (panel):', window.devicePixelRatio);
+            console.log('[Screenshot Helpers] Using DPR:', dpr);
+            console.log('[Screenshot Helpers] Image size:', img.width, 'x', img.height);
+            console.log('[Screenshot Helpers] Element rect:', rect);
+            console.log('[Screenshot Helpers] Rect values - x:', rect.x, 'y:', rect.y, 'width:', rect.width, 'height:', rect.height);
+
+            // Calculate source coordinates accounting for device pixel ratio
+            const sourceX = rect.x * dpr;
+            const sourceY = rect.y * dpr;
+            const sourceWidth = rect.width * dpr;
+            const sourceHeight = rect.height * dpr;
+
+            console.log('[Screenshot Helpers] Source crop:', sourceX, sourceY, sourceWidth, sourceHeight);
+
+            // Set canvas size to element size (at normal resolution)
             canvas.width = rect.width;
             canvas.height = rect.height;
 
-            // Draw the cropped portion
+            // Draw the cropped portion, scaling back down to normal resolution
             ctx.drawImage(
                 img,
-                rect.x, rect.y, rect.width, rect.height, // Source rectangle
-                0, 0, rect.width, rect.height            // Destination rectangle
+                sourceX, sourceY, sourceWidth, sourceHeight, // Source rectangle (device pixels)
+                0, 0, rect.width, rect.height                // Destination rectangle (CSS pixels)
             );
 
             // Convert to blob
             canvas.toBlob((blob) => {
                 if (blob) {
+                    console.log('[Screenshot Helpers] Cropped blob size:', blob.size);
                     resolve(blob);
                 } else {
                     reject(new Error('Failed to create blob from canvas'));

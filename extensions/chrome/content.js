@@ -227,17 +227,29 @@
                 const element = document.querySelector(message.selector);
                 if (element) {
                     const rect = element.getBoundingClientRect();
+
+                    // Use left/top instead of x/y for better compatibility
+                    // These are relative to the viewport (what captureVisibleTab captures)
+                    const bounds = {
+                        x: rect.left,
+                        y: rect.top,
+                        width: rect.width,
+                        height: rect.height,
+                        top: rect.top,
+                        left: rect.left,
+                        right: rect.right,
+                        bottom: rect.bottom
+                    };
+
+                    console.log('[Content Script] Element bounds:', bounds);
+                    console.log('[Content Script] Window scroll:', window.scrollX, window.scrollY);
+                    console.log('[Content Script] Device pixel ratio:', window.devicePixelRatio);
+
                     sendResponse({
                         success: true,
                         bounds: {
-                            x: rect.x,
-                            y: rect.y,
-                            width: rect.width,
-                            height: rect.height,
-                            top: rect.top,
-                            left: rect.left,
-                            right: rect.right,
-                            bottom: rect.bottom
+                            ...bounds,
+                            devicePixelRatio: window.devicePixelRatio
                         }
                     });
                 } else {
