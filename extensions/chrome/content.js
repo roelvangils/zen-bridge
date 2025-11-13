@@ -292,13 +292,20 @@
         } else if (message.action === 'hideOutline') {
             // Hide the element picker outline temporarily
             try {
-                const outline = document.querySelector('[data-inspekt-outline]');
-                if (outline) {
-                    outline.style.display = 'none';
+                const element = document.querySelector('[data-inspekt-outline="true"]');
+                if (element) {
+                    // Store current outline styles so we can restore them
+                    element.setAttribute('data-inspekt-hidden-outline', element.style.outline || '');
+                    element.setAttribute('data-inspekt-hidden-outline-offset', element.style.outlineOffset || '');
+
+                    // Remove outline styles
+                    element.style.outline = 'none';
+                    element.style.outlineOffset = '';
+
                     console.log('[Content Script] Outline hidden');
                     sendResponse({ success: true });
                 } else {
-                    console.warn('[Content Script] No outline found to hide');
+                    console.warn('[Content Script] No outlined element found to hide');
                     sendResponse({ success: true }); // Not an error if outline doesn't exist
                 }
             } catch (error) {
@@ -311,13 +318,25 @@
         } else if (message.action === 'showOutline') {
             // Restore the element picker outline
             try {
-                const outline = document.querySelector('[data-inspekt-outline]');
-                if (outline) {
-                    outline.style.display = '';
+                const element = document.querySelector('[data-inspekt-outline="true"]');
+                if (element) {
+                    // Restore outline styles
+                    const hiddenOutline = element.getAttribute('data-inspekt-hidden-outline');
+                    const hiddenOffset = element.getAttribute('data-inspekt-hidden-outline-offset');
+
+                    if (hiddenOutline !== null) {
+                        element.style.outline = hiddenOutline;
+                        element.style.outlineOffset = hiddenOffset;
+
+                        // Clean up temporary attributes
+                        element.removeAttribute('data-inspekt-hidden-outline');
+                        element.removeAttribute('data-inspekt-hidden-outline-offset');
+                    }
+
                     console.log('[Content Script] Outline restored');
                     sendResponse({ success: true });
                 } else {
-                    console.warn('[Content Script] No outline found to restore');
+                    console.warn('[Content Script] No outlined element found to restore');
                     sendResponse({ success: true }); // Not an error if outline doesn't exist
                 }
             } catch (error) {
