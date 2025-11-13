@@ -30,6 +30,9 @@ chrome.tabs.onActivated.addListener((activeInfo) => {
     activeTabs.add(activeInfo.tabId);
 });
 
+// Track WebSocket connection status per tab
+const tabConnectionStatus = new Map();
+
 // Listen for messages from content script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log('[Zen Bridge] Message from content script:', message.type);
@@ -40,6 +43,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             .then(() => sendResponse({ ok: true }))
             .catch(error => sendResponse({ ok: false, error: String(error) }));
         return true; // Keep channel open for async response
+    }
+
+    if (message.type === 'WS_STATUS_UPDATE') {
+        // Update connection status and inject into main world
+        // status can be: 'connecting', true (connected), or false (disconnected)
+        const tabId = sender.tab.id;
+        const status = message.connected;
+        tabConnectionStatus.set(tabId, status);
+
+        updateConnectionStatusInMainWorld(tabId, status)
+            .then(() => sendResponse({ ok: true }))
+            .catch(error => sendResponse({ ok: false, error: String(error) }));
+        return true;
     }
 
     if (message.type === 'EXECUTE_CODE') {
@@ -68,6 +84,25 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 /**
+ * Update WebSocket connection status in main world
+ */
+async function updateConnectionStatusInMainWorld(tabId, status) {
+    try {
+        await chrome.scripting.executeScript({
+            target: { tabId: tabId },
+            world: 'MAIN',
+            func: (connectionStatus) => {
+                // Status can be: 'connecting', true (connected), or false (disconnected)
+                window.__INSPEKT_WS_CONNECTED__ = connectionStatus;
+            },
+            args: [status]
+        });
+    } catch (error) {
+        console.error('[Inspekt] Failed to update connection status:', error);
+    }
+}
+
+/**
  * Inject version variables into MAIN world
  * This must be done via background script because content scripts run in isolated world
  */
@@ -81,6 +116,9 @@ async function injectMainWorldVars(tabId) {
                 window.__ZEN_BRIDGE_VERSION__ = '4.2.1';
                 window.__ZEN_BRIDGE_EXTENSION__ = true;
                 window.__ZEN_BRIDGE_CSP_BLOCKED__ = false;
+                window.__INSPEKT_BRIDGE_VERSION__ = '4.2.1';
+                window.__INSPEKT_BRIDGE_EXTENSION__ = true;
+                window.__INSPEKT_WS_CONNECTED__ = false; // Will be updated by content script
 
                 // DevTools integration
                 if (typeof window.__ZEN_DEVTOOLS_MONITOR__ === 'undefined') {

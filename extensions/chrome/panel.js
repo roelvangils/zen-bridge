@@ -12,10 +12,15 @@ let settings = {
     showNotifications: true,
     trackHistory: true
 };
+let theme = 'auto'; // 'auto', 'light', or 'dark'
 
 // DOM elements
 const statusIndicator = document.getElementById('statusIndicator');
 const statusText = document.getElementById('statusText');
+const serverCallout = document.getElementById('serverCallout');
+const btnCopyServerCommand = document.getElementById('copyServerCommand');
+const btnThemeToggle = document.getElementById('themeToggle');
+const themeIcon = document.querySelector('.theme-icon');
 const inspectedElement = document.getElementById('inspectedElement');
 const elementHistoryContainer = document.getElementById('elementHistory');
 const btnPickElement = document.getElementById('btnPickElement');
@@ -28,6 +33,7 @@ const btnHighlight = document.getElementById('btnHighlight');
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     loadSettings();
+    loadTheme();
     setupEventListeners();
     checkConnectionStatus();
     startElementMonitoring();
@@ -59,17 +65,33 @@ function updateSettingsUI() {
 
 // Setup event listeners
 function setupEventListeners() {
+    // Theme toggle button
+    btnThemeToggle.addEventListener('click', cycleTheme);
+
+    // Server callout copy button
+    btnCopyServerCommand.addEventListener('click', () => {
+        navigator.clipboard.writeText('inspekt server start').then(() => {
+            console.log('[Inspekt Panel] Server start command copied to clipboard');
+            btnCopyServerCommand.textContent = '✓';
+            setTimeout(() => {
+                btnCopyServerCommand.textContent = '📋';
+            }, 2000);
+        }).catch(err => {
+            console.error('[Inspekt Panel] Failed to copy:', err);
+        });
+    });
+
     // Action buttons
     btnPickElement.addEventListener('click', activateElementPicker);
-    btnInspected.addEventListener('click', () => copyToClipboard('inspekt inspected', 'Command'));
-    btnCopySelector.addEventListener('click', () => {
+    btnInspected.addEventListener('click', (e) => copyToClipboard(e, 'inspekt inspected', 'Command'));
+    btnCopySelector.addEventListener('click', (e) => {
         if (currentElement && currentElement.selector) {
-            copyToClipboard(currentElement.selector, 'Selector');
+            copyToClipboard(e, currentElement.selector, 'Selector');
         }
     });
-    btnCopyCommand.addEventListener('click', () => {
+    btnCopyCommand.addEventListener('click', (e) => {
         if (currentElement && currentElement.selector) {
-            copyToClipboard(`inspekt click "${currentElement.selector}"`, 'Click command');
+            copyToClipboard(e, `inspekt click "${currentElement.selector}"`, 'Click command');
         }
     });
     btnShowInElements.addEventListener('click', showInElementsPanel);
@@ -93,30 +115,43 @@ function setupEventListeners() {
 // Check WebSocket connection status
 function checkConnectionStatus() {
     chrome.devtools.inspectedWindow.eval(
-        `fetch('http://localhost:8765', { method: 'GET' })
-            .then(() => true)
-            .catch(() => false)`,
+        `window.__INSPEKT_WS_CONNECTED__`,
         (result, error) => {
-            if (error || !result) {
-                updateConnectionStatus(false);
+            if (error) {
+                console.error('[Inspekt Panel] Error checking connection:', error);
+                updateConnectionStatus('disconnected');
             } else {
-                updateConnectionStatus(true);
+                // result can be: 'connecting', true (connected), or false (disconnected)
+                if (result === true) {
+                    updateConnectionStatus('connected');
+                } else if (result === 'connecting') {
+                    updateConnectionStatus('connecting');
+                } else {
+                    updateConnectionStatus('disconnected');
+                }
             }
         }
     );
 
-    // Recheck every 5 seconds
-    setTimeout(checkConnectionStatus, 5000);
+    // Recheck every 2 seconds for faster updates
+    setTimeout(checkConnectionStatus, 2000);
 }
 
 // Update connection status UI
-function updateConnectionStatus(connected) {
-    if (connected) {
+function updateConnectionStatus(status) {
+    // status can be: 'connected', 'connecting', or 'disconnected'
+    if (status === 'connected') {
         statusIndicator.className = 'status-indicator connected';
         statusText.textContent = 'Connected';
+        serverCallout.style.display = 'none';
+    } else if (status === 'connecting') {
+        statusIndicator.className = 'status-indicator connecting';
+        statusText.textContent = 'Connecting…';
+        serverCallout.style.display = 'none';
     } else {
         statusIndicator.className = 'status-indicator disconnected';
         statusText.textContent = 'Disconnected';
+        serverCallout.style.display = 'flex';
     }
 }
 
@@ -577,26 +612,46 @@ function highlightCurrentElement(forceNew = false) {
     );
 }
 
-// Copy to clipboard
-function copyToClipboard(text, label) {
-    navigator.clipboard.writeText(text).then(() => {
-        console.log(`[Inspekt Panel] ${label} copied to clipboard:`, text);
+// Copy to clipboard (DevTools panel compatible)
+function copyToClipboard(event, text, label) {
+    // Create a temporary textarea element (works in DevTools panels)
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
 
-        // Show visual feedback
-        const btn = event.target.closest('.action-btn');
-        if (btn) {
-            btn.classList.add('success-flash');
-            setTimeout(() => btn.classList.remove('success-flash'), 500);
-        }
+    try {
+        textarea.select();
+        textarea.setSelectionRange(0, 99999); // For mobile devices
 
-        // Show notification in console if enabled
-        if (settings.showNotifications) {
-            chrome.devtools.inspectedWindow.eval(
-                `console.log('%c[Inspekt]%c ✓ ${label} copied to clipboard',
-                    'color: #0066ff; font-weight: bold', 'color: #00aa00')`
-            );
+        const success = document.execCommand('copy');
+
+        if (success) {
+            console.log(`[Inspekt Panel] ${label} copied to clipboard:`, text);
+
+            // Show visual feedback
+            const btn = event.target.closest('.action-btn');
+            if (btn) {
+                btn.classList.add('success-flash');
+                setTimeout(() => btn.classList.remove('success-flash'), 500);
+            }
+
+            // Show notification in console if enabled
+            if (settings.showNotifications) {
+                chrome.devtools.inspectedWindow.eval(
+                    `console.log('%c[Inspekt]%c ✓ ${label} copied to clipboard',
+                        'color: #0066ff; font-weight: bold', 'color: #00aa00')`
+                );
+            }
+        } else {
+            console.error('[Inspekt Panel] Failed to copy:', label);
         }
-    });
+    } catch (err) {
+        console.error('[Inspekt Panel] Copy error:', err);
+    } finally {
+        document.body.removeChild(textarea);
+    }
 }
 
 // Get time ago string
@@ -691,4 +746,57 @@ function showInElementsPanel() {
             }
         }
     );
+}
+
+// Theme management
+function loadTheme() {
+    chrome.storage.local.get(['inspektTheme'], (result) => {
+        if (result.inspektTheme) {
+            theme = result.inspektTheme;
+        }
+        applyTheme();
+    });
+}
+
+function applyTheme() {
+    const root = document.documentElement;
+
+    // Update icon
+    const icons = {
+        'auto': '🌓',
+        'light': '☀️',
+        'dark': '🌙'
+    };
+    themeIcon.textContent = icons[theme] || '🌓';
+
+    // Update tooltip
+    btnThemeToggle.title = `Theme: ${theme.charAt(0).toUpperCase() + theme.slice(1)} (click to cycle)`;
+
+    // Apply color-scheme
+    if (theme === 'auto') {
+        root.style.colorScheme = 'light dark';
+    } else if (theme === 'light') {
+        root.style.colorScheme = 'light';
+    } else if (theme === 'dark') {
+        root.style.colorScheme = 'dark';
+    }
+}
+
+function cycleTheme() {
+    // Cycle: auto → light → dark → auto
+    if (theme === 'auto') {
+        theme = 'light';
+    } else if (theme === 'light') {
+        theme = 'dark';
+    } else {
+        theme = 'auto';
+    }
+
+    // Save preference
+    chrome.storage.local.set({ inspektTheme: theme });
+
+    // Apply
+    applyTheme();
+
+    console.log('[Inspekt Panel] Theme changed to:', theme);
 }

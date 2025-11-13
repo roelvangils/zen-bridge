@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zen Browser Bridge</title>
+    <title>Inspekt</title>
     <link rel="stylesheet" href="popup.css">
 </head>
 <body>
@@ -11,7 +11,7 @@
         <header>
             <div class="logo">
                 <span class="logo-icon">⚡</span>
-                <h1>Zen Browser Bridge</h1>
+                <h1>Inspekt</h1>
             </div>
             <div class="version" id="version">v4.2.1</div>
         </header>
@@ -27,8 +27,8 @@
             <h2>🚀 Quick Start</h2>
             <ol class="quick-start">
                 <li>Open a terminal</li>
-                <li>Start the server: <code>zen server start</code></li>
-                <li>Run commands: <code>zen eval "document.title"</code></li>
+                <li>Start the server: <code>inspekt server start</code></li>
+                <li>Run commands: <code>inspekt eval "document.title"</code></li>
             </ol>
         </section>
 
@@ -45,7 +45,7 @@
                 </li>
                 <li>
                     <strong>DevTools Integration:</strong>
-                    Use <code>zenStore($0)</code> in console
+                    Use DevTools panel or commands
                 </li>
             </ul>
         </section>
@@ -55,7 +55,7 @@
             <div id="current-domain-status" class="domain-status"></div>
             <div id="allowed-domains-list" class="domains-list"></div>
             <div class="permissions-note">
-                You must explicitly allow each domain before Zen Bridge can control it.
+                You must explicitly allow each domain before Inspekt can control it.
             </div>
         </section>
 
@@ -63,19 +63,19 @@
             <h2>📝 Common Commands</h2>
             <div class="command-list">
                 <div class="command-item">
-                    <code>zen info</code>
+                    <code>inspekt info</code>
                     <span>Show page information</span>
                 </div>
                 <div class="command-item">
-                    <code>zen describe</code>
+                    <code>inspekt describe</code>
                     <span>AI-powered page description</span>
                 </div>
                 <div class="command-item">
-                    <code>zen do "login"</code>
+                    <code>inspekt do "login"</code>
                     <span>Natural language actions</span>
                 </div>
                 <div class="command-item">
-                    <code>zen links</code>
+                    <code>inspekt links</code>
                     <span>Extract all links</span>
                 </div>
             </div>
@@ -83,15 +83,15 @@
 
         <footer>
             <div class="links">
-                <a href="https://roelvangils.github.io/zen-bridge/" target="_blank" class="link-button">
+                <a href="https://github.com/roelvangils/inspekt" target="_blank" class="link-button">
                     📖 Documentation
                 </a>
-                <a href="https://github.com/roelvangils/zen-bridge" target="_blank" class="link-button">
+                <a href="https://github.com/roelvangils/inspekt" target="_blank" class="link-button">
                     💻 GitHub
                 </a>
             </div>
             <div class="copyright">
-                © 2025 Zen Browser Bridge
+                © 2025 Inspekt by Eleven Ways
             </div>
         </footer>
     </div>
