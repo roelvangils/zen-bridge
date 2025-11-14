@@ -97,6 +97,7 @@ async def root():
             "inspection": "/api/inspection/*",
             "selection": "/api/selection/*",
             "cookies": "/api/cookies/*",
+            "storage": "/api/storage/*",
         },
     }
 
@@ -110,6 +111,7 @@ from zen.app.api.routers import (
     inspection,
     selection,
     cookies,
+    storage,
 )
 
 app.include_router(navigation.router, prefix="/api/navigation", tags=["Navigation"])
@@ -119,3 +121,4 @@ app.include_router(interaction.router, prefix="/api/interaction", tags=["Interac
 app.include_router(inspection.router, prefix="/api/inspection", tags=["Inspection"])
 app.include_router(selection.router, prefix="/api/selection", tags=["Selection"])
 app.include_router(cookies.router, prefix="/api/cookies", tags=["Cookies"])
+app.include_router(storage.router, prefix="/api/storage", tags=["Storage"])

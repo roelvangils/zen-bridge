@@ -22,6 +22,7 @@ from zen.app.cli import interaction as interaction_module
 from zen.app.cli import navigation as navigation_module
 from zen.app.cli import selection as selection_module
 from zen.app.cli import server as server_module
+from zen.app.cli import storage as storage_module
 from zen.app.cli import util as util_module
 from zen.app.cli import watch as watch_module
 
@@ -60,6 +61,9 @@ cli.add_command(navigation_module.end, name="end")  # hidden alias for bottom
 
 # Cookie management commands (from cookies.py)
 cli.add_command(cookies_module.cookies, name="cookies")  # group
+
+# Storage management commands (from storage.py)
+cli.add_command(storage_module.storage, name="storage")  # group
 
 # Interaction commands (from interaction.py)
 cli.add_command(interaction_module.type_text, name="type")
