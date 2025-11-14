@@ -988,14 +988,13 @@ body {
 }
 
 .screenshot-image {
-    width: 50%;
-    max-height: 50vh;
+    width: 75%;
+    max-height: 60vh;
     display: block;
     border-radius: 4px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15),
                 0 2px 4px rgba(0, 0, 0, 0.1);
     cursor: move;
-    transform: rotate(15deg);
     object-fit: contain;
 }
 
