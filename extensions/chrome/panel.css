@@ -985,6 +985,7 @@ body {
     padding: 60px;
     min-height: 200px;
     overflow: hidden;
+    perspective: 1000px;
 }
 
 .screenshot-image {
@@ -996,6 +997,22 @@ body {
                 0 2px 4px rgba(0, 0, 0, 0.1);
     cursor: move;
     object-fit: contain;
+    animation: flipIn 0.5s ease-out forwards;
+    transform-style: preserve-3d;
+}
+
+@keyframes flipIn {
+    0% {
+        transform: rotateX(-15deg) translateY(-30px);
+        opacity: 0;
+    }
+    50% {
+        opacity: 0.8;
+    }
+    100% {
+        transform: rotateX(0deg) translateY(0);
+        opacity: 1;
+    }
 }
 
 .screenshot-instructions {
