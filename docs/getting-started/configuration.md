@@ -6,13 +6,13 @@ Customize Inspekt for your specific workflow with comprehensive configuration op
 
 ## Configuration File Location
 
-Zen Bridge uses a JSON configuration file:
+Inspekt uses a JSON configuration file:
 
 ```
 config.json
 ```
 
-The file is located in the **project root directory** where you installed Zen Bridge.
+The file is located in the **project root directory** where you installed Inspekt.
 
 !!! tip "Create Config File"
     If `config.json` doesn't exist, create it in the project root:
@@ -201,7 +201,7 @@ Visual style for focused elements.
     }
     ```
 
-    Use Zen Bridge's custom blue outline with glow effect.
+    Use Inspekt's custom blue outline with glow effect.
 
 === "original"
 
@@ -759,7 +759,7 @@ inspektcontrol --verbose
 ```
 
 !!! note "No CLI Flags for Config"
-    Currently, Zen Bridge doesn't support command-line flags for most configuration options. Edit `config.json` to customize behavior.
+    Currently, Inspekt doesn't support command-line flags for most configuration options. Edit `config.json` to customize behavior.
 
 ---
 
@@ -835,13 +835,13 @@ print(config.control.auto_refocus)  # "only-spa"
 print(config.control.focus_color)  # "#0066ff"
 ```
 
-This is useful for building extensions or integrating Zen Bridge into other tools.
+This is useful for building extensions or integrating Inspekt into other tools.
 
 ---
 
 ## Next Steps
 
-Now that you've configured Zen Bridge to your liking:
+Now that you've configured Inspekt to your liking:
 
 <div class="grid cards" markdown>
 

@@ -21,7 +21,7 @@ from unittest import mock
 
 import pytest
 
-from zen.services.ai_integration import AIIntegrationService, get_ai_service
+from inspekt.services.ai_integration import AIIntegrationService, get_ai_service
 
 
 # =============================================================================
@@ -51,10 +51,10 @@ def service(mock_prompts_dir):
 @pytest.fixture
 def reset_singleton():
     """Reset the global singleton between tests."""
-    import zen.services.ai_integration
-    zen.services.ai_integration._default_service = None
+    import inspekt.services.ai_integration
+    inspekt.services.ai_integration._default_service = None
     yield
-    zen.services.ai_integration._default_service = None
+    inspekt.services.ai_integration._default_service = None
 
 
 # =============================================================================
@@ -96,7 +96,7 @@ def test_init_converts_string_to_path(tmp_path):
 
 def test_get_target_language_with_override(service):
     """Test that language_override takes highest priority."""
-    with mock.patch("zen.config.load_config", return_value={"ai-language": "nl"}):
+    with mock.patch("inspekt.config.load_config", return_value={"ai-language": "nl"}):
         result = service.get_target_language(
             language_override="fr",
             page_lang="en"
@@ -107,7 +107,7 @@ def test_get_target_language_with_override(service):
 
 def test_get_target_language_with_config_setting(service):
     """Test language from config when no override provided."""
-    with mock.patch("zen.config.load_config", return_value={"ai-language": "nl"}):
+    with mock.patch("inspekt.config.load_config", return_value={"ai-language": "nl"}):
         result = service.get_target_language(
             language_override=None,
             page_lang="en"
@@ -118,7 +118,7 @@ def test_get_target_language_with_config_setting(service):
 
 def test_get_target_language_with_auto_config_and_page_lang(service):
     """Test auto-detection from page_lang when config is 'auto'."""
-    with mock.patch("zen.config.load_config", return_value={"ai-language": "auto"}):
+    with mock.patch("inspekt.config.load_config", return_value={"ai-language": "auto"}):
         result = service.get_target_language(
             language_override=None,
             page_lang="de"
@@ -129,7 +129,7 @@ def test_get_target_language_with_auto_config_and_page_lang(service):
 
 def test_get_target_language_with_auto_config_no_page_lang(service):
     """Test that None is returned when config is 'auto' but no page_lang."""
-    with mock.patch("zen.config.load_config", return_value={"ai-language": "auto"}):
+    with mock.patch("inspekt.config.load_config", return_value={"ai-language": "auto"}):
         result = service.get_target_language(
             language_override=None,
             page_lang=None
@@ -140,7 +140,7 @@ def test_get_target_language_with_auto_config_no_page_lang(service):
 
 def test_get_target_language_with_defaults(service):
     """Test default behavior returns None (let AI decide)."""
-    with mock.patch("zen.config.load_config", return_value={}):
+    with mock.patch("inspekt.config.load_config", return_value={}):
         result = service.get_target_language(
             language_override=None,
             page_lang=None
@@ -151,7 +151,7 @@ def test_get_target_language_with_defaults(service):
 
 def test_get_target_language_empty_config_setting(service):
     """Test that empty config setting is treated as 'auto'."""
-    with mock.patch("zen.config.load_config", return_value={"ai-language": ""}):
+    with mock.patch("inspekt.config.load_config", return_value={"ai-language": ""}):
         result = service.get_target_language(
             language_override=None,
             page_lang="es"
@@ -579,7 +579,7 @@ def test_generate_description_extracts_page_language(service):
     """Test that generate_description extracts language from content."""
     page_structure = "**Language:** nl\n\nDutch content"
 
-    with mock.patch("zen.config.load_config", return_value={"ai-language": "auto"}):
+    with mock.patch("inspekt.config.load_config", return_value={"ai-language": "auto"}):
         with mock.patch.object(service, "load_prompt", return_value="Base"):
             with mock.patch.object(service, "format_prompt") as mock_format:
                 with mock.patch.object(service, "call_mods", return_value="Desc"):
@@ -673,7 +673,7 @@ def test_generate_summary_uses_article_language(service):
         "lang": "fr"
     }
 
-    with mock.patch("zen.config.load_config", return_value={"ai-language": "auto"}):
+    with mock.patch("inspekt.config.load_config", return_value={"ai-language": "auto"}):
         with mock.patch.object(service, "load_prompt", return_value="Base"):
             with mock.patch.object(service, "format_prompt") as mock_format:
                 with mock.patch.object(service, "call_mods", return_value="Summary"):
@@ -763,7 +763,7 @@ def test_get_ai_service_with_custom_prompts_dir(reset_singleton, tmp_path):
 
 def test_get_ai_service_initializes_once(reset_singleton):
     """Test that singleton is only initialized once."""
-    with mock.patch("zen.services.ai_integration.AIIntegrationService") as mock_class:
+    with mock.patch("inspekt.services.ai_integration.AIIntegrationService") as mock_class:
         mock_instance = mock.Mock()
         mock_class.return_value = mock_instance
 

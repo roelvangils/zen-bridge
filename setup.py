@@ -25,7 +25,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "inspekt=zen.app.cli:main",
+            "inspekt=inspekt.app.cli:main",
         ],
     },
     classifiers=[

@@ -1,5 +1,5 @@
 /**
- * Zen Browser Bridge - Content Script (Chrome)
+ * Inspekt - Content Script (Chrome)
  *
  * This script runs on every page and handles:
  * - WebSocket connection to localhost:8766

@@ -12,7 +12,7 @@ from unittest.mock import Mock, patch
 import pytest
 from click.testing import CliRunner
 
-from zen.cli import cli
+from inspekt.cli import cli
 
 
 @pytest.fixture
@@ -24,7 +24,7 @@ def runner():
 @pytest.fixture
 def mock_bridge_client_for_typing():
     """Mock BridgeClient configured for typing/pasting tests."""
-    with patch("zen.cli.BridgeClient") as mock_client_class:
+    with patch("inspekt.cli.BridgeClient") as mock_client_class:
         mock_instance = Mock()
         mock_instance.is_alive.return_value = True
 
@@ -47,7 +47,7 @@ def mock_bridge_client_for_typing():
 @pytest.fixture
 def mock_bridge_client_not_running():
     """Mock BridgeClient that simulates server not running."""
-    with patch("zen.cli.BridgeClient") as mock_client_class:
+    with patch("inspekt.cli.BridgeClient") as mock_client_class:
         mock_instance = Mock()
         mock_instance.is_alive.return_value = False
         mock_client_class.return_value = mock_instance
@@ -81,7 +81,7 @@ class TestTypeCommand:
         # Verify the script was called with delay 0
         call_args = mock_bridge_client_for_typing.execute.call_args[0][0]
         assert "DELAY_PLACEHOLDER" not in call_args
-        assert ", 0)" in call_args
+        assert ", 0, false," in call_args  # Check for delay=0, clearFirst=false
 
     def test_type_with_custom_speed(self, runner, mock_bridge_client_for_typing):
         """Test typing with custom characters per second."""
@@ -90,7 +90,7 @@ class TestTypeCommand:
         assert result.exit_code == 0
         # Verify the script was called with delay 200ms (1000ms / 5 chars per second)
         call_args = mock_bridge_client_for_typing.execute.call_args[0][0]
-        assert "200)" in call_args
+        assert ", 200, false," in call_args  # Check for delay=200, clearFirst=false
 
     def test_type_with_invalid_speed(self, runner, mock_bridge_client_for_typing):
         """Test typing with invalid speed value."""
@@ -126,7 +126,7 @@ class TestTypeCommand:
 
     def test_type_with_element_focus_error(self, runner):
         """Test type command when element focus fails."""
-        with patch("zen.cli.BridgeClient") as mock_client_class:
+        with patch("inspekt.cli.BridgeClient") as mock_client_class:
             mock_instance = Mock()
             mock_instance.is_alive.return_value = True
             # Focus fails
@@ -192,7 +192,7 @@ class TestPasteCommand:
         assert result.exit_code == 0
         # Verify the script was called with delay 0
         call_args = mock_bridge_client_for_typing.execute.call_args[0][0]
-        assert ", 0)" in call_args
+        assert ", 0, false," in call_args  # Check for delay=0, clearFirst=false
 
     def test_paste_large_text(self, runner, mock_bridge_client_for_typing):
         """Test pasting large text."""

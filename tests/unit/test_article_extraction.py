@@ -10,13 +10,13 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from zen.client import BridgeClient
+from inspekt.client import BridgeClient
 
 
 @pytest.fixture
 def mock_client():
     """Create a mock BridgeClient for testing."""
-    with patch("zen.client.BridgeClient") as mock_class:
+    with patch("inspekt.client.BridgeClient") as mock_class:
         mock_instance = Mock()
         mock_instance.is_alive.return_value = True
         mock_class.return_value = mock_instance
@@ -26,7 +26,7 @@ def mock_client():
 @pytest.fixture
 def extract_article_script():
     """Load the extract_article.js script."""
-    script_path = Path(__file__).parent.parent.parent / "zen" / "scripts" / "extract_article.js"
+    script_path = Path(__file__).parent.parent.parent / "inspekt" / "scripts" / "extract_article.js"
     with open(script_path, "r") as f:
         return f.read()
 

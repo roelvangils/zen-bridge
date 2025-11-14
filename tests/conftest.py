@@ -14,7 +14,7 @@ def project_root():
 @pytest.fixture
 def scripts_dir(project_root):
     """Return the scripts directory."""
-    return project_root / "zen" / "scripts"
+    return project_root / "inspekt" / "scripts"
 
 
 @pytest.fixture

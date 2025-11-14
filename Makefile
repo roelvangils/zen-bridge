@@ -2,7 +2,7 @@
 
 # Default target
 help:
-	@echo "Zen Bridge - Development Commands"
+	@echo "Inspekt - Development Commands"
 	@echo ""
 	@echo "Setup:"
 	@echo "  make dev          Install package in development mode with all dependencies"
@@ -52,7 +52,7 @@ clean:
 
 # Testing
 test:
-	pytest tests/ -v --cov=zen --cov-report=term-missing --cov-report=html
+	pytest tests/ -v --cov=inspekt --cov-report=term-missing --cov-report=html
 	@echo ""
 	@echo "✓ Tests complete. Coverage report: htmlcov/index.html"
 
@@ -67,14 +67,14 @@ test-e2e:
 
 # Code quality
 lint:
-	ruff check zen/ tests/
+	ruff check inspekt/ tests/
 
 format:
-	ruff format zen/ tests/
+	ruff format inspekt/ tests/
 	@echo "✓ Code formatted"
 
 typecheck:
-	mypy zen/ --config-file=pyproject.toml
+	mypy inspekt/ --config-file=pyproject.toml
 
 # Pre-commit
 pre-commit:

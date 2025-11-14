@@ -1,6 +1,6 @@
 # HTTP API Guide
 
-Zen Bridge includes a comprehensive REST API that exposes all CLI commands as HTTP endpoints. This allows you to control the browser from any HTTP client, integrate with web applications, or build custom automation workflows.
+Inspekt includes a comprehensive REST API that exposes all CLI commands as HTTP endpoints. This allows you to control the browser from any HTTP client, integrate with web applications, or build custom automation workflows.
 
 ## Quick Start
 
@@ -894,7 +894,7 @@ Use systemd or supervisor to keep it running:
 ```ini
 # /etc/systemd/system/zen-api.service
 [Unit]
-Description=Zen Bridge HTTP API
+Description=Inspekt HTTP API
 After=network.target
 
 [Service]

@@ -1,0 +1,506 @@
+"""
+Robots.txt command - Fetch and parse robots.txt files.
+
+This module provides the robots command for inspecting robots.txt files:
+- Fetches robots.txt from the current page's origin
+- Parses with RFC 9309 compliance (using protego or urllib fallback)
+- Validates syntax and reports errors/warnings
+- Outputs in human-readable or JSON format
+"""
+
+from __future__ import annotations
+
+import json
+import re
+import sys
+from typing import Any
+from urllib.parse import urlparse
+
+import click
+import requests
+
+from inspekt.services.bridge_executor import get_executor
+
+
+# Try to import protego for RFC 9309 compliance
+try:
+    from protego import Protego
+    HAS_PROTEGO = True
+except ImportError:
+    HAS_PROTEGO = False
+    # Fall back to urllib.robotparser
+    from urllib.robotparser import RobotFileParser
+
+
+@click.command()
+@click.option("--json", "output_json", is_flag=True, help="Output as JSON")
+@click.option("--validate", is_flag=True, help="Show detailed validation errors and warnings")
+@click.option("--url", "override_url", type=str, help="Specify URL to inspect (overrides current page)")
+def robots(output_json, validate, override_url):
+    """
+    Fetch and parse robots.txt for the current page.
+
+    Retrieves the robots.txt file from the current page's origin,
+    parses it according to RFC 9309, and displays the rules, sitemaps,
+    and metadata.
+
+    Examples:
+        inspekt robots
+        inspekt robots --json
+        inspekt robots --validate
+        inspekt robots --url https://example.com
+    """
+    executor = get_executor()
+
+    # Get current URL from browser or use override
+    if override_url:
+        current_url = override_url
+    else:
+        result = executor.execute("window.location.href", timeout=5.0)
+
+        if not result.get("ok"):
+            click.echo(f"Error: {result.get('error')}", err=True)
+            sys.exit(1)
+
+        response = result.get("result")
+        if isinstance(response, dict):
+            current_url = response
+        else:
+            current_url = response
+
+    # Construct robots.txt URL from origin
+    try:
+        parsed = urlparse(str(current_url))
+        if not parsed.scheme or not parsed.netloc:
+            click.echo(f"Error: Invalid URL: {current_url}", err=True)
+            sys.exit(1)
+
+        robots_url = f"{parsed.scheme}://{parsed.netloc}/robots.txt"
+    except Exception as e:
+        click.echo(f"Error parsing URL: {e}", err=True)
+        sys.exit(1)
+
+    # Fetch robots.txt
+    robots_data = _fetch_robots_txt(robots_url)
+
+    if not robots_data.get("exists"):
+        # robots.txt not found
+        if output_json:
+            click.echo(json.dumps(robots_data, indent=2))
+        else:
+            click.echo(f"robots.txt: {robots_url}")
+            click.echo(f"Status: {robots_data.get('status')} - Not Found")
+            click.echo()
+            click.echo("Interpretation: No robots.txt means all crawlers are allowed on all paths.")
+        sys.exit(0 if robots_data.get("status") == 404 else 1)
+
+    # Parse robots.txt content
+    content = robots_data.get("content", "")
+    parsed_data = _parse_robots_txt(content, robots_url)
+
+    # Combine metadata and parsed data
+    output_data = {
+        "url": robots_url,
+        "status": robots_data.get("status"),
+        "exists": robots_data.get("exists"),
+        "metadata": robots_data.get("metadata", {}),
+        **parsed_data
+    }
+
+    # Add validation if requested or in JSON mode
+    if validate or output_json:
+        validation_results = _validate_robots_txt(content, parsed_data)
+        output_data["validation"] = validation_results
+
+    # Output results
+    if output_json:
+        click.echo(json.dumps(output_data, indent=2))
+    else:
+        _display_robots_txt(output_data, validate)
+
+
+def _fetch_robots_txt(robots_url: str) -> dict[str, Any]:
+    """
+    Fetch robots.txt from the given URL.
+
+    Args:
+        robots_url: Full URL to robots.txt
+
+    Returns:
+        Dictionary with fetch results including status, metadata, and content
+    """
+    try:
+        response = requests.get(
+            robots_url,
+            timeout=5,
+            headers={"User-Agent": "Inspekt-CLI-RobotsTxt-Checker"},
+            allow_redirects=True
+        )
+
+        # Check if robots.txt is too large (RFC 9309: should be < 500KB)
+        content_length = response.headers.get("Content-Length")
+        if content_length and int(content_length) > 500 * 1024:
+            return {
+                "url": robots_url,
+                "status": 413,
+                "exists": False,
+                "error": f"robots.txt too large: {int(content_length) / 1024:.1f}KB (max 500KB per RFC 9309)"
+            }
+
+        if response.status_code == 200:
+            # Calculate actual size
+            content = response.text
+            size_bytes = len(content.encode('utf-8'))
+
+            # Extract metadata
+            metadata = {
+                "size": size_bytes,
+                "lines": len(content.splitlines()),
+                "encoding": response.encoding or "utf-8",
+                "contentType": response.headers.get("Content-Type", "unknown")
+            }
+
+            # Optional metadata
+            if last_modified := response.headers.get("Last-Modified"):
+                metadata["lastModified"] = last_modified
+
+            if etag := response.headers.get("ETag"):
+                metadata["etag"] = etag
+
+            # Check for redirects
+            if response.url != robots_url:
+                metadata["finalUrl"] = response.url
+
+            return {
+                "url": robots_url,
+                "status": 200,
+                "exists": True,
+                "content": content,
+                "metadata": metadata
+            }
+        else:
+            return {
+                "url": robots_url,
+                "status": response.status_code,
+                "exists": False,
+                "error": f"HTTP {response.status_code}"
+            }
+
+    except requests.Timeout:
+        return {
+            "url": robots_url,
+            "status": 0,
+            "exists": False,
+            "error": "Request timeout after 5 seconds"
+        }
+    except requests.ConnectionError as e:
+        return {
+            "url": robots_url,
+            "status": 0,
+            "exists": False,
+            "error": f"Connection error: {str(e)}"
+        }
+    except requests.RequestException as e:
+        return {
+            "url": robots_url,
+            "status": 0,
+            "exists": False,
+            "error": f"Request failed: {str(e)}"
+        }
+
+
+def _parse_robots_txt(content: str, robots_url: str) -> dict[str, Any]:
+    """
+    Parse robots.txt content into structured data.
+
+    Args:
+        content: Raw robots.txt content
+        robots_url: URL of the robots.txt file
+
+    Returns:
+        Dictionary with groups, sitemaps, comments, and raw content
+    """
+    if HAS_PROTEGO:
+        return _parse_with_protego(content, robots_url)
+    else:
+        return _parse_with_urllib(content, robots_url)
+
+
+def _parse_with_protego(content: str, robots_url: str) -> dict[str, Any]:
+    """Parse robots.txt using protego (RFC 9309 compliant)."""
+    rp = Protego.parse(content)
+
+    # Extract groups (user-agents with their rules)
+    groups = []
+    current_agents = []
+    current_rules = []
+    current_crawl_delay = None
+    current_request_rate = None
+
+    lines = content.splitlines()
+    for line_num, line in enumerate(lines, 1):
+        stripped = line.strip()
+
+        if not stripped or stripped.startswith('#'):
+            continue
+
+        if ':' in stripped:
+            directive, _, value = stripped.partition(':')
+            directive = directive.strip().lower()
+            value = value.strip()
+
+            if directive == 'user-agent':
+                # Start new group if we have rules
+                if current_agents and current_rules:
+                    groups.append({
+                        "userAgents": current_agents,
+                        "rules": current_rules,
+                        **({"crawlDelay": current_crawl_delay} if current_crawl_delay else {}),
+                        **({"requestRate": current_request_rate} if current_request_rate else {})
+                    })
+                    current_rules = []
+                    current_crawl_delay = None
+                    current_request_rate = None
+
+                current_agents.append(value)
+
+            elif directive in ('allow', 'disallow'):
+                current_rules.append({
+                    "directive": directive.capitalize(),
+                    "path": value,
+                    "line": line_num
+                })
+
+            elif directive == 'crawl-delay':
+                try:
+                    current_crawl_delay = float(value)
+                except ValueError:
+                    pass
+
+            elif directive == 'request-rate':
+                current_request_rate = value
+
+    # Add last group
+    if current_agents and current_rules:
+        groups.append({
+            "userAgents": current_agents,
+            "rules": current_rules,
+            **({"crawlDelay": current_crawl_delay} if current_crawl_delay else {}),
+            **({"requestRate": current_request_rate} if current_request_rate else {})
+        })
+
+    # Extract sitemaps
+    sitemaps = []
+    for line in lines:
+        if line.strip().lower().startswith('sitemap:'):
+            _, _, sitemap_url = line.partition(':')
+            sitemaps.append(sitemap_url.strip())
+
+    # Extract comments
+    comments = []
+    for line_num, line in enumerate(lines, 1):
+        if '#' in line:
+            # Handle inline comments
+            comment_start = line.index('#')
+            comment_text = line[comment_start:].strip()
+            if comment_text:
+                comments.append({
+                    "line": line_num,
+                    "text": comment_text
+                })
+
+    return {
+        "groups": groups,
+        "sitemaps": sitemaps,
+        "comments": comments,
+        "raw": content
+    }
+
+
+def _parse_with_urllib(content: str, robots_url: str) -> dict[str, Any]:
+    """Parse robots.txt using urllib.robotparser (fallback, less RFC 9309 compliant)."""
+    rp = RobotFileParser()
+    rp.parse(content.splitlines())
+
+    # Manual parsing since urllib doesn't expose structured data easily
+    groups = []
+    sitemaps = []
+    comments = []
+    current_agents = []
+    current_rules = []
+
+    lines = content.splitlines()
+    for line_num, line in enumerate(lines, 1):
+        stripped = line.strip()
+
+        if not stripped:
+            continue
+
+        if stripped.startswith('#'):
+            comments.append({
+                "line": line_num,
+                "text": stripped
+            })
+            continue
+
+        if ':' in stripped:
+            directive, _, value = stripped.partition(':')
+            directive = directive.strip().lower()
+            value = value.strip()
+
+            if directive == 'user-agent':
+                # Start new group if we have rules
+                if current_agents and current_rules:
+                    groups.append({
+                        "userAgents": current_agents,
+                        "rules": current_rules
+                    })
+                    current_rules = []
+
+                current_agents.append(value)
+
+            elif directive in ('allow', 'disallow'):
+                current_rules.append({
+                    "directive": directive.capitalize(),
+                    "path": value,
+                    "line": line_num
+                })
+
+            elif directive == 'sitemap':
+                sitemaps.append(value)
+
+    # Add last group
+    if current_agents and current_rules:
+        groups.append({
+            "userAgents": current_agents,
+            "rules": current_rules
+        })
+
+    return {
+        "groups": groups,
+        "sitemaps": sitemaps,
+        "comments": comments,
+        "raw": content
+    }
+
+
+def _validate_robots_txt(content: str, parsed_data: dict[str, Any]) -> dict[str, Any]:
+    """
+    Validate robots.txt syntax and generate warnings.
+
+    Args:
+        content: Raw robots.txt content
+        parsed_data: Parsed robots.txt data
+
+    Returns:
+        Dictionary with errors and warnings lists
+    """
+    errors = []
+    warnings = []
+
+    lines = content.splitlines()
+
+    # Check for non-standard directives
+    non_standard = ['crawl-delay', 'request-rate', 'visit-time', 'host']
+    for line_num, line in enumerate(lines, 1):
+        stripped = line.strip().lower()
+        if ':' in stripped:
+            directive = stripped.split(':', 1)[0].strip()
+            if directive in non_standard:
+                warnings.append(f"Non-standard directive '{directive}' at line {line_num} (may not be supported by all crawlers)")
+
+    # Check for invalid user-agent tokens
+    user_agent_pattern = re.compile(r'^[a-zA-Z0-9_-]+$|^\*$')
+    for group in parsed_data.get("groups", []):
+        for agent in group.get("userAgents", []):
+            if agent != '*' and not user_agent_pattern.match(agent):
+                warnings.append(f"User-agent '{agent}' contains non-standard characters")
+
+    # Check for empty groups
+    for group in parsed_data.get("groups", []):
+        if not group.get("rules"):
+            warnings.append(f"User-agent group {group.get('userAgents')} has no rules")
+
+    # Warn if using urllib instead of protego
+    if not HAS_PROTEGO:
+        warnings.append("Using urllib.robotparser instead of protego (install with: pip install protego for full RFC 9309 compliance)")
+
+    return {
+        "errors": errors,
+        "warnings": warnings
+    }
+
+
+def _display_robots_txt(data: dict[str, Any], show_validation: bool = False):
+    """
+    Display robots.txt data in human-readable format.
+
+    Args:
+        data: Parsed robots.txt data
+        show_validation: Whether to show validation results
+    """
+    click.echo(f"robots.txt: {data['url']}")
+    click.echo()
+
+    # Metadata
+    metadata = data.get("metadata", {})
+    click.echo(f"Status:          {data['status']} OK")
+
+    if last_modified := metadata.get("lastModified"):
+        click.echo(f"Last-Modified:   {last_modified}")
+
+    size = metadata.get("size", 0)
+    lines = metadata.get("lines", 0)
+    click.echo(f"Size:            {size:,} bytes ({lines} lines)")
+    click.echo(f"Encoding:        {metadata.get('encoding', 'unknown')}")
+
+    if final_url := metadata.get("finalUrl"):
+        click.echo(f"Final URL:       {final_url} (redirected)")
+
+    click.echo()
+
+    # User-agent groups
+    groups = data.get("groups", [])
+    if groups:
+        click.echo("User-agent Groups:")
+        for i, group in enumerate(groups, 1):
+            agents = ", ".join(group["userAgents"])
+            click.echo(f"  {i}. User-agent: {agents}")
+
+            for rule in group.get("rules", []):
+                directive = rule["directive"]
+                path = rule["path"]
+                click.echo(f"     • {directive}: {path}")
+
+            if crawl_delay := group.get("crawlDelay"):
+                click.echo(f"     • Crawl-delay: {crawl_delay}")
+
+            if request_rate := group.get("requestRate"):
+                click.echo(f"     • Request-rate: {request_rate}")
+
+            click.echo()
+
+    # Sitemaps
+    sitemaps = data.get("sitemaps", [])
+    if sitemaps:
+        click.echo("Sitemaps:")
+        for sitemap in sitemaps:
+            click.echo(f"  • {sitemap}")
+        click.echo()
+
+    # Validation
+    if show_validation:
+        validation = data.get("validation", {})
+        errors = validation.get("errors", [])
+        warnings = validation.get("warnings", [])
+
+        if errors or warnings:
+            click.echo("Validation:")
+            for error in errors:
+                click.echo(f"  ✗ Error: {error}")
+            for warning in warnings:
+                click.echo(f"  ⚠ Warning: {warning}")
+        else:
+            click.echo("Validation:")
+            click.echo("  ✓ No errors or warnings")
+        click.echo()

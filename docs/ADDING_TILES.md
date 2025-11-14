@@ -1,6 +1,6 @@
 # Adding New Tiles to the Quick Actions System
 
-This guide explains the modular architecture for adding new tiles (Quick Actions) to the Zen Bridge Chrome extension panel.
+This guide explains the modular architecture for adding new tiles (Quick Actions) to the Inspekt Chrome extension panel.
 
 ## Architecture Overview
 

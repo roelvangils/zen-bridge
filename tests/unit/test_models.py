@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from zen.domain.models import (
+from inspekt.domain.models import (
     ControlConfig,
     ExecuteRequest,
     ExecuteResult,

@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
-from zen.services.bridge_executor import BridgeExecutor, get_executor
+from inspekt.services.bridge_executor import BridgeExecutor, get_executor
 
 
 class TestBridgeExecutorInitialization:
@@ -38,7 +38,7 @@ class TestBridgeExecutorInitialization:
         assert executor._client is None
 
         # Access client property
-        with patch("zen.services.bridge_executor.BridgeClient") as mock_client_class:
+        with patch("inspekt.services.bridge_executor.BridgeClient") as mock_client_class:
             client = executor.client
             mock_client_class.assert_called_once_with(host="127.0.0.1", port=8765)
             assert executor._client is not None
@@ -47,7 +47,7 @@ class TestBridgeExecutorInitialization:
         """Test that multiple accesses to client property return same instance."""
         executor = BridgeExecutor()
 
-        with patch("zen.services.bridge_executor.BridgeClient") as mock_client_class:
+        with patch("inspekt.services.bridge_executor.BridgeClient") as mock_client_class:
             mock_instance = Mock()
             mock_client_class.return_value = mock_instance
 
@@ -81,7 +81,7 @@ class TestServerStatusChecking:
         assert executor.is_server_running() is False
         executor._client.is_alive.assert_called_once()
 
-    @patch("zen.services.bridge_executor.click.echo")
+    @patch("inspekt.services.bridge_executor.click.echo")
     def test_ensure_server_running_success(self, mock_echo):
         """Test ensure_server_running() when server is running."""
         executor = BridgeExecutor()
@@ -92,8 +92,8 @@ class TestServerStatusChecking:
         executor.ensure_server_running()
         mock_echo.assert_not_called()
 
-    @patch("zen.services.bridge_executor.click.echo")
-    @patch("zen.services.bridge_executor.sys.exit")
+    @patch("inspekt.services.bridge_executor.click.echo")
+    @patch("inspekt.services.bridge_executor.sys.exit")
     def test_ensure_server_running_failure(self, mock_exit, mock_echo):
         """Test ensure_server_running() when server is not running (should exit)."""
         executor = BridgeExecutor()
@@ -103,7 +103,7 @@ class TestServerStatusChecking:
         executor.ensure_server_running()
 
         mock_echo.assert_called_once_with(
-            "Error: Bridge server is not running. Start it with: zen server start",
+            "Error: Bridge server is not running. Start it with: inspekt server start",
             err=True,
         )
         mock_exit.assert_called_once_with(1)
@@ -112,7 +112,7 @@ class TestServerStatusChecking:
 class TestCodeExecution:
     """Test code execution methods."""
 
-    @patch("zen.services.bridge_executor.click.echo")
+    @patch("inspekt.services.bridge_executor.click.echo")
     def test_execute_success(self, mock_echo):
         """Test execute() with successful execution."""
         executor = BridgeExecutor()
@@ -133,8 +133,8 @@ class TestCodeExecution:
         )
         mock_echo.assert_not_called()
 
-    @patch("zen.services.bridge_executor.time.sleep")
-    @patch("zen.services.bridge_executor.click.echo")
+    @patch("inspekt.services.bridge_executor.time.sleep")
+    @patch("inspekt.services.bridge_executor.click.echo")
     def test_execute_with_timeout_and_retry_logic(self, mock_echo, mock_sleep):
         """Test execute() with timeout and retry logic."""
         executor = BridgeExecutor(max_retries=3, retry_delay=0.5)
@@ -168,9 +168,9 @@ class TestCodeExecution:
         mock_sleep.assert_any_call(0.5)
         mock_sleep.assert_any_call(1.0)
 
-    @patch("zen.services.bridge_executor.time.sleep")
-    @patch("zen.services.bridge_executor.click.echo")
-    @patch("zen.services.bridge_executor.sys.exit")
+    @patch("inspekt.services.bridge_executor.time.sleep")
+    @patch("inspekt.services.bridge_executor.click.echo")
+    @patch("inspekt.services.bridge_executor.sys.exit")
     def test_execute_timeout_failure(self, mock_exit, mock_echo, mock_sleep):
         """Test execute() with TimeoutError that exhausts retries."""
         # Make sys.exit raise SystemExit to stop execution
@@ -191,8 +191,8 @@ class TestCodeExecution:
         assert "Error:" in str(final_call)
         mock_exit.assert_called_with(1)
 
-    @patch("zen.services.bridge_executor.click.echo")
-    @patch("zen.services.bridge_executor.sys.exit")
+    @patch("inspekt.services.bridge_executor.click.echo")
+    @patch("inspekt.services.bridge_executor.sys.exit")
     def test_execute_connection_error(self, mock_exit, mock_echo):
         """Test execute() with ConnectionError."""
         # Make sys.exit raise SystemExit to stop execution
@@ -210,8 +210,8 @@ class TestCodeExecution:
         mock_echo.assert_any_call("Error: Connection failed", err=True)
         mock_exit.assert_called_with(1)
 
-    @patch("zen.services.bridge_executor.click.echo")
-    @patch("zen.services.bridge_executor.sys.exit")
+    @patch("inspekt.services.bridge_executor.click.echo")
+    @patch("inspekt.services.bridge_executor.sys.exit")
     def test_execute_runtime_error(self, mock_exit, mock_echo):
         """Test execute() with RuntimeError."""
         # Make sys.exit raise SystemExit to stop execution
@@ -229,7 +229,7 @@ class TestCodeExecution:
         mock_echo.assert_any_call("Error: Script execution failed", err=True)
         mock_exit.assert_called_with(1)
 
-    @patch("zen.services.bridge_executor.click.echo")
+    @patch("inspekt.services.bridge_executor.click.echo")
     def test_execute_retry_on_timeout_false(self, mock_echo):
         """Test execute() with retry_on_timeout=False uses single attempt."""
         executor = BridgeExecutor(max_retries=5)
@@ -247,7 +247,7 @@ class TestCodeExecution:
 class TestFileExecution:
     """Test file execution methods."""
 
-    @patch("zen.services.bridge_executor.click.echo")
+    @patch("inspekt.services.bridge_executor.click.echo")
     @patch("builtins.open", create=True)
     def test_execute_file_success(self, mock_open, mock_echo):
         """Test execute_file() with successful file read and execution."""
@@ -268,8 +268,8 @@ class TestFileExecution:
             "console.log('from file');", timeout=10.0
         )
 
-    @patch("zen.services.bridge_executor.sys.exit")
-    @patch("zen.services.bridge_executor.click.echo")
+    @patch("inspekt.services.bridge_executor.sys.exit")
+    @patch("inspekt.services.bridge_executor.click.echo")
     @patch("builtins.open", create=True)
     def test_execute_file_with_missing_file(self, mock_open, mock_echo, mock_exit):
         """Test execute_file() with FileNotFoundError."""
@@ -287,8 +287,8 @@ class TestFileExecution:
         )
         mock_exit.assert_called_with(1)
 
-    @patch("zen.services.bridge_executor.sys.exit")
-    @patch("zen.services.bridge_executor.click.echo")
+    @patch("inspekt.services.bridge_executor.sys.exit")
+    @patch("inspekt.services.bridge_executor.click.echo")
     @patch("builtins.open", create=True)
     def test_execute_file_with_io_error(self, mock_open, mock_echo, mock_exit):
         """Test execute_file() with IOError."""
@@ -306,7 +306,7 @@ class TestFileExecution:
         )
         mock_exit.assert_called_with(1)
 
-    @patch("zen.services.bridge_executor.click.echo")
+    @patch("inspekt.services.bridge_executor.click.echo")
     @patch("builtins.open", create=True)
     def test_execute_file_with_custom_timeout(self, mock_open, mock_echo):
         """Test execute_file() with custom timeout and retry settings."""
@@ -327,8 +327,8 @@ class TestFileExecution:
 class TestScriptExecutionWithTemplates:
     """Test script execution with template substitution."""
 
-    @patch("zen.services.script_loader.ScriptLoader")
-    @patch("zen.services.bridge_executor.click.echo")
+    @patch("inspekt.services.script_loader.ScriptLoader")
+    @patch("inspekt.services.bridge_executor.click.echo")
     def test_execute_with_script_success(self, mock_echo, mock_loader_class):
         """Test execute_with_script() success."""
         mock_loader = Mock()
@@ -350,8 +350,8 @@ class TestScriptExecutionWithTemplates:
             "console.log('loaded script');", timeout=10.0
         )
 
-    @patch("zen.services.script_loader.ScriptLoader")
-    @patch("zen.services.bridge_executor.click.echo")
+    @patch("inspekt.services.script_loader.ScriptLoader")
+    @patch("inspekt.services.bridge_executor.click.echo")
     def test_execute_with_script_with_substitutions(self, mock_echo, mock_loader_class):
         """Test execute_with_script() with template substitutions."""
         mock_loader = Mock()
@@ -376,9 +376,9 @@ class TestScriptExecutionWithTemplates:
             "const action = 'start';", timeout=15.0
         )
 
-    @patch("zen.services.script_loader.ScriptLoader")
-    @patch("zen.services.bridge_executor.sys.exit")
-    @patch("zen.services.bridge_executor.click.echo")
+    @patch("inspekt.services.script_loader.ScriptLoader")
+    @patch("inspekt.services.bridge_executor.sys.exit")
+    @patch("inspekt.services.bridge_executor.click.echo")
     def test_execute_with_script_missing_script(
         self, mock_echo, mock_exit, mock_loader_class
     ):
@@ -402,8 +402,8 @@ class TestScriptExecutionWithTemplates:
         )
         mock_exit.assert_called_with(1)
 
-    @patch("zen.services.script_loader.ScriptLoader")
-    @patch("zen.services.bridge_executor.click.echo")
+    @patch("inspekt.services.script_loader.ScriptLoader")
+    @patch("inspekt.services.bridge_executor.click.echo")
     def test_execute_with_script_with_retry_on_timeout(
         self, mock_echo, mock_loader_class
     ):
@@ -426,7 +426,7 @@ class TestScriptExecutionWithTemplates:
 class TestResultChecking:
     """Test result checking methods."""
 
-    @patch("zen.services.bridge_executor.click.echo")
+    @patch("inspekt.services.bridge_executor.click.echo")
     def test_check_result_ok_with_successful_result(self, mock_echo):
         """Test check_result_ok() with successful result."""
         executor = BridgeExecutor()
@@ -436,8 +436,8 @@ class TestResultChecking:
         executor.check_result_ok(result)
         mock_echo.assert_not_called()
 
-    @patch("zen.services.bridge_executor.click.echo")
-    @patch("zen.services.bridge_executor.sys.exit")
+    @patch("inspekt.services.bridge_executor.click.echo")
+    @patch("inspekt.services.bridge_executor.sys.exit")
     def test_check_result_ok_with_failed_result(self, mock_exit, mock_echo):
         """Test check_result_ok() with failed result (should exit)."""
         executor = BridgeExecutor()
@@ -450,8 +450,8 @@ class TestResultChecking:
         )
         mock_exit.assert_called_once_with(1)
 
-    @patch("zen.services.bridge_executor.click.echo")
-    @patch("zen.services.bridge_executor.sys.exit")
+    @patch("inspekt.services.bridge_executor.click.echo")
+    @patch("inspekt.services.bridge_executor.sys.exit")
     def test_check_result_ok_with_unknown_error(self, mock_exit, mock_echo):
         """Test check_result_ok() with result missing error message."""
         executor = BridgeExecutor()
@@ -462,12 +462,12 @@ class TestResultChecking:
         mock_echo.assert_called_once_with("Error: Unknown error", err=True)
         mock_exit.assert_called_once_with(1)
 
-    @patch("zen.services.bridge_executor.click.echo")
+    @patch("inspekt.services.bridge_executor.click.echo")
     def test_check_result_ok_with_missing_ok_field(self, mock_echo):
         """Test check_result_ok() when 'ok' field is missing (treated as falsy)."""
         executor = BridgeExecutor()
 
-        with patch("zen.services.bridge_executor.sys.exit") as mock_exit:
+        with patch("inspekt.services.bridge_executor.sys.exit") as mock_exit:
             result = {"result": "something"}  # Missing 'ok' field
 
             executor.check_result_ok(result)
@@ -553,9 +553,9 @@ class TestSingletonPattern:
     def test_get_executor_returns_instance(self):
         """Test get_executor() returns a BridgeExecutor instance."""
         # Reset global state
-        import zen.services.bridge_executor
+        import inspekt.services.bridge_executor
 
-        zen.services.bridge_executor._default_executor = None
+        inspekt.services.bridge_executor._default_executor = None
 
         executor = get_executor()
 
@@ -567,9 +567,9 @@ class TestSingletonPattern:
     def test_get_executor_returns_same_instance(self):
         """Test get_executor() returns same instance (singleton)."""
         # Reset global state
-        import zen.services.bridge_executor
+        import inspekt.services.bridge_executor
 
-        zen.services.bridge_executor._default_executor = None
+        inspekt.services.bridge_executor._default_executor = None
 
         executor1 = get_executor()
         executor2 = get_executor()
@@ -579,9 +579,9 @@ class TestSingletonPattern:
     def test_get_executor_with_custom_parameters(self):
         """Test get_executor() with custom parameters."""
         # Reset global state
-        import zen.services.bridge_executor
+        import inspekt.services.bridge_executor
 
-        zen.services.bridge_executor._default_executor = None
+        inspekt.services.bridge_executor._default_executor = None
 
         executor = get_executor(host="localhost", port=9000, max_retries=5)
 
@@ -592,9 +592,9 @@ class TestSingletonPattern:
     def test_get_executor_ignores_parameters_after_first_call(self):
         """Test get_executor() ignores parameters on subsequent calls (singleton)."""
         # Reset global state
-        import zen.services.bridge_executor
+        import inspekt.services.bridge_executor
 
-        zen.services.bridge_executor._default_executor = None
+        inspekt.services.bridge_executor._default_executor = None
 
         executor1 = get_executor(host="first", port=1111, max_retries=1)
         executor2 = get_executor(host="second", port=2222, max_retries=2)

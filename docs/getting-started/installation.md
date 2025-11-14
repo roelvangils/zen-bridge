@@ -198,7 +198,7 @@ First, install a userscript manager extension in your browser:
     - [Firefox](https://addons.mozilla.org/firefox/addon/greasemonkey/)
 
 !!! note "Browser Compatibility"
-    Zen Bridge works with any browser that supports userscript managers and WebSockets. This includes all modern browsers.
+    Inspekt works with any browser that supports userscript managers and WebSockets. This includes all modern browsers.
 
 !!! warning "CSP Limitations"
     The userscript may be blocked by Content Security Policy on sites like:
@@ -249,7 +249,7 @@ The userscript will automatically enable itself.
 To verify the userscript is running:
 
 1. Open your browser's **Developer Console** (++f12++ or ++cmd+opt+i++)
-2. Look for a message like: **"Zen Bridge userscript loaded"**
+2. Look for a message like: **"Inspekt userscript loaded"**
 3. Check that the userscript manager shows the script as **enabled**
 
 !!! warning "Userscript Scope"
@@ -297,7 +297,7 @@ You can start the server in foreground or background mode:
 
     Example output:
     ```
-    Starting Zen Bridge WebSocket server...
+    Starting Inspekt WebSocket server...
     HTTP API server: http://127.0.0.1:8765
     WebSocket server: ws://127.0.0.1:8766
     Server is ready! Waiting for browser connections...
@@ -349,8 +349,8 @@ Now let's verify that everything is working together:
 In the browser's Developer Console (++f12++), you should see:
 
 ```
-Zen Bridge userscript loaded
-Connected to Zen Bridge WebSocket server
+Inspekt userscript loaded
+Connected to Inspekt WebSocket server
 ```
 
 ### 4.3 Execute a Test Command
@@ -467,7 +467,7 @@ inspektrepl
 2. **Check browser console for errors**
    - Open DevTools (++f12++)
    - Look for WebSocket connection errors
-   - Ensure you see "Connected to Zen Bridge WebSocket server"
+   - Ensure you see "Connected to Inspekt WebSocket server"
 
 3. **Ensure tab is active**
    - The userscript only works in the currently active browser tab
@@ -531,7 +531,7 @@ inspektrepl
 
 ### Python Version Issues
 
-**Problem**: Zen Bridge requires Python 3.11+, but you have an older version.
+**Problem**: Inspekt requires Python 3.11+, but you have an older version.
 
 **Solution**: Upgrade Python:
 
@@ -578,7 +578,7 @@ rm -rf ~/inspekt
 ### 3. Remove Browser Userscript
 
 1. Click userscript manager icon
-2. Find "Zen Bridge" script
+2. Find "Inspekt" script
 3. Delete or disable the script
 
 ---
@@ -596,5 +596,5 @@ Now that you have Inspekt installed, continue with:
 ## Additional Resources
 
 - **[GitHub Repository](https://github.com/roelvangils/inspekt)** - Source code and issues
-- **[Architecture Guide](../development/architecture.md)** - How Zen Bridge works internally
+- **[Architecture Guide](../development/architecture.md)** - How Inspekt works internally
 - **[Security Guide](../development/security.md)** - Security model and best practices

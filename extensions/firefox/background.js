@@ -1,5 +1,5 @@
 /**
- * Zen Browser Bridge - Background Script
+ * Inspekt - Background Script
  *
  * This script runs in the extension background and handles:
  * - CSP bypass using tabs.executeScript API
@@ -7,7 +7,7 @@
  * - Extension lifecycle management
  */
 
-console.log('[Zen Bridge Extension] Background script loaded');
+console.log('[Inspekt Extension] Background script loaded');
 
 // Track which tabs have Zen Bridge active
 const activeTabs = new Set();
@@ -15,7 +15,7 @@ const activeTabs = new Set();
 // Listen for tab updates to inject into new pages
 browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (changeInfo.status === 'complete' && tab.active) {
-        console.log('[Zen Bridge] Tab updated:', tab.url);
+        console.log('[Inspekt] Tab updated:', tab.url);
         activeTabs.add(tabId);
     }
 });
@@ -32,7 +32,7 @@ browser.tabs.onActivated.addListener((activeInfo) => {
 
 // Listen for messages from content script
 browser.runtime.onMessage.addListener((message, sender) => {
-    console.log('[Zen Bridge] Message from content script:', message.type);
+    console.log('[Inspekt] Message from content script:', message.type);
 
     if (message.type === 'EXECUTE_CODE') {
         // Execute code with CSP bypass
@@ -54,7 +54,7 @@ browser.runtime.onMessage.addListener((message, sender) => {
  */
 async function executeWithCSPBypass(tabId, code, requestId) {
     try {
-        console.log('[Zen Bridge] Executing code in tab', tabId, 'with CSP bypass');
+        console.log('[Inspekt] Executing code in tab', tabId, 'with CSP bypass');
 
         // UNIVERSAL APPROACH: No detection, no branching
         // Works for expressions, statements, IIFEs, promises, everything
@@ -93,7 +93,7 @@ async function executeWithCSPBypass(tabId, code, requestId) {
 
         if (results && results[0]) {
             const executionResult = results[0];
-            console.log('[Zen Bridge] Execution successful');
+            console.log('[Inspekt] Execution successful');
 
             return {
                 ok: executionResult.ok,
@@ -111,7 +111,7 @@ async function executeWithCSPBypass(tabId, code, requestId) {
         };
 
     } catch (error) {
-        console.error('[Zen Bridge] Execution error:', error);
+        console.error('[Inspekt] Execution error:', error);
         return {
             ok: false,
             result: null,
@@ -122,5 +122,5 @@ async function executeWithCSPBypass(tabId, code, requestId) {
 }
 
 // Log extension initialization
-console.log('[Zen Bridge Extension] Version:', browser.runtime.getManifest().version);
-console.log('[Zen Bridge Extension] CSP bypass active - works on all websites!');
+console.log('[Inspekt Extension] Version:', browser.runtime.getManifest().version);
+console.log('[Inspekt Extension] CSP bypass active - works on all websites!');

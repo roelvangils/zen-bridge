@@ -53,7 +53,7 @@ The userscript runs in your browser and needs to be updated separately from the 
 **To check manually:**
 
 1. Open Tampermonkey/Violentmonkey dashboard
-2. Find "Zen Browser Bridge (WebSocket)"
+2. Find "Inspekt (WebSocket)"
 3. Click the "Check for updates" button
 4. Install if an update is available
 
@@ -62,7 +62,7 @@ The userscript runs in your browser and needs to be updated separately from the 
 If you have version 3.4 or earlier (without auto-update):
 
 1. **Open Tampermonkey/Violentmonkey dashboard**
-2. **Delete the old "Zen Browser Bridge" script**
+2. **Delete the old "Inspekt" script**
 3. **Visit the raw userscript file:**
    ```
    https://raw.githubusercontent.com/roelvangils/zen-bridge/main/userscript_ws.js
@@ -171,7 +171,7 @@ You may have version 3.4 or earlier without auto-update support. Use the manual 
 **Issue: Two versions installed**
 
 1. Open Tampermonkey/Violentmonkey dashboard
-2. Look for duplicate "Zen Browser Bridge" entries
+2. Look for duplicate "Inspekt" entries
 3. Delete the older version (check version number in script header)
 4. Keep only the latest version
 

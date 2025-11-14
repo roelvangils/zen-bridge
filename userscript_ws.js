@@ -1,23 +1,23 @@
 // ==UserScript==
-// @name         Zen Browser Bridge (WebSocket)
-// @namespace    zen-bridge
+// @name         Inspekt (WebSocket)
+// @namespace    inspekt
 // @version      3.5
-// @description  Execute JavaScript in the active tab via Zen CLI (WebSocket version)
+// @description  Execute JavaScript in the active tab via Inspekt CLI (WebSocket version)
 // @match        *://*/*
 // @run-at       document-idle
 // @grant        none
 // @connect      127.0.0.1
 // @connect      localhost
-// @updateURL    https://raw.githubusercontent.com/roelvangils/zen-bridge/main/userscript_ws.js
-// @downloadURL  https://raw.githubusercontent.com/roelvangils/zen-bridge/main/userscript_ws.js
+// @updateURL    https://raw.githubusercontent.com/roelvangils/inspekt/main/userscript_ws.js
+// @downloadURL  https://raw.githubusercontent.com/roelvangils/inspekt/main/userscript_ws.js
 // ==/UserScript==
 
 (function () {
     'use strict';
 
     // Expose version for CLI to read
-    window.__ZEN_BRIDGE_VERSION__ = '3.5';
-    window.__ZEN_BRIDGE_CSP_BLOCKED__ = false;
+    window.__INSPEKT_BRIDGE_VERSION__ = '3.5';
+    window.__INSPEKT_BRIDGE_CSP_BLOCKED__ = false;
 
     const WS_URL = 'ws://127.0.0.1:8766/ws'; // WebSocket URL
     let ws = null;
@@ -27,7 +27,7 @@
     let connectionAttempts = 0;
 
     // Store WebSocket globally so it persists across page navigations
-    window.__zen_ws__ = null;
+    window.__inspekt_ws__ = null;
 
     function isFrontTab() {
         // Only execute in the visible top-level frame
@@ -100,20 +100,20 @@
             return; // Don't attempt connection
         }
 
-        console.log('[Zen Bridge] Connecting to WebSocket server...');
+        console.log('[Inspekt] Connecting to WebSocket server...');
 
         try {
             ws = new WebSocket(WS_URL);
 
             ws.onopen = () => {
-                console.log('%c[Zen Bridge]%c Connected via WebSocket', 'color: #0066ff; font-weight: bold', 'color: inherit');
+                console.log('%c[Inspekt]%c Connected via WebSocket', 'color: #0066ff; font-weight: bold', 'color: inherit');
                 // Clear reconnect timer if it exists
                 if (reconnectTimer) {
                     clearTimeout(reconnectTimer);
                     reconnectTimer = null;
                 }
                 // Store globally
-                window.__zen_ws__ = ws;
+                window.__inspekt_ws__ = ws;
             };
 
             ws.onmessage = async (event) => {
@@ -166,14 +166,14 @@
                     }
 
                 } catch (err) {
-                    console.error('[Zen Bridge] Error handling message:', err);
+                    console.error('[Inspekt] Error handling message:', err);
                 }
             };
 
             ws.onclose = (event) => {
-                console.log('[Zen Bridge] Disconnected (code:', event.code, 'reason:', event.reason || 'none', '). Reconnecting...');
+                console.log('[Inspekt] Disconnected (code:', event.code, 'reason:', event.reason || 'none', '). Reconnecting...');
                 ws = null;
-                window.__zen_ws__ = null;
+                window.__inspekt_ws__ = null;
                 scheduleReconnect();
             };
 
@@ -183,7 +183,7 @@
                     // Multiple failed connections might indicate CSP
                     showCSPWarning('repeated-connection-failures');
                 } else {
-                    console.error('[Zen Bridge] WebSocket error:', error);
+                    console.error('[Inspekt] WebSocket error:', error);
                 }
             };
 
@@ -193,7 +193,7 @@
             if (errMsg.includes('CSP') || errMsg.includes('Content Security Policy') || errMsg.includes('connect-src')) {
                 showCSPWarning('connection-error');
             } else {
-                console.error('[Zen Bridge] Failed to connect:', err);
+                console.error('[Inspekt] Failed to connect:', err);
             }
             scheduleReconnect();
         }
@@ -229,28 +229,28 @@
     if (typeof window.__ZEN_DEVTOOLS_MONITOR__ === 'undefined') {
         window.__ZEN_DEVTOOLS_MONITOR__ = true;
 
-        // Expose zenStore function for manual element capture
-        window.zenStore = function(element) {
+        // Expose inspektStore function for manual element capture
+        window.inspektStore = function(element) {
             if (element && element.nodeType === 1) {
                 window.__ZEN_INSPECTED_ELEMENT__ = element;
                 const tag = element.tagName.toLowerCase();
                 const id = element.id ? '#' + element.id : '';
                 const cls = element.className && typeof element.className === 'string' ?
                     '.' + element.className.split(' ').filter(c => c).join('.') : '';
-                console.log('%c[Zen Bridge]%c ✓ Element stored: <' + tag + id + cls + '>',
+                console.log('%c[Inspekt]%c ✓ Element stored: <' + tag + id + cls + '>',
                     'color: #0066ff; font-weight: bold', 'color: #00aa00');
-                console.log('[Zen Bridge] Run in terminal: zen inspected');
+                console.log('[Inspekt] Run in terminal: inspekt inspected');
                 return 'Stored: <' + tag + id + cls + '>';
             }
-            console.error('[Zen Bridge] ✗ Invalid element. Usage: zenStore($0) or zenStore(document.querySelector(".selector"))');
+            console.error('[Inspekt] ✗ Invalid element. Usage: inspektStore($0) or inspektStore(document.querySelector(".selector"))');
             return 'ERROR: Please provide a valid element';
         };
 
-        console.log('%c[Zen Bridge]%c DevTools integration ready', 'color: #0066ff; font-weight: bold', 'color: inherit');
-        console.log('[Zen Bridge] To capture inspected element:');
+        console.log('%c[Inspekt]%c DevTools integration ready', 'color: #0066ff; font-weight: bold', 'color: inherit');
+        console.log('[Inspekt] To capture inspected element:');
         console.log('  1. Right-click element → Inspect');
-        console.log('  2. In DevTools Console: zenStore($0)');
-        console.log('  3. In terminal: zen inspected');
+        console.log('  2. In DevTools Console: inspektStore($0)');
+        console.log('  3. In terminal: inspekt inspected');
     }
 
     // Initial connection
@@ -262,33 +262,33 @@
     function autoRestartControl() {
         try {
             const wasActive = sessionStorage.getItem('__ZEN_CONTROL_ACTIVE__');
-            console.log('[Zen Bridge] Checking control state... wasActive:', wasActive);
+            console.log('[Inspekt] Checking control state... wasActive:', wasActive);
 
             if (wasActive === 'true') {
                 const configStr = sessionStorage.getItem('__ZEN_CONTROL_CONFIG__');
                 const selectorsStr = sessionStorage.getItem('__ZEN_CONTROL_REFOCUS_SELECTORS__');
                 const config = configStr ? JSON.parse(configStr) : {};
 
-                console.log('[Zen Bridge] Control was active, will auto-restart');
-                console.log('[Zen Bridge] Config:', config);
-                console.log('[Zen Bridge] Has refocus selectors:', !!selectorsStr);
+                console.log('[Inspekt] Control was active, will auto-restart');
+                console.log('[Inspekt] Config:', config);
+                console.log('[Inspekt] Has refocus selectors:', !!selectorsStr);
 
                 // Directly re-initialize control mode with minimal setup
                 setTimeout(() => {
                     if (window.__ZEN_CONTROL_ACTIVE__) {
-                        console.log('[Zen Bridge] Already restarted, skipping');
+                        console.log('[Inspekt] Already restarted, skipping');
                         return; // Already restarted
                     }
 
-                    console.log('[Zen Bridge] Restoring control state...');
+                    console.log('[Inspekt] Restoring control state...');
                     window.__ZEN_CONTROL_ACTIVE__ = true;
                     window.__ZEN_CONTROL_CURRENT_ELEMENT__ = document.activeElement || document.body;
 
                     // Recreate the visual highlight styles
                     const focusOutlineMode = config['focus-outline'] || 'custom';
-                    if (focusOutlineMode !== 'none' && !document.getElementById('zen-control-styles')) {
+                    if (focusOutlineMode !== 'none' && !document.getElementById('inspekt-control-styles')) {
                         const style = document.createElement('style');
-                        style.id = 'zen-control-styles';
+                        style.id = 'inspekt-control-styles';
                         const focusColor = config['focus-color'] || '#0066ff';
                         const focusSize = config['focus-size'] || 3;
                         const focusGlow = config['focus-glow'] !== false;
@@ -305,11 +305,11 @@
                         }
 
                         const boxShadow = focusGlow ? `0 0 0 2px ${glowColor}, 0 0 12px ${glowColorBright}` : 'none';
-                        const animation = focusAnimation ? 'zen-pulse 2s infinite' : 'none';
+                        const animation = focusAnimation ? 'inspekt-pulse 2s infinite' : 'none';
 
                         style.textContent = `
-                            [data-zen-control-focus] { position: relative !important; }
-                            [data-zen-control-focus]::after {
+                            [data-inspekt-control-focus] { position: relative !important; }
+                            [data-inspekt-control-focus]::after {
                                 content: '' !important; position: absolute !important;
                                 top: -${focusSize + 1}px !important; left: -${focusSize + 1}px !important;
                                 right: -${focusSize + 1}px !important; bottom: -${focusSize + 1}px !important;
@@ -319,46 +319,46 @@
                                 box-shadow: ${boxShadow} !important;
                                 animation: ${animation} !important;
                             }
-                            @keyframes zen-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+                            @keyframes inspekt-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
                         `;
                         document.head.appendChild(style);
                     }
 
-                    console.log('%c[Zen Bridge]%c ✓ Control mode automatically restarted after page load',
+                    console.log('%c[Inspekt]%c ✓ Control mode automatically restarted after page load',
                         'color: #0066ff; font-weight: bold', 'color: #00aa00');
 
                     // Check if we need to refocus an element
                     if (selectorsStr) {
                         const selectors = JSON.parse(selectorsStr);
-                        console.log('[Zen Bridge] Will attempt refocus with selectors:', selectors);
+                        console.log('[Inspekt] Will attempt refocus with selectors:', selectors);
                         // We'll handle refocus after the CLI reinitializes all the helper functions
                         window.__ZEN_CONTROL_REFOCUS_SELECTORS__ = selectors;
                         const initialUrl = sessionStorage.getItem('__ZEN_CONTROL_INITIAL_URL__');
                         window.__ZEN_CONTROL_INITIAL_URL__ = initialUrl;
 
                         // Automatically request full reinitialization via WebSocket
-                        console.log('[Zen Bridge] Requesting automatic reinitialization via WebSocket...');
+                        console.log('[Inspekt] Requesting automatic reinitialization via WebSocket...');
 
                         // Function to send reinit request
                         const sendReinitRequest = () => {
-                            if (window.__zen_ws__ && window.__zen_ws__.readyState === WebSocket.OPEN) {
-                                window.__zen_ws__.send(JSON.stringify({
+                            if (window.__inspekt_ws__ && window.__inspekt_ws__.readyState === WebSocket.OPEN) {
+                                window.__inspekt_ws__.send(JSON.stringify({
                                     type: 'reinit_control',
                                     config: config
                                 }));
-                                console.log('[Zen Bridge] Auto-reinitialization request sent via WebSocket');
+                                console.log('[Inspekt] Auto-reinitialization request sent via WebSocket');
                             } else {
-                                console.log('[Zen Bridge] WebSocket not ready, will send when connected');
+                                console.log('[Inspekt] WebSocket not ready, will send when connected');
                                 // Set up one-time listener for when WebSocket connects
-                                if (window.__zen_ws__) {
-                                    const originalOnOpen = window.__zen_ws__.onopen;
-                                    window.__zen_ws__.onopen = (event) => {
-                                        if (originalOnOpen) originalOnOpen.call(window.__zen_ws__, event);
-                                        window.__zen_ws__.send(JSON.stringify({
+                                if (window.__inspekt_ws__) {
+                                    const originalOnOpen = window.__inspekt_ws__.onopen;
+                                    window.__inspekt_ws__.onopen = (event) => {
+                                        if (originalOnOpen) originalOnOpen.call(window.__inspekt_ws__, event);
+                                        window.__inspekt_ws__.send(JSON.stringify({
                                             type: 'reinit_control',
                                             config: config
                                         }));
-                                        console.log('[Zen Bridge] Auto-reinitialization request sent (on connect)');
+                                        console.log('[Inspekt] Auto-reinitialization request sent (on connect)');
                                     };
                                 } else {
                                     // WebSocket not created yet, will be handled by connect() flow
@@ -371,10 +371,10 @@
                     }
                 }, 50);
             } else {
-                console.log('[Zen Bridge] Control was not active, no auto-restart needed');
+                console.log('[Inspekt] Control was not active, no auto-restart needed');
             }
         } catch (e) {
-            console.error('[Zen Bridge] Error auto-restarting control:', e);
+            console.error('[Inspekt] Error auto-restarting control:', e);
         }
     }
 

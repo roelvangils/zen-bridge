@@ -495,7 +495,7 @@ inspekteval --file extract-titles.js --format json
 
 ## Working with Output Formats
 
-Zen Bridge supports multiple output formats:
+Inspekt supports multiple output formats:
 
 === "Default (Human-Readable)"
 
@@ -542,7 +542,7 @@ Zen Bridge supports multiple output formats:
 
 ## Combining with Shell Commands
 
-Zen Bridge plays nicely with standard Unix tools:
+Inspekt plays nicely with standard Unix tools:
 
 ```bash
 # Count external links
@@ -632,7 +632,7 @@ inspekteval "slowOperation()" --timeout 30
 2. Check browser console for errors (++f12++)
 3. Verify WebSocket connection in console:
    ```javascript
-   // Should see "Connected to Zen Bridge WebSocket server"
+   // Should see "Connected to Inspekt WebSocket server"
    ```
 
 ### Check Server Status
@@ -659,7 +659,7 @@ Now that you've mastered the basics, explore these resources:
 
     ---
 
-    Customize Zen Bridge for your workflow - control mode, AI settings, and more.
+    Customize Inspekt for your workflow - control mode, AI settings, and more.
 
     [:octicons-arrow-right-24: Configuration Guide](configuration.md)
 

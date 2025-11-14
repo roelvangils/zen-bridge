@@ -142,7 +142,7 @@ def inject_userscript(page: Page, ws_port: int = 8766) -> None:
                 ws = new WebSocket(WS_URL);
 
                 ws.onopen = () => {{
-                    console.log('[Zen Bridge] Connected via WebSocket');
+                    console.log('[Inspekt] Connected via WebSocket');
                     window.__zen_ws__ = ws;
                 }};
 
@@ -174,16 +174,16 @@ def inject_userscript(page: Page, ws_port: int = 8766) -> None:
                             }}));
                         }}
                     }} catch (err) {{
-                        console.error('[Zen Bridge] Error handling message:', err);
+                        console.error('[Inspekt] Error handling message:', err);
                     }}
                 }};
 
                 ws.onerror = (error) => {{
-                    console.error('[Zen Bridge] WebSocket error:', error);
+                    console.error('[Inspekt] WebSocket error:', error);
                 }};
 
                 ws.onclose = () => {{
-                    console.log('[Zen Bridge] Disconnected, reconnecting...');
+                    console.log('[Inspekt] Disconnected, reconnecting...');
                     setTimeout(connect, 1000);
                 }};
             }}
@@ -439,7 +439,7 @@ class TestBasicExecution:
 
     @pytest.mark.slow
     def test_eval_returns_document_title(self, page: Page, cli_runner: dict[str, Any]):
-        """Test that 'zen eval \"document.title\"' returns the page title."""
+        """Test that 'inspekt eval \"document.title\"' returns the page title."""
         # Set page title
         page.evaluate("document.title = 'Test Page Title'")
 
@@ -519,13 +519,13 @@ class TestScriptLoading:
 
     def test_helper_scripts_directory_exists(self, project_root: Path):
         """Test that helper scripts directory exists."""
-        scripts_dir = project_root / "zen" / "scripts"
+        scripts_dir = project_root / "inspekt" / "scripts"
         assert scripts_dir.exists()
         assert scripts_dir.is_dir()
 
     def test_template_substitution_works(self, project_root: Path):
         """Test that template substitution works for script placeholders."""
-        from zen.services.script_loader import ScriptLoader
+        from inspekt.services.script_loader import ScriptLoader
 
         loader = ScriptLoader()
 
@@ -533,16 +533,16 @@ class TestScriptLoading:
         test_script = "const action = 'ACTION_PLACEHOLDER';"
 
         with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".js", delete=False, dir=project_root / "zen" / "scripts"
+            mode="w", suffix=".js", delete=False, dir=project_root / "inspekt" / "scripts"
         ) as f:
             f.write(test_script)
             temp_path = Path(f.name)
 
         try:
             # Load with substitution
-            result = loader.load_script_sync(
+            result = loader.load_with_substitution_sync(
                 temp_path.name,
-                substitutions={"ACTION_PLACEHOLDER": "test_action"},
+                placeholders={"ACTION_PLACEHOLDER": "test_action"},
             )
 
             assert "test_action" in result
@@ -554,7 +554,7 @@ class TestScriptLoading:
 
     def test_script_caching_works(self, project_root: Path):
         """Test that script caching works to avoid repeated file reads."""
-        from zen.services.script_loader import ScriptLoader
+        from inspekt.services.script_loader import ScriptLoader
 
         loader = ScriptLoader()
 
@@ -562,7 +562,7 @@ class TestScriptLoading:
         test_content = "console.log('cached test');"
 
         with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".js", delete=False, dir=project_root / "zen" / "scripts"
+            mode="w", suffix=".js", delete=False, dir=project_root / "inspekt" / "scripts"
         ) as f:
             f.write(test_content)
             temp_path = Path(f.name)

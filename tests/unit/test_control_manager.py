@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 import pytest
 import requests
 
-from zen.services.control_manager import (
+from inspekt.services.control_manager import (
     ControlManager,
     ControlNotification,
     get_control_manager,
@@ -104,7 +104,7 @@ class TestControlManagerInitialization:
 class TestCheckNotifications:
     """Test check_notifications method."""
 
-    @patch("zen.services.control_manager.requests.get")
+    @patch("inspekt.services.control_manager.requests.get")
     def test_successful_response_with_notifications(self, mock_get):
         """Test check_notifications with successful response containing notifications."""
         mock_response = Mock()
@@ -130,7 +130,7 @@ class TestCheckNotifications:
             "http://127.0.0.1:8765/notifications", timeout=0.5
         )
 
-    @patch("zen.services.control_manager.requests.get")
+    @patch("inspekt.services.control_manager.requests.get")
     def test_successful_response_with_ok_false(self, mock_get):
         """Test check_notifications when response has ok=False."""
         mock_response = Mock()
@@ -146,7 +146,7 @@ class TestCheckNotifications:
 
         assert notifications == []
 
-    @patch("zen.services.control_manager.requests.get")
+    @patch("inspekt.services.control_manager.requests.get")
     def test_successful_response_with_empty_notifications(self, mock_get):
         """Test check_notifications with empty notifications array."""
         mock_response = Mock()
@@ -159,7 +159,7 @@ class TestCheckNotifications:
 
         assert notifications == []
 
-    @patch("zen.services.control_manager.requests.get")
+    @patch("inspekt.services.control_manager.requests.get")
     def test_successful_response_without_notifications_field(self, mock_get):
         """Test check_notifications when response lacks notifications field."""
         mock_response = Mock()
@@ -172,7 +172,7 @@ class TestCheckNotifications:
 
         assert notifications == []
 
-    @patch("zen.services.control_manager.requests.get")
+    @patch("inspekt.services.control_manager.requests.get")
     def test_non_200_status_code(self, mock_get):
         """Test check_notifications with non-200 status code."""
         mock_response = Mock()
@@ -184,7 +184,7 @@ class TestCheckNotifications:
 
         assert notifications == []
 
-    @patch("zen.services.control_manager.requests.get")
+    @patch("inspekt.services.control_manager.requests.get")
     def test_request_exception(self, mock_get):
         """Test check_notifications with RequestException."""
         mock_get.side_effect = requests.RequestException("Connection error")
@@ -194,7 +194,7 @@ class TestCheckNotifications:
 
         assert notifications == []
 
-    @patch("zen.services.control_manager.requests.get")
+    @patch("inspekt.services.control_manager.requests.get")
     def test_value_error_invalid_json(self, mock_get):
         """Test check_notifications with ValueError (invalid JSON)."""
         mock_response = Mock()
@@ -207,7 +207,7 @@ class TestCheckNotifications:
 
         assert notifications == []
 
-    @patch("zen.services.control_manager.requests.get")
+    @patch("inspekt.services.control_manager.requests.get")
     def test_custom_timeout(self, mock_get):
         """Test check_notifications with custom timeout."""
         mock_response = Mock()
@@ -222,7 +222,7 @@ class TestCheckNotifications:
             "http://127.0.0.1:8765/notifications", timeout=2.0
         )
 
-    @patch("zen.services.control_manager.requests.get")
+    @patch("inspekt.services.control_manager.requests.get")
     def test_timeout_exception(self, mock_get):
         """Test check_notifications with timeout exception."""
         mock_get.side_effect = requests.Timeout("Request timed out")
@@ -237,7 +237,7 @@ class TestHandleRefocusNotification:
     """Test handle_refocus_notification method."""
 
     @patch("sys.stderr")
-    @patch("zen.services.control_manager.subprocess.run")
+    @patch("inspekt.services.control_manager.subprocess.run")
     def test_handle_refocus_without_speak(self, mock_subprocess, mock_stderr):
         """Test handling refocus notification without speak enabled."""
         notification = ControlNotification("refocus", "Focus restored to button")
@@ -255,7 +255,7 @@ class TestHandleRefocusNotification:
         mock_subprocess.assert_not_called()
 
     @patch("sys.stderr")
-    @patch("zen.services.control_manager.subprocess.run")
+    @patch("inspekt.services.control_manager.subprocess.run")
     def test_handle_refocus_with_speak_enabled(self, mock_subprocess, mock_stderr):
         """Test handling refocus notification with speak enabled."""
         notification = ControlNotification("refocus", "Focus restored to button")
@@ -276,7 +276,7 @@ class TestHandleRefocusNotification:
         )
 
     @patch("sys.stderr")
-    @patch("zen.services.control_manager.subprocess.run")
+    @patch("inspekt.services.control_manager.subprocess.run")
     def test_handle_refocus_with_custom_speak_command(self, mock_subprocess, mock_stderr):
         """Test handling refocus notification with custom speak command."""
         notification = ControlNotification("refocus", "Test message")
@@ -294,7 +294,7 @@ class TestHandleRefocusNotification:
         )
 
     @patch("sys.stderr")
-    @patch("zen.services.control_manager.subprocess.run")
+    @patch("inspekt.services.control_manager.subprocess.run")
     def test_handle_refocus_with_speak_timeout(self, mock_subprocess, mock_stderr):
         """Test handling refocus notification when speak command times out."""
         mock_subprocess.side_effect = subprocess.TimeoutExpired(
@@ -310,7 +310,7 @@ class TestHandleRefocusNotification:
         mock_stderr.flush.assert_called_once()
 
     @patch("sys.stderr")
-    @patch("zen.services.control_manager.subprocess.run")
+    @patch("inspekt.services.control_manager.subprocess.run")
     def test_handle_refocus_with_speak_command_not_found(self, mock_subprocess, mock_stderr):
         """Test handling refocus notification when speak command is not found."""
         mock_subprocess.side_effect = FileNotFoundError("say command not found")
@@ -327,7 +327,7 @@ class TestHandleRefocusNotification:
 class TestAnnounceAccessibleName:
     """Test announce_accessible_name method."""
 
-    @patch("zen.services.control_manager.subprocess.run")
+    @patch("inspekt.services.control_manager.subprocess.run")
     def test_announce_without_role(self, mock_subprocess):
         """Test announcing accessible name without role."""
         manager = ControlManager()
@@ -341,7 +341,7 @@ class TestAnnounceAccessibleName:
             capture_output=True,
         )
 
-    @patch("zen.services.control_manager.subprocess.run")
+    @patch("inspekt.services.control_manager.subprocess.run")
     def test_announce_with_role_and_announce_role_true(self, mock_subprocess):
         """Test announcing accessible name with role when announce_role is True."""
         manager = ControlManager()
@@ -357,7 +357,7 @@ class TestAnnounceAccessibleName:
             capture_output=True,
         )
 
-    @patch("zen.services.control_manager.subprocess.run")
+    @patch("inspekt.services.control_manager.subprocess.run")
     def test_announce_with_role_and_announce_role_false(self, mock_subprocess):
         """Test announcing accessible name with role when announce_role is False."""
         manager = ControlManager()
@@ -373,7 +373,7 @@ class TestAnnounceAccessibleName:
             capture_output=True,
         )
 
-    @patch("zen.services.control_manager.subprocess.run")
+    @patch("inspekt.services.control_manager.subprocess.run")
     def test_announce_with_empty_accessible_name(self, mock_subprocess):
         """Test that empty accessible name does not trigger speech."""
         manager = ControlManager()
@@ -382,7 +382,7 @@ class TestAnnounceAccessibleName:
 
         mock_subprocess.assert_not_called()
 
-    @patch("zen.services.control_manager.subprocess.run")
+    @patch("inspekt.services.control_manager.subprocess.run")
     def test_announce_with_whitespace_only_accessible_name(self, mock_subprocess):
         """Test that whitespace-only accessible name does not trigger speech."""
         manager = ControlManager()
@@ -391,7 +391,7 @@ class TestAnnounceAccessibleName:
 
         mock_subprocess.assert_not_called()
 
-    @patch("zen.services.control_manager.subprocess.run")
+    @patch("inspekt.services.control_manager.subprocess.run")
     def test_announce_strips_whitespace(self, mock_subprocess):
         """Test that accessible name is stripped of whitespace."""
         manager = ControlManager()
@@ -405,7 +405,7 @@ class TestAnnounceAccessibleName:
             capture_output=True,
         )
 
-    @patch("zen.services.control_manager.subprocess.run")
+    @patch("inspekt.services.control_manager.subprocess.run")
     def test_announce_with_custom_speak_command(self, mock_subprocess):
         """Test announcing with custom speak command."""
         manager = ControlManager()
@@ -419,7 +419,7 @@ class TestAnnounceAccessibleName:
             capture_output=True,
         )
 
-    @patch("zen.services.control_manager.subprocess.run")
+    @patch("inspekt.services.control_manager.subprocess.run")
     def test_announce_with_timeout(self, mock_subprocess):
         """Test announcing when subprocess times out."""
         mock_subprocess.side_effect = subprocess.TimeoutExpired(
@@ -430,7 +430,7 @@ class TestAnnounceAccessibleName:
         # Should not raise exception
         manager.announce_accessible_name("Test")
 
-    @patch("zen.services.control_manager.subprocess.run")
+    @patch("inspekt.services.control_manager.subprocess.run")
     def test_announce_with_command_not_found(self, mock_subprocess):
         """Test announcing when speak command is not found."""
         mock_subprocess.side_effect = FileNotFoundError("say command not found")
@@ -542,8 +542,8 @@ class TestSingletonPattern:
     def test_get_control_manager_returns_instance(self):
         """Test that get_control_manager returns a ControlManager instance."""
         # Reset the global variable first
-        import zen.services.control_manager
-        zen.services.control_manager._default_manager = None
+        import inspekt.services.control_manager
+        inspekt.services.control_manager._default_manager = None
 
         manager = get_control_manager()
 
@@ -554,8 +554,8 @@ class TestSingletonPattern:
     def test_get_control_manager_returns_same_instance(self):
         """Test that get_control_manager returns the same instance on multiple calls."""
         # Reset the global variable first
-        import zen.services.control_manager
-        zen.services.control_manager._default_manager = None
+        import inspekt.services.control_manager
+        inspekt.services.control_manager._default_manager = None
 
         manager1 = get_control_manager()
         manager2 = get_control_manager()
@@ -565,8 +565,8 @@ class TestSingletonPattern:
     def test_get_control_manager_with_custom_params(self):
         """Test get_control_manager with custom host and port."""
         # Reset the global variable first
-        import zen.services.control_manager
-        zen.services.control_manager._default_manager = None
+        import inspekt.services.control_manager
+        inspekt.services.control_manager._default_manager = None
 
         manager = get_control_manager(host="localhost", port=9000)
 
@@ -576,8 +576,8 @@ class TestSingletonPattern:
     def test_get_control_manager_ignores_params_on_subsequent_calls(self):
         """Test that get_control_manager ignores parameters on subsequent calls."""
         # Reset the global variable first
-        import zen.services.control_manager
-        zen.services.control_manager._default_manager = None
+        import inspekt.services.control_manager
+        inspekt.services.control_manager._default_manager = None
 
         manager1 = get_control_manager(host="localhost", port=9000)
         manager2 = get_control_manager(host="different", port=8888)

@@ -4,30 +4,30 @@
 class TestImports:
     """Test that all modules can be imported without errors."""
 
-    def test_import_zen_package(self):
-        """Test importing the zen package."""
-        import zen
+    def test_import_inspekt_package(self):
+        """Test importing the inspekt package."""
+        import inspekt
 
-        assert hasattr(zen, "__version__")
-        assert zen.__version__ == "1.0.0"
+        assert hasattr(inspekt, "__version__")
+        assert inspekt.__version__ == "1.0.0"
 
     def test_import_cli(self):
         """Test importing the CLI module."""
-        from zen import cli
+        from inspekt import cli
 
         assert hasattr(cli, "cli")
         assert callable(cli.cli)
 
     def test_import_client(self):
         """Test importing the client module."""
-        from zen import client
+        from inspekt import client
 
         assert hasattr(client, "BridgeClient")
         assert callable(client.BridgeClient)
 
     def test_import_config(self):
         """Test importing the config module."""
-        from zen import config
+        from inspekt import config
 
         assert hasattr(config, "load_config")
         assert hasattr(config, "DEFAULT_CONFIG")
@@ -35,7 +35,7 @@ class TestImports:
 
     def test_import_bridge_ws(self):
         """Test importing the bridge_ws module."""
-        from zen import bridge_ws
+        from inspekt import bridge_ws
 
         assert hasattr(bridge_ws, "main")
         assert callable(bridge_ws.main)
@@ -49,12 +49,12 @@ class TestProjectStructure:
         assert project_root.exists()
         assert project_root.is_dir()
 
-    def test_zen_package_exists(self, project_root):
-        """Test that zen package exists."""
-        zen_dir = project_root / "zen"
-        assert zen_dir.exists()
-        assert zen_dir.is_dir()
-        assert (zen_dir / "__init__.py").exists()
+    def test_inspekt_package_exists(self, project_root):
+        """Test that inspekt package exists."""
+        inspekt_dir = project_root / "inspekt"
+        assert inspekt_dir.exists()
+        assert inspekt_dir.is_dir()
+        assert (inspekt_dir / "__init__.py").exists()
 
     def test_scripts_directory_exists(self, scripts_dir):
         """Test that scripts directory exists and contains JavaScript files."""
@@ -113,7 +113,7 @@ class TestConfig:
 
     def test_default_config_structure(self):
         """Test that DEFAULT_CONFIG has expected structure."""
-        from zen.config import DEFAULT_CONFIG
+        from inspekt.config import DEFAULT_CONFIG
 
         assert "ai-language" in DEFAULT_CONFIG
         assert "control" in DEFAULT_CONFIG
@@ -121,7 +121,7 @@ class TestConfig:
 
     def test_load_config_returns_dict(self):
         """Test that load_config returns a dictionary."""
-        from zen.config import load_config
+        from inspekt.config import load_config
 
         config = load_config()
         assert isinstance(config, dict)
@@ -130,7 +130,7 @@ class TestConfig:
 
     def test_validate_control_config(self, sample_config):
         """Test control config validation."""
-        from zen.config import validate_control_config
+        from inspekt.config import validate_control_config
 
         validated = validate_control_config(sample_config)
         assert isinstance(validated, dict)
@@ -142,7 +142,7 @@ class TestConfig:
 
     def test_validate_control_config_with_invalid_values(self):
         """Test that validation normalizes invalid values."""
-        from zen.config import validate_control_config
+        from inspekt.config import validate_control_config
 
         invalid_config = {
             "control": {
@@ -165,7 +165,7 @@ class TestClient:
 
     def test_bridge_client_instantiation(self):
         """Test that BridgeClient can be instantiated."""
-        from zen.client import BridgeClient
+        from inspekt.client import BridgeClient
 
         client = BridgeClient()
         assert client is not None
@@ -174,14 +174,14 @@ class TestClient:
 
     def test_bridge_client_custom_host_port(self):
         """Test BridgeClient with custom host and port."""
-        from zen.client import BridgeClient
+        from inspekt.client import BridgeClient
 
         client = BridgeClient(host="localhost", port=9999)
         assert client.base_url == "http://localhost:9999"
 
     def test_bridge_client_has_methods(self):
         """Test that BridgeClient has expected methods."""
-        from zen.client import BridgeClient
+        from inspekt.client import BridgeClient
 
         client = BridgeClient()
         assert hasattr(client, "is_alive")
@@ -197,14 +197,14 @@ class TestCLI:
 
     def test_cli_command_group_exists(self):
         """Test that main CLI command group exists."""
-        from zen.cli import cli
+        from inspekt.cli import cli
 
         assert cli is not None
         assert hasattr(cli, "name")
 
     def test_cli_has_commands(self):
         """Test that CLI has expected commands."""
-        from zen.cli import cli
+        from inspekt.cli import cli
 
         # Get list of registered commands
         commands = list(cli.commands.keys())
@@ -227,7 +227,7 @@ class TestBridgeWS:
 
     def test_bridge_ws_constants(self):
         """Test that bridge_ws has expected constants."""
-        from zen import bridge_ws
+        from inspekt import bridge_ws
 
         assert hasattr(bridge_ws, "HOST")
         assert hasattr(bridge_ws, "PORT")
@@ -236,21 +236,21 @@ class TestBridgeWS:
 
     def test_cleanup_old_requests_function_exists(self):
         """Test that cleanup function exists."""
-        from zen import bridge_ws
+        from inspekt import bridge_ws
 
         assert hasattr(bridge_ws, "cleanup_old_requests")
         assert callable(bridge_ws.cleanup_old_requests)
 
     def test_websocket_handler_exists(self):
         """Test that WebSocket handler exists."""
-        from zen import bridge_ws
+        from inspekt import bridge_ws
 
         assert hasattr(bridge_ws, "websocket_handler")
         assert callable(bridge_ws.websocket_handler)
 
     def test_http_handlers_exist(self):
         """Test that HTTP handlers exist."""
-        from zen import bridge_ws
+        from inspekt import bridge_ws
 
         handlers = [
             "handle_http_run",

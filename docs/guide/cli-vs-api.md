@@ -1,6 +1,6 @@
 # CLI vs HTTP API: Which Should You Use?
 
-Zen Bridge provides two interfaces to control your browser: a **Command-Line Interface (CLI)** and an **HTTP API**. Both use the same underlying code, but they're optimized for different use cases.
+Inspekt provides two interfaces to control your browser: a **Command-Line Interface (CLI)** and an **HTTP API**. Both use the same underlying code, but they're optimized for different use cases.
 
 This guide will help you understand when to use each one.
 
@@ -214,7 +214,7 @@ Protocol: https:
 State:    complete
 Size:     1280x720
 
-Zen Bridge: Extension v4.2.1
+Inspekt: Extension v4.2.1
 ```
 
 **Why CLI is better**: Output is formatted, colored, and easy to scan visually.
@@ -311,7 +311,7 @@ services:
 
 #### 4. Cross-Language Integration
 
-Using Zen Bridge from non-Python languages:
+Using Inspekt from non-Python languages:
 
 ```javascript
 // Node.js
@@ -418,7 +418,7 @@ curl http://localhost:8767/api/extraction/links | jq '.result[] | .href'
 - Quick one-off tasks
 - When you want human-readable output
 - Interactive terminal features
-- Learning Zen Bridge (CLI is more intuitive)
+- Learning Inspekt (CLI is more intuitive)
 
 ## Hybrid Approaches
 

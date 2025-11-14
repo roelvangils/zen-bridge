@@ -61,20 +61,20 @@ Repository = "https://github.com/roelvangils/inspekt"
 Issues = "https://github.com/roelvangils/inspekt/issues"
 
 [project.scripts]
-inspekt = "zen.app.cli:main"
+inspekt = "inspekt.app.cli:main"
 
 [tool.setuptools]
-packages = ["zen"]
+packages = ["inspekt"]
 include-package-data = true
 
 [tool.setuptools.package-data]
-zen = ["scripts/*.js", "templates/*"]
+inspekt = ["scripts/*.js", "templates/*"]
 
 # Ruff configuration - Linting and formatting
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-src = ["zen", "tests"]
+src = ["inspekt", "tests"]
 
 [tool.ruff.lint]
 select = [
@@ -94,7 +94,7 @@ ignore = [
 
 [tool.ruff.lint.isort]
 force-single-line = false
-known-first-party = ["zen"]
+known-first-party = ["inspekt"]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]  # Unused imports OK in __init__.py
@@ -136,7 +136,7 @@ python_functions = "test_*"
 addopts = [
     "-v",
     "--strict-markers",
-    "--cov=zen",
+    "--cov=inspekt",
     "--cov-report=term-missing",
     "--cov-report=html",
     "--cov-report=xml",
@@ -151,10 +151,10 @@ asyncio_mode = "auto"
 
 # Coverage configuration
 [tool.coverage.run]
-source = ["zen"]
+source = ["inspekt"]
 omit = [
     "tests/*",
-    "zen/__pycache__/*",
+    "inspekt/__pycache__/*",
     "*/__pycache__/*",
 ]
 branch = true

@@ -12,7 +12,7 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 from click.testing import CliRunner
 
-from zen.cli import cli, format_output
+from inspekt.cli import cli, format_output
 
 
 # =============================================================================
@@ -29,7 +29,7 @@ def runner():
 @pytest.fixture
 def mock_bridge_client():
     """Mock BridgeClient with common test responses."""
-    with patch("zen.cli.BridgeClient") as mock_client_class:
+    with patch("inspekt.cli.BridgeClient") as mock_client_class:
         mock_instance = Mock()
         mock_instance.is_alive.return_value = True
         mock_instance.execute.return_value = {
@@ -54,7 +54,7 @@ def mock_bridge_client():
 @pytest.fixture
 def mock_bridge_client_not_running():
     """Mock BridgeClient that simulates server not running."""
-    with patch("zen.cli.BridgeClient") as mock_client_class:
+    with patch("inspekt.cli.BridgeClient") as mock_client_class:
         mock_instance = Mock()
         mock_instance.is_alive.return_value = False
         mock_client_class.return_value = mock_instance
@@ -64,7 +64,7 @@ def mock_bridge_client_not_running():
 @pytest.fixture
 def mock_executor():
     """Mock BridgeExecutor for service integration tests."""
-    with patch("zen.services.bridge_executor.BridgeExecutor") as mock_executor_class:
+    with patch("inspekt.services.bridge_executor.BridgeExecutor") as mock_executor_class:
         mock_instance = Mock()
         mock_instance.is_server_running.return_value = True
         mock_instance.execute.return_value = {
@@ -86,7 +86,7 @@ def mock_executor():
 @pytest.fixture
 def mock_script_loader():
     """Mock ScriptLoader for script loading tests."""
-    with patch("zen.services.script_loader.ScriptLoader") as mock_loader_class:
+    with patch("inspekt.services.script_loader.ScriptLoader") as mock_loader_class:
         mock_instance = Mock()
         mock_instance.load_script_sync.return_value = "console.log('loaded');"
         mock_instance.load_with_substitution_sync.return_value = "console.log('substituted');"
@@ -98,7 +98,7 @@ def mock_script_loader():
 @pytest.fixture
 def mock_ai_service():
     """Mock AIIntegrationService for AI integration tests."""
-    with patch("zen.services.ai_integration.AIIntegrationService") as mock_service_class:
+    with patch("inspekt.services.ai_integration.AIIntegrationService") as mock_service_class:
         mock_instance = Mock()
         mock_instance.check_mods_available.return_value = True
         mock_instance.generate_description.return_value = "AI generated description"
@@ -176,7 +176,7 @@ class TestCLIInvocation:
         result = runner.invoke(cli, ["--help"])
 
         assert result.exit_code == 0
-        assert "Zen Browser Bridge" in result.output
+        assert "Inspekt" in result.output
         assert "Commands:" in result.output
 
     def test_help_text_generation_eval(self, runner):
@@ -190,11 +190,11 @@ class TestCLIInvocation:
 
     def test_error_handling_server_not_running(self, runner):
         """Test error handling when server is not running."""
-        with patch("zen.cli.BridgeClient") as mock_client_class:
+        with patch("inspekt.cli.BridgeClient") as mock_client_class:
             mock_instance = Mock()
             mock_instance.is_alive.return_value = False
             mock_instance.execute.side_effect = ConnectionError(
-                "Bridge server is not running. Start it with: zen server start"
+                "Bridge server is not running. Start it with: inspekt server start"
             )
             mock_client_class.return_value = mock_instance
 
@@ -231,7 +231,7 @@ class TestServiceIntegration:
 
     def test_configuration_loading_implicit(self, runner, mock_bridge_client):
         """Test configuration is loaded implicitly by commands."""
-        with patch("zen.config.load_config") as mock_load:
+        with patch("inspekt.config.load_config") as mock_load:
             mock_load.return_value = {"ai-language": "en"}
             result = runner.invoke(cli, ["eval", "document.title"])
 
@@ -603,7 +603,7 @@ class TestCLISpecificBehavior:
         result = runner.invoke(cli, [])
 
         assert result.exit_code == 0
-        assert "Zen Browser Bridge" in result.output or "Commands:" in result.output
+        assert "Inspekt" in result.output or "Commands:" in result.output
 
     def test_invalid_command(self, runner):
         """Test invalid command shows error."""
@@ -625,7 +625,7 @@ class TestCLISpecificBehavior:
 
     def test_server_start_when_already_running(self, runner, mock_bridge_client):
         """Test server start when already running."""
-        with patch("zen.cli.subprocess.Popen"):
+        with patch("inspekt.cli.subprocess.Popen"):
             result = runner.invoke(cli, ["server", "start"])
 
             assert result.exit_code == 0

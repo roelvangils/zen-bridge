@@ -123,35 +123,35 @@ inspektserver status
 
 ```bash
 # Execute JavaScript code
-zen eval "document.title"
+inspekt eval "document.title"
 
 # Get page information
-zen info
+inspekt info
 
 # Extract all links
-zen links --only-external
+inspekt links --only-external
 
 # Start interactive REPL
-zen repl
+inspekt repl
 
 # Summarize article with AI
-zen summarize
+inspekt summarize
 
 # Control browser with keyboard
-zen control
+inspekt control
 
 # Get help with all commands and flags
-zen --help
+inspekt --help
 ```
 
 ### HTTP API Usage
 
 ```bash
 # Start the API server (runs on http://localhost:8767)
-uvicorn zen.app.api.server:app --host 127.0.0.1 --port 8767
+uvicorn inspekt.app.api.server:app --host 127.0.0.1 --port 8767
 
 # Or in the background
-uvicorn zen.app.api.server:app --host 127.0.0.1 --port 8767 &
+uvicorn inspekt.app.api.server:app --host 127.0.0.1 --port 8767 &
 
 # Check API health
 curl http://localhost:8767/health
@@ -209,16 +209,16 @@ inspektrepl
 
 Example session:
 ```javascript
-zen> document.title
+inspekt> document.title
 "Example Domain"
 
-zen> document.querySelectorAll('p').length
+inspekt> document.querySelectorAll('p').length
 2
 
-zen> Array.from(document.links).map(a => a.href)
+inspekt> Array.from(document.links).map(a => a.href)
 ["https://example.com/page1", "https://example.com/page2"]
 
-zen> exit
+inspekt> exit
 Goodbye!
 ```
 
@@ -268,7 +268,7 @@ inspektinspect "h1"
 inspektinspected
 
 # In browser DevTools Console, you can also use:
-# zenStore($0)  - Store currently inspected element
+# inspektStore($0)  - Store currently inspected element
 # Then: inspektinspected
 ```
 
@@ -708,7 +708,7 @@ inspekteval "Array.from(document.querySelectorAll('.price')).map(el => el.textCo
 inspekteval "Array.from(document.images).map(img => img.src)" --format json
 
 # Extract table data
-inspektexec zen/scripts/extract_table.js --format json > data.json
+inspektexec inspekt/scripts/extract_table.js --format json > data.json
 ```
 
 ### Authenticated Data Extraction
@@ -743,7 +743,7 @@ inspekteval "(performance.timing.loadEventEnd - performance.timing.navigationSta
 inspekteval "Math.round(performance.memory.usedJSHeapSize / 1048576) + 'MB'"
 
 # Full performance metrics
-inspektexec zen/scripts/performance_metrics.js --format json
+inspektexec inspekt/scripts/performance_metrics.js --format json
 ```
 
 ### Debugging & Development
@@ -763,7 +763,7 @@ inspektwatch
 
 ```bash
 # Extract metadata
-inspektexec zen/scripts/extract_metadata.js --format json
+inspektexec inspekt/scripts/extract_metadata.js --format json
 
 # Get all headings
 inspektoutline
@@ -794,28 +794,28 @@ inspektlinks --only-urls | grep "github" | sort | uniq
 
 ## 🛠️ Built-in Scripts
 
-Zen includes ready-to-use scripts for common tasks:
+Inspekt includes ready-to-use scripts for common tasks:
 
 ```bash
 # Extract all images
-inspektexec zen/scripts/extract_images.js --format json
+inspektexec inspekt/scripts/extract_images.js --format json
 
 # Extract table data to JSON
-inspektexec zen/scripts/extract_table.js --format json > data.json
+inspektexec inspekt/scripts/extract_table.js --format json > data.json
 
 # Get SEO metadata (Open Graph, Twitter Cards, etc.)
-inspektexec zen/scripts/extract_metadata.js --format json
+inspektexec inspekt/scripts/extract_metadata.js --format json
 
 # Performance metrics
-inspektexec zen/scripts/performance_metrics.js --format json
+inspektexec inspekt/scripts/performance_metrics.js --format json
 
 # Inject jQuery
-inspektexec zen/scripts/inject_jquery.js
+inspektexec inspekt/scripts/inject_jquery.js
 # Then use: inspekteval "$('a').length"
 
 # Highlight elements
-# Edit zen/scripts/highlight_selector.js to change selector
-inspektexec zen/scripts/highlight_selector.js
+# Edit inspekt/scripts/highlight_selector.js to change selector
+inspektexec inspekt/scripts/highlight_selector.js
 ```
 
 ## 📚 Command Reference
@@ -863,19 +863,19 @@ inspektcontrol --help
 
 ## 🌐 HTTP API
 
-Zen Bridge includes a FastAPI-powered REST API that exposes all CLI commands as HTTP endpoints. This allows you to control the browser from any HTTP client, integrate with other tools, or build web-based frontends.
+Inspekt includes a FastAPI-powered REST API that exposes all CLI commands as HTTP endpoints. This allows you to control the browser from any HTTP client, integrate with other tools, or build web-based frontends.
 
 ### Starting the API Server
 
 ```bash
 # Start the API server
-uvicorn zen.app.api.server:app --host 127.0.0.1 --port 8767
+uvicorn inspekt.app.api.server:app --host 127.0.0.1 --port 8767
 
 # Or with auto-reload for development
-uvicorn zen.app.api.server:app --host 127.0.0.1 --port 8767 --reload
+uvicorn inspekt.app.api.server:app --host 127.0.0.1 --port 8767 --reload
 
 # Or run in the background
-uvicorn zen.app.api.server:app --host 127.0.0.1 --port 8767 &
+uvicorn inspekt.app.api.server:app --host 127.0.0.1 --port 8767 &
 ```
 
 ### Interactive Documentation
@@ -1011,7 +1011,7 @@ This means:
 
 ## 🏗 Architecture
 
-Zen Bridge follows a **hexagonal architecture** with clear separation of concerns:
+Inspekt follows a **hexagonal architecture** with clear separation of concerns:
 
 - **Domain Layer** - Pure business logic with Pydantic models
 - **Adapter Layer** - I/O operations (filesystem, WebSocket)
@@ -1048,7 +1048,7 @@ make format                        # Auto-format code
 ### Project Structure
 
 ```
-zen/
+inspekt/
 ├── domain/          # Core models (Pydantic)
 ├── adapters/        # I/O adapters (filesystem, etc.)
 ├── services/        # Business logic
@@ -1138,4 +1138,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines and [ARCHITECT
 
 ---
 
-**Zen Browser Bridge v2.0.0** - Control your browser from the command line.
+**Inspekt v2.0.0** - Control your browser from the command line.

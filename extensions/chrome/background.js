@@ -1,5 +1,5 @@
 /**
- * Zen Browser Bridge - Background Service Worker (Chrome)
+ * Inspekt - Background Service Worker (Chrome)
  *
  * This script runs in the extension background and handles:
  * - CSP bypass using scripting.executeScript API
@@ -7,7 +7,7 @@
  * - Extension lifecycle management
  */
 
-console.log('[Zen Bridge Extension] Background service worker loaded');
+console.log('[Inspekt Extension] Background service worker loaded');
 
 // Track which tabs have Zen Bridge active
 const activeTabs = new Set();
@@ -15,7 +15,7 @@ const activeTabs = new Set();
 // Listen for tab updates to inject into new pages
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (changeInfo.status === 'complete' && tab.active) {
-        console.log('[Zen Bridge] Tab updated:', tab.url);
+        console.log('[Inspekt] Tab updated:', tab.url);
         activeTabs.add(tabId);
     }
 });
@@ -35,7 +35,7 @@ const tabConnectionStatus = new Map();
 
 // Listen for messages from content script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    console.log('[Zen Bridge] Message from content script:', message.type);
+    console.log('[Inspekt] Message from content script:', message.type);
 
     if (message.type === 'INJECT_MAIN_WORLD_VARS') {
         // Inject version variables into MAIN world
@@ -101,7 +101,7 @@ async function copyImageToClipboard(dataUrl) {
         // Ensure offscreen document exists
         await setupOffscreenDocument();
 
-        console.log('[Zen Bridge] Sending clipboard write request to offscreen document...');
+        console.log('[Inspekt] Sending clipboard write request to offscreen document...');
 
         // Get the offscreen document context
         const offscreenContexts = await chrome.runtime.getContexts({
@@ -120,15 +120,15 @@ async function copyImageToClipboard(dataUrl) {
             target: 'offscreen'
         });
 
-        console.log('[Zen Bridge] Response from offscreen:', response);
+        console.log('[Inspekt] Response from offscreen:', response);
 
         if (!response || !response.success) {
             throw new Error(response?.error || 'Failed to copy via offscreen document');
         }
 
-        console.log('[Zen Bridge] Image copied to clipboard via offscreen document');
+        console.log('[Inspekt] Image copied to clipboard via offscreen document');
     } catch (error) {
-        console.error('[Zen Bridge] Failed to copy image to clipboard:', error);
+        console.error('[Inspekt] Failed to copy image to clipboard:', error);
         throw error;
     }
 }
@@ -154,7 +154,7 @@ async function setupOffscreenDocument() {
         justification: 'Copy screenshots to clipboard from DevTools panel'
     });
 
-    console.log('[Zen Bridge] Offscreen document created for clipboard operations');
+    console.log('[Inspekt] Offscreen document created for clipboard operations');
 
     // Longer delay to ensure offscreen document is fully loaded and ready
     await new Promise(resolve => setTimeout(resolve, 300));
@@ -208,30 +208,30 @@ async function injectMainWorldVars(tabId) {
                             const id = element.id ? '#' + element.id : '';
                             const cls = element.className && typeof element.className === 'string' ?
                                 '.' + element.className.split(' ').filter(c => c).join('.') : '';
-                            console.log('%c[Zen Bridge]%c ✓ Element stored: <' + tag + id + cls + '>',
+                            console.log('%c[Inspekt]%c ✓ Element stored: <' + tag + id + cls + '>',
                                 'color: #0066ff; font-weight: bold', 'color: #00aa00');
-                            console.log('[Zen Bridge] Run in terminal: zen inspected');
+                            console.log('[Inspekt] Run in terminal: zen inspected');
                             return 'Stored: <' + tag + id + cls + '>';
                         }
-                        console.error('[Zen Bridge] ✗ Invalid element. Usage: zenStore($0)');
+                        console.error('[Inspekt] ✗ Invalid element. Usage: zenStore($0)');
                         return 'ERROR: Please provide a valid element';
                     };
 
-                    console.log('%c[Zen Bridge]%c DevTools integration ready',
+                    console.log('%c[Inspekt]%c DevTools integration ready',
                         'color: #0066ff; font-weight: bold', 'color: inherit');
-                    console.log('[Zen Bridge] To capture inspected element:');
+                    console.log('[Inspekt] To capture inspected element:');
                     console.log('  1. Right-click element → Inspect');
                     console.log('  2. In DevTools Console: zenStore($0)');
                     console.log('  3. In terminal: zen inspected');
                     console.log('');
-                    console.log('%c[Zen Bridge]%c Extension mode: CSP restrictions bypassed! ✓',
+                    console.log('%c[Inspekt]%c Extension mode: CSP restrictions bypassed! ✓',
                         'color: #0066ff; font-weight: bold', 'color: #00aa00; font-weight: bold');
                 }
             }
         });
-        console.log('[Zen Bridge] Version variables and DevTools injected into MAIN world');
+        console.log('[Inspekt] Version variables and DevTools injected into MAIN world');
     } catch (error) {
-        console.error('[Zen Bridge] Failed to inject variables:', error);
+        console.error('[Inspekt] Failed to inject variables:', error);
         throw error;
     }
 }
@@ -245,7 +245,7 @@ async function injectMainWorldVars(tabId) {
 async function executeWithCSPBypass(tabId, code, requestId) {
     try {
         // TIER 1: Try direct execution first (fast path)
-        console.log('[Zen Bridge] Attempting direct execution...');
+        console.log('[Inspekt] Attempting direct execution...');
 
         const directResult = await executeDirectly(tabId, code, requestId);
 
@@ -255,7 +255,7 @@ async function executeWithCSPBypass(tabId, code, requestId) {
              directResult.error.includes('Content Security Policy') ||
              directResult.error.includes('unsafe-eval'))) {
 
-            console.log('[Zen Bridge] CSP detected, falling back to script tag injection');
+            console.log('[Inspekt] CSP detected, falling back to script tag injection');
 
             // TIER 2: Fall back to script tag injection
             return await executeViaScriptTag(tabId, code, requestId);
@@ -265,7 +265,7 @@ async function executeWithCSPBypass(tabId, code, requestId) {
         return directResult;
 
     } catch (error) {
-        console.error('[Zen Bridge] Execution error:', error);
+        console.error('[Inspekt] Execution error:', error);
         return {
             ok: false,
             result: null,
@@ -419,7 +419,7 @@ async function executeViaScriptTag(tabId, code, requestId) {
 
         if (results && results[0]) {
             const executionResult = await results[0].result;
-            console.log('[Zen Bridge] Script tag execution successful');
+            console.log('[Inspekt] Script tag execution successful');
 
             return {
                 ok: executionResult.ok,
@@ -437,7 +437,7 @@ async function executeViaScriptTag(tabId, code, requestId) {
         };
 
     } catch (error) {
-        console.error('[Zen Bridge] Script tag execution error:', error);
+        console.error('[Inspekt] Script tag execution error:', error);
         return {
             ok: false,
             result: null,
@@ -448,5 +448,5 @@ async function executeViaScriptTag(tabId, code, requestId) {
 }
 
 // Log extension initialization
-console.log('[Zen Bridge Extension] Version:', chrome.runtime.getManifest().version);
-console.log('[Zen Bridge Extension] CSP bypass active - works on all websites!');
+console.log('[Inspekt Extension] Version:', chrome.runtime.getManifest().version);
+console.log('[Inspekt Extension] CSP bypass active - works on all websites!');
