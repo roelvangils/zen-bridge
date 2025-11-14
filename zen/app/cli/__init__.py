@@ -20,6 +20,7 @@ from zen.app.cli import extraction as extraction_module
 from zen.app.cli import inspection as inspection_module
 from zen.app.cli import interaction as interaction_module
 from zen.app.cli import navigation as navigation_module
+from zen.app.cli import robots as robots_module
 from zen.app.cli import selection as selection_module
 from zen.app.cli import server as server_module
 from zen.app.cli import storage as storage_module
@@ -109,6 +110,9 @@ cli.add_command(util_module.info, name="info")
 cli.add_command(util_module.repl, name="repl")
 cli.add_command(util_module.userscript, name="userscript")
 cli.add_command(util_module.download, name="download")
+
+# Robots.txt inspection (from robots.py)
+cli.add_command(robots_module.robots, name="robots")
 
 
 # ============================================================================

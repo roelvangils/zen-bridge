@@ -665,6 +665,37 @@ inspekt storage clear --type=all --force
 inspekt storage clear --type=local
 ```
 
+### Robots.txt Inspection
+
+Fetch and parse robots.txt files with RFC 9309 compliance:
+
+```bash
+# Inspect robots.txt for current page
+inspekt robots
+
+# Get structured JSON output
+inspekt robots --json
+
+# Show validation errors and warnings
+inspekt robots --validate
+
+# Inspect specific URL directly
+inspekt robots --url https://example.com
+```
+
+**Features:**
+- RFC 9309 compliant parsing (with `protego` library)
+- Extracts user-agent groups, rules, and sitemaps
+- Shows file metadata (size, encoding, last-modified)
+- Validates syntax and reports non-standard directives
+- Handles missing robots.txt (404) gracefully
+- JSON output includes comments with line numbers
+
+**Install protego for full RFC 9309 compliance:**
+```bash
+pip install protego
+```
+
 ## 🎯 Practical Examples
 
 ### Web Scraping
