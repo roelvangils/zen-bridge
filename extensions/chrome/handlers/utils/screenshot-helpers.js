@@ -287,23 +287,6 @@ export function showScreenshotModal(dataUrl, selector, width, height, filesize) 
 
     document.body.appendChild(overlay);
 
-    // Add hover effect with random rotation
-    const screenshotImage = overlay.querySelector('.screenshot-image');
-
-    screenshotImage.addEventListener('mouseenter', () => {
-        // Generate random rotation between -3 and +3 degrees
-        const randomRotation = (Math.random() * 6) - 3;
-        screenshotImage.classList.add('screenshot-hover');
-        screenshotImage.style.setProperty('--hover-rotation', `${randomRotation}deg`);
-        console.log('[Screenshot Modal] Hover effect applied, rotation:', randomRotation);
-    });
-
-    screenshotImage.addEventListener('mouseleave', () => {
-        // Reset to original state
-        screenshotImage.classList.remove('screenshot-hover');
-        console.log('[Screenshot Modal] Hover effect removed');
-    });
-
     // Close handlers
     const closeModal = () => {
         overlay.classList.add('fade-out');
