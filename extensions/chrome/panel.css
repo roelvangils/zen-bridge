@@ -979,7 +979,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    background: light-dark(#6b6b6b, #d0d0d0);
+    background: light-dark(#d0d0d0, #6b6b6b);
     border: 1px solid light-dark(#e5e5e5, #3d3d3d);
     border-radius: 4px;
     padding: 60px;
