@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <title>Inspekt Panel</title>
+    <link rel="stylesheet" href="css/material-icons.css">
     <link rel="stylesheet" href="panel.css">
 </head>
 <body>
@@ -19,14 +20,14 @@
                     <span class="status-text" id="statusText">Checking...</span>
                 </div>
                 <button class="theme-toggle" id="themeToggle" title="Toggle theme (Auto/Light/Dark)">
-                    <span class="theme-icon">🌓</span>
+                    <span class="material-icons theme-icon">brightness_medium</span>
                 </button>
             </div>
         </div>
 
         <!-- Server Disconnected Callout -->
         <div id="serverCallout" class="server-callout" style="display: none;">
-            <div class="callout-icon">⚠️</div>
+            <div class="material-icons callout-icon">warning</div>
             <div class="callout-content">
                 <div class="callout-title">Server Not Running</div>
                 <div class="callout-message">
@@ -34,7 +35,7 @@
                 </div>
                 <div class="callout-command">
                     <code>inspekt server start</code>
-                    <button class="copy-btn" id="copyServerCommand" title="Copy command">📋</button>
+                    <button class="copy-btn" id="copyServerCommand" title="Copy command"><span class="material-icons md-18">content_copy</span></button>
                 </div>
                 <div class="callout-hint">
                     Run this command in your terminal, then refresh this page.
@@ -47,7 +48,7 @@
 
             <!-- Currently Inspected Element Section -->
             <section class="panel-section">
-                <h2>🔍 Currently Inspected Element</h2>
+                <h2><span class="material-icons md-18">search</span> Currently Inspected Element</h2>
                 <div id="inspectedElement" class="inspected-element">
                     <p class="placeholder">No element selected. Right-click an element and select "Inspect".</p>
                 </div>
@@ -55,44 +56,36 @@
 
             <!-- Quick Actions Section -->
             <section class="panel-section">
-                <h2>⚡ Quick Actions</h2>
-                <div class="actions-grid">
-                    <button class="action-btn" id="btnPickElement">
-                        <span class="btn-icon">🎯</span>
-                        <span class="btn-label">Pick Element</span>
-                        <span class="btn-hint">Select element on page</span>
+                <div class="section-header">
+                    <h2><span class="material-icons md-18">bolt</span> Quick Actions</h2>
+                    <button class="manage-btn" id="manageActionsBtn" title="Manage actions">
+                        <span class="material-icons md-18">settings</span>
+                        <span class="manage-btn-label">Manage</span>
                     </button>
-                    <button class="action-btn" id="btnInspected" disabled>
-                        <span class="btn-icon">🔍</span>
-                        <span class="btn-label">inspekt inspected</span>
-                        <span class="btn-hint">Show element details</span>
-                    </button>
-                    <button class="action-btn" id="btnCopySelector" disabled>
-                        <span class="btn-icon">📋</span>
-                        <span class="btn-label">Copy Selector</span>
-                        <span class="btn-hint">Copy CSS selector</span>
-                    </button>
-                    <button class="action-btn" id="btnCopyCommand" disabled>
-                        <span class="btn-icon">💻</span>
-                        <span class="btn-label">Copy Click Command</span>
-                        <span class="btn-hint">inspekt click "selector"</span>
-                    </button>
-                    <button class="action-btn" id="btnShowInElements" disabled>
-                        <span class="btn-icon">📍</span>
-                        <span class="btn-label">Show in Elements</span>
-                        <span class="btn-hint">Switch to Elements tab</span>
-                    </button>
-                    <button class="action-btn" id="btnHighlight" disabled>
-                        <span class="btn-icon">✨</span>
-                        <span class="btn-label">Highlight Element</span>
-                        <span class="btn-hint">Flash element briefly</span>
-                    </button>
+                </div>
+
+                <!-- Manage Panel (inline expansion) -->
+                <div id="managePanel" class="manage-panel" style="display: none;">
+                    <div class="manage-header">
+                        <span class="manage-title">Removed Actions</span>
+                        <button class="manage-close" title="Close">
+                            <span class="material-icons md-18">close</span>
+                        </button>
+                    </div>
+                    <div class="manage-content" id="manageContent">
+                        <!-- Dynamically populated by manage-panel.js -->
+                    </div>
+                </div>
+
+                <!-- Actions Grid (dynamically populated) -->
+                <div class="actions-grid" id="actionsGrid">
+                    <!-- Dynamically populated by quick-actions-manager.js -->
                 </div>
             </section>
 
             <!-- Element History Section -->
             <section class="panel-section">
-                <h2>📜 Recent Elements</h2>
+                <h2><span class="material-icons md-18">history</span> Recent Elements</h2>
                 <div id="elementHistory" class="element-history">
                     <p class="placeholder">No recent elements.</p>
                 </div>
@@ -100,7 +93,7 @@
 
             <!-- Quick Reference Section -->
             <section class="panel-section">
-                <h2>📚 Quick Reference</h2>
+                <h2><span class="material-icons md-18">library_books</span> Quick Reference</h2>
                 <div class="quick-ref">
                     <div class="ref-group">
                         <h3>Essential Commands</h3>
@@ -158,7 +151,7 @@
 
             <!-- Settings Section -->
             <section class="panel-section">
-                <h2>⚙️ Settings</h2>
+                <h2><span class="material-icons md-18">settings</span> Settings</h2>
                 <div class="settings">
                     <label class="setting-item">
                         <input type="checkbox" id="autoStorage" checked>
@@ -190,6 +183,6 @@
         </div>
     </div>
 
-    <script src="panel.js"></script>
+    <script type="module" src="panel.js"></script>
 </body>
 </html>

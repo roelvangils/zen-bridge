@@ -81,7 +81,84 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         });
         return false;
     }
+
+    if (message.type === 'COPY_IMAGE_TO_CLIPBOARD') {
+        // Handle clipboard write from DevTools panel (which has restricted permissions)
+        copyImageToClipboard(message.blob)
+            .then(() => sendResponse({ ok: true }))
+            .catch(error => sendResponse({ ok: false, error: String(error) }));
+        return true; // Keep channel open for async response
+    }
 });
+
+/**
+ * Copy image blob to clipboard via offscreen document
+ * DevTools panels have restricted clipboard access, and service workers don't have ClipboardItem
+ * So we use an offscreen document which has full DOM APIs
+ */
+async function copyImageToClipboard(dataUrl) {
+    try {
+        // Ensure offscreen document exists
+        await setupOffscreenDocument();
+
+        console.log('[Zen Bridge] Sending clipboard write request to offscreen document...');
+
+        // Get the offscreen document context
+        const offscreenContexts = await chrome.runtime.getContexts({
+            contextTypes: ['OFFSCREEN_DOCUMENT'],
+            documentUrls: [chrome.runtime.getURL('offscreen.html')]
+        });
+
+        if (offscreenContexts.length === 0) {
+            throw new Error('Offscreen document not found');
+        }
+
+        // Send message directly to the offscreen document
+        const response = await chrome.runtime.sendMessage({
+            type: 'OFFSCREEN_COPY_IMAGE',
+            dataUrl: dataUrl,
+            target: 'offscreen'
+        });
+
+        console.log('[Zen Bridge] Response from offscreen:', response);
+
+        if (!response || !response.success) {
+            throw new Error(response?.error || 'Failed to copy via offscreen document');
+        }
+
+        console.log('[Zen Bridge] Image copied to clipboard via offscreen document');
+    } catch (error) {
+        console.error('[Zen Bridge] Failed to copy image to clipboard:', error);
+        throw error;
+    }
+}
+
+/**
+ * Setup offscreen document for clipboard operations
+ */
+async function setupOffscreenDocument() {
+    // Check if offscreen document already exists
+    const existingContexts = await chrome.runtime.getContexts({
+        contextTypes: ['OFFSCREEN_DOCUMENT'],
+        documentUrls: [chrome.runtime.getURL('offscreen.html')]
+    });
+
+    if (existingContexts.length > 0) {
+        return; // Already exists
+    }
+
+    // Create offscreen document
+    await chrome.offscreen.createDocument({
+        url: 'offscreen.html',
+        reasons: ['CLIPBOARD'],
+        justification: 'Copy screenshots to clipboard from DevTools panel'
+    });
+
+    console.log('[Zen Bridge] Offscreen document created for clipboard operations');
+
+    // Longer delay to ensure offscreen document is fully loaded and ready
+    await new Promise(resolve => setTimeout(resolve, 300));
+}
 
 /**
  * Update WebSocket connection status in main world
@@ -160,53 +237,141 @@ async function injectMainWorldVars(tabId) {
 }
 
 /**
- * Execute JavaScript code with CSP bypass
- * Uses script injection which completely bypasses CSP restrictions
+ * Execute JavaScript code with multi-tier CSP handling
+ *
+ * Tier 1: Try direct execution (fast, clean, works on most sites)
+ * Tier 2: Fall back to script tag injection (works on strict CSP sites)
  */
 async function executeWithCSPBypass(tabId, code, requestId) {
     try {
-        console.log('[Zen Bridge] Executing code in tab', tabId, 'with CSP bypass (script injection)');
+        // TIER 1: Try direct execution first (fast path)
+        console.log('[Zen Bridge] Attempting direct execution...');
 
-        // Use script injection to completely bypass CSP
-        // Extensions can inject script tags which are not subject to page CSP
+        const directResult = await executeDirectly(tabId, code, requestId);
+
+        // Check if it failed due to CSP
+        if (!directResult.ok && directResult.error &&
+            (directResult.error.includes('EvalError') ||
+             directResult.error.includes('Content Security Policy') ||
+             directResult.error.includes('unsafe-eval'))) {
+
+            console.log('[Zen Bridge] CSP detected, falling back to script tag injection');
+
+            // TIER 2: Fall back to script tag injection
+            return await executeViaScriptTag(tabId, code, requestId);
+        }
+
+        // Direct execution succeeded or failed for non-CSP reasons
+        return directResult;
+
+    } catch (error) {
+        console.error('[Zen Bridge] Execution error:', error);
+        return {
+            ok: false,
+            result: null,
+            error: String(error),
+            requestId: requestId
+        };
+    }
+}
+
+/**
+ * TIER 1: Direct execution using AsyncFunction
+ * Fast and clean, works on sites without strict CSP
+ */
+async function executeDirectly(tabId, code, requestId) {
+    try {
         const results = await chrome.scripting.executeScript({
             target: { tabId: tabId },
-            world: 'MAIN',  // Execute in main world for full page access
-            func: (codeToExecute, resultVarName) => {
+            world: 'MAIN',
+            func: async (codeToExecute) => {
+                try {
+                    // Try using AsyncFunction (blocked by strict CSP)
+                    const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
+                    const fn = new AsyncFunction('return (' + codeToExecute + ')');
+                    let result = await fn();
+
+                    // Handle nested promises
+                    if (result && typeof result.then === 'function') {
+                        result = await result;
+                    }
+
+                    return {
+                        ok: true,
+                        result: result,
+                        error: null
+                    };
+                } catch (e) {
+                    return {
+                        ok: false,
+                        result: null,
+                        error: e.stack || String(e)
+                    };
+                }
+            },
+            args: [code]
+        });
+
+        if (results && results[0]) {
+            const executionResult = await results[0].result;
+            return {
+                ok: executionResult.ok,
+                result: executionResult.result,
+                error: executionResult.error,
+                requestId: requestId
+            };
+        }
+
+        return {
+            ok: false,
+            result: null,
+            error: 'No result returned from tab',
+            requestId: requestId
+        };
+
+    } catch (error) {
+        return {
+            ok: false,
+            result: null,
+            error: String(error),
+            requestId: requestId
+        };
+    }
+}
+
+/**
+ * TIER 2: Script tag injection (CSP bypass)
+ * Works on all sites including those with strict CSP
+ * Uses direct code embedding (no eval/Function constructor)
+ */
+async function executeViaScriptTag(tabId, code, requestId) {
+    try {
+        const results = await chrome.scripting.executeScript({
+            target: { tabId: tabId },
+            world: 'MAIN',
+            func: (codeToExecute, resultId) => {
                 return new Promise((resolve) => {
                     try {
-                        // Store code in a data attribute to avoid string interpolation issues
-                        const codeVar = `__zenCode_${resultVarName}`;
-                        window[codeVar] = codeToExecute;
-
-                        // Inject a script tag - this bypasses CSP because it's done by extension
+                        // Create a script tag - extensions can inject these even with CSP
                         const script = document.createElement('script');
-                        // Use JSON.stringify to safely embed the variable name
+
+                        // CRITICAL: Embed the code DIRECTLY into the script tag's source
+                        // The code becomes part of the static script content, NOT eval'd
+                        // This completely bypasses CSP restrictions
                         script.textContent = `
                             (async function() {
-                                const resultVar = ${JSON.stringify(resultVarName)};
-                                const codeVar = ${JSON.stringify(codeVar)};
                                 try {
-                                    // Get the code from the window variable
-                                    const code = window[codeVar];
-                                    delete window[codeVar];
+                                    // Execute user code directly (no eval, no Function constructor)
+                                    // The code below is inserted as raw JavaScript source
+                                    const __result__ = await (${codeToExecute});
 
-                                    // Execute the code - use indirect eval for global scope
-                                    // Since this script is injected by extension, eval works here
-                                    let result = (0, eval)(code);
-
-                                    // Await if it's a promise
-                                    if (result && typeof result.then === 'function') {
-                                        result = await result;
-                                    }
-
-                                    window[resultVar] = {
+                                    window['${resultId}'] = {
                                         ok: true,
-                                        result: result,
+                                        result: __result__,
                                         error: null
                                     };
                                 } catch (e) {
-                                    window[resultVar] = {
+                                    window['${resultId}'] = {
                                         ok: false,
                                         result: null,
                                         error: e.stack || String(e)
@@ -215,40 +380,46 @@ async function executeWithCSPBypass(tabId, code, requestId) {
                             })();
                         `;
 
-                        // Append to page (extension can do this despite CSP)
+                        // Inject the script (extension privilege allows this despite CSP)
                         (document.head || document.documentElement).appendChild(script);
 
-                        // Wait for execution to complete
+                        // Poll for result
+                        const startTime = Date.now();
                         const checkInterval = setInterval(() => {
-                            if (window[resultVarName] !== undefined) {
+                            if (window[resultId] !== undefined) {
                                 clearInterval(checkInterval);
-                                const result = window[resultVarName];
-                                delete window[resultVarName];
+                                const result = window[resultId];
+                                delete window[resultId];
                                 script.remove();
                                 resolve(result);
+                            } else if (Date.now() - startTime > 30000) {
+                                // 30 second timeout
+                                clearInterval(checkInterval);
+                                script.remove();
+                                delete window[resultId];
+                                resolve({
+                                    ok: false,
+                                    result: null,
+                                    error: 'Execution timeout (30s)'
+                                });
                             }
                         }, 10);
 
-                        // Timeout after 30 seconds
-                        setTimeout(() => {
-                            clearInterval(checkInterval);
-                            script.remove();
-                            delete window[codeVar];
-                            delete window[resultVarName];
-                            resolve({ ok: false, result: null, error: 'Execution timeout' });
-                        }, 30000);
-
                     } catch (e) {
-                        resolve({ ok: false, result: null, error: String(e) });
+                        resolve({
+                            ok: false,
+                            result: null,
+                            error: 'Script injection failed: ' + String(e)
+                        });
                     }
                 });
             },
-            args: [code, `__zenResult_${requestId}`]
+            args: [code, `__inspektResult_${requestId}`]
         });
 
         if (results && results[0]) {
             const executionResult = await results[0].result;
-            console.log('[Zen Bridge] Execution successful');
+            console.log('[Zen Bridge] Script tag execution successful');
 
             return {
                 ok: executionResult.ok,
@@ -266,7 +437,7 @@ async function executeWithCSPBypass(tabId, code, requestId) {
         };
 
     } catch (error) {
-        console.error('[Zen Bridge] Execution error:', error);
+        console.error('[Zen Bridge] Script tag execution error:', error);
         return {
             ok: false,
             result: null,

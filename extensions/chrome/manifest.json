@@ -13,7 +13,10 @@
   "permissions": [
     "activeTab",
     "scripting",
-    "storage"
+    "storage",
+    "clipboardWrite",
+    "tabCapture",
+    "offscreen"
   ],
 
   "host_permissions": [
@@ -42,5 +45,10 @@
     "default_popup": "popup/popup.html"
   },
 
-  "devtools_page": "devtools.html"
+  "devtools_page": "devtools.html",
+
+  "web_accessible_resources": [{
+    "resources": ["fonts/*", "css/*"],
+    "matches": ["<all_urls>"]
+  }]
 }

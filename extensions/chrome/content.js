@@ -219,4 +219,136 @@
 
     initializeConnection();
 
+    // Message listener for DevTools panel requests
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        if (message.action === 'getElementBounds') {
+            // Get element bounds for screenshot
+            try {
+                const element = document.querySelector(message.selector);
+                if (element) {
+                    const rect = element.getBoundingClientRect();
+
+                    // Use left/top instead of x/y for better compatibility
+                    // These are relative to the viewport (what captureVisibleTab captures)
+                    const bounds = {
+                        x: rect.left,
+                        y: rect.top,
+                        width: rect.width,
+                        height: rect.height,
+                        top: rect.top,
+                        left: rect.left,
+                        right: rect.right,
+                        bottom: rect.bottom
+                    };
+
+                    console.log('[Content Script] Element bounds:', bounds);
+                    console.log('[Content Script] Window scroll:', window.scrollX, window.scrollY);
+                    console.log('[Content Script] Device pixel ratio:', window.devicePixelRatio);
+
+                    sendResponse({
+                        success: true,
+                        bounds: {
+                            ...bounds,
+                            devicePixelRatio: window.devicePixelRatio,
+                            scrollX: window.scrollX,
+                            scrollY: window.scrollY
+                        }
+                    });
+                } else {
+                    sendResponse({
+                        success: false,
+                        error: 'Element not found'
+                    });
+                }
+            } catch (error) {
+                sendResponse({
+                    success: false,
+                    error: error.message
+                });
+            }
+            return true; // Keep message channel open for async response
+        } else if (message.action === 'scrollIntoView') {
+            // Scroll element into view
+            try {
+                const element = document.querySelector(message.selector);
+                if (element) {
+                    element.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center',
+                        inline: 'center'
+                    });
+                    sendResponse({ success: true });
+                } else {
+                    sendResponse({
+                        success: false,
+                        error: 'Element not found'
+                    });
+                }
+            } catch (error) {
+                sendResponse({
+                    success: false,
+                    error: error.message
+                });
+            }
+            return true;
+        } else if (message.action === 'hideOutline') {
+            // Hide the element picker outline temporarily
+            try {
+                const element = document.querySelector('[data-inspekt-outline="true"]');
+                if (element) {
+                    // Store current outline styles so we can restore them
+                    element.setAttribute('data-inspekt-hidden-outline', element.style.outline || '');
+                    element.setAttribute('data-inspekt-hidden-outline-offset', element.style.outlineOffset || '');
+
+                    // Remove outline styles
+                    element.style.outline = 'none';
+                    element.style.outlineOffset = '';
+
+                    console.log('[Content Script] Outline hidden');
+                    sendResponse({ success: true });
+                } else {
+                    console.warn('[Content Script] No outlined element found to hide');
+                    sendResponse({ success: true }); // Not an error if outline doesn't exist
+                }
+            } catch (error) {
+                sendResponse({
+                    success: false,
+                    error: error.message
+                });
+            }
+            return true;
+        } else if (message.action === 'showOutline') {
+            // Restore the element picker outline
+            try {
+                const element = document.querySelector('[data-inspekt-outline="true"]');
+                if (element) {
+                    // Restore outline styles
+                    const hiddenOutline = element.getAttribute('data-inspekt-hidden-outline');
+                    const hiddenOffset = element.getAttribute('data-inspekt-hidden-outline-offset');
+
+                    if (hiddenOutline !== null) {
+                        element.style.outline = hiddenOutline;
+                        element.style.outlineOffset = hiddenOffset;
+
+                        // Clean up temporary attributes
+                        element.removeAttribute('data-inspekt-hidden-outline');
+                        element.removeAttribute('data-inspekt-hidden-outline-offset');
+                    }
+
+                    console.log('[Content Script] Outline restored');
+                    sendResponse({ success: true });
+                } else {
+                    console.warn('[Content Script] No outlined element found to restore');
+                    sendResponse({ success: true }); // Not an error if outline doesn't exist
+                }
+            } catch (error) {
+                sendResponse({
+                    success: false,
+                    error: error.message
+                });
+            }
+            return true;
+        }
+    });
+
 })();

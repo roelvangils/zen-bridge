@@ -98,6 +98,7 @@ body {
 
 .theme-icon {
     font-size: 20px;
+    color: white;
 }
 
 .status-indicator {
@@ -170,6 +171,7 @@ body {
     font-size: 24px;
     line-height: 1;
     flex-shrink: 0;
+    color: light-dark(#ff9800, #ffb74d);
 }
 
 .callout-content {
@@ -216,6 +218,13 @@ body {
     padding: 4px;
     border-radius: 4px;
     transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.callout-command .copy-btn .material-icons {
+    color: light-dark(#ff9800, #ffb74d);
 }
 
 .callout-command .copy-btn:hover {
@@ -250,6 +259,10 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+.panel-section h2 .material-icons {
+    color: light-dark(#0066ff, #66b3ff);
 }
 
 .placeholder {
@@ -318,13 +331,165 @@ body {
 }
 
 /* Quick Actions */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.section-header h2 {
+    margin-bottom: 0;
+}
+
+.manage-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: transparent;
+    border: 1px solid light-dark(#e5e7eb, #404040);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    color: light-dark(#666, #aaa);
+    transition: all 0.2s;
+}
+
+.manage-btn:hover {
+    border-color: light-dark(#0066ff, #66b3ff);
+    color: light-dark(#0066ff, #66b3ff);
+    background: light-dark(#f8faff, #1a2332);
+}
+
+.manage-btn.active {
+    border-color: light-dark(#0066ff, #66b3ff);
+    background: light-dark(#0066ff, #66b3ff);
+    color: white;
+}
+
+.manage-btn .material-icons {
+    font-size: 16px;
+}
+
+.manage-btn-label {
+    font-weight: 600;
+}
+
+/* Manage Panel */
+.manage-panel {
+    background: light-dark(#f9f9f9, #252525);
+    border: 2px solid light-dark(#e5e7eb, #404040);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 16px;
+    animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        max-height: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+        margin-bottom: 0;
+    }
+    to {
+        opacity: 1;
+        max-height: 300px;
+        padding-top: 12px;
+        padding-bottom: 12px;
+        margin-bottom: 16px;
+    }
+}
+
+.manage-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.manage-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: light-dark(#666, #aaa);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.manage-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: light-dark(#999, #888);
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.manage-close:hover {
+    background: light-dark(rgba(0, 0, 0, 0.05), rgba(255, 255, 255, 0.1));
+    color: light-dark(#333, #e0e0e0);
+}
+
+.manage-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* Removed Action Tiles */
+.removed-action {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 2px dashed light-dark(#e5e7eb, #404040);
+    border-radius: 6px;
+    background: light-dark(white, #2d2d2d);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.removed-action:hover {
+    border-color: light-dark(#0066ff, #66b3ff);
+    background: light-dark(#f8faff, #1a2332);
+    border-style: solid;
+}
+
+.removed-action .material-icons {
+    font-size: 18px;
+    color: light-dark(#0066ff, #66b3ff);
+}
+
+.removed-action-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: light-dark(#333, #e0e0e0);
+}
+
+.restore-icon {
+    font-size: 16px;
+    color: light-dark(#4ade80, #4ade80);
+    margin-left: auto;
+}
+
+/* Actions Grid */
 .actions-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 12px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .action-btn {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -332,7 +497,7 @@ body {
     border: 2px solid light-dark(#e5e7eb, #404040);
     border-radius: 8px;
     background: light-dark(white, #2d2d2d);
-    cursor: pointer;
+    cursor: grab;
     transition: all 0.2s;
     text-align: left;
 }
@@ -346,6 +511,7 @@ body {
 
 .action-btn:active:not(:disabled) {
     transform: translateY(0);
+    cursor: grabbing;
 }
 
 .action-btn:disabled {
@@ -353,9 +519,61 @@ body {
     cursor: not-allowed;
 }
 
+/* Drag States */
+.action-btn.dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+}
+
+.actions-grid-placeholder {
+    border: 2px dashed light-dark(#0066ff, #66b3ff);
+    background: light-dark(rgba(0, 102, 255, 0.05), rgba(0, 102, 255, 0.1));
+    border-radius: 8px;
+    min-height: 100px;
+}
+
+/* Picker States */
+.action-btn.picking {
+    opacity: 0.4;
+    cursor: crosshair;
+    pointer-events: none;
+    filter: grayscale(0.5);
+}
+
+.action-btn.element-selected {
+    border-color: light-dark(#0066ff, #66b3ff);
+    background: light-dark(#f8faff, #1a2332);
+}
+
+.action-btn.element-selected:hover {
+    border-color: light-dark(#ff4444, #ff6666);
+    background: light-dark(#fff5f5, #331a1a);
+}
+
+.action-btn.processing {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.action-btn.processing .btn-icon {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(0.95);
+    }
+}
+
 .btn-icon {
     font-size: 24px;
     margin-bottom: 8px;
+    color: light-dark(#0066ff, #66b3ff);
 }
 
 .btn-label {
@@ -368,6 +586,92 @@ body {
 .btn-hint {
     font-size: 11px;
     color: light-dark(#999, #888);
+}
+
+/* Keyboard Shortcut Badge */
+.keyboard-shortcut {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: light-dark(rgba(0, 102, 255, 0.1), rgba(0, 102, 255, 0.2));
+    color: light-dark(#0066ff, #66b3ff);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid light-dark(rgba(0, 102, 255, 0.2), rgba(0, 102, 255, 0.3));
+    font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+    pointer-events: none;
+}
+
+/* Close Button on Tiles (only visible in Manage mode) */
+.action-btn .close-btn {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    background: light-dark(rgba(239, 68, 68, 0.9), rgba(239, 68, 68, 0.9));
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    z-index: 10;
+}
+
+/* Show close buttons only when Manage mode is active */
+.actions-grid.manage-active .action-btn .close-btn {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.action-btn .close-btn:hover {
+    background: light-dark(rgba(220, 38, 38, 1), rgba(220, 38, 38, 1));
+    transform: scale(1.1);
+}
+
+.action-btn .close-btn:active {
+    transform: scale(0.95);
+}
+
+/* Shortcut Flash Animation */
+.shortcut-flash {
+    animation: shortcutFlash 0.3s ease-out;
+}
+
+@keyframes shortcutFlash {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 20px light-dark(rgba(0, 102, 255, 0.4), rgba(0, 102, 255, 0.6));
+    }
+}
+
+/* Remove/Restore Animations */
+@keyframes fadeOutScale {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+}
+
+.fade-out-scale {
+    animation: fadeOutScale 0.3s ease-out forwards;
 }
 
 /* Element History */
@@ -409,11 +713,22 @@ body {
     transition: all 0.2s;
 }
 
+.history-highlight-btn .material-icons,
+.history-elements-btn .material-icons {
+    font-size: 18px;
+    color: light-dark(#0066ff, #66b3ff);
+}
+
 .history-highlight-btn:hover,
 .history-elements-btn:hover {
     background: light-dark(#0066ff, #66b3ff);
     transform: scale(1.1);
     box-shadow: 0 2px 8px light-dark(rgba(0, 102, 255, 0.3), rgba(0, 102, 255, 0.5));
+}
+
+.history-highlight-btn:hover .material-icons,
+.history-elements-btn:hover .material-icons {
+    color: white;
 }
 
 .history-highlight-btn:active,
@@ -572,4 +887,165 @@ body {
 @keyframes successFlash {
     0%, 100% { background: light-dark(white, #2d2d2d); }
     50% { background: light-dark(#d1fae5, #064e3b); }
+}
+
+/* Screenshot Modal */
+.screenshot-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.screenshot-modal-overlay.show {
+    opacity: 1;
+}
+
+.screenshot-modal-overlay.fade-out {
+    opacity: 0;
+}
+
+.screenshot-modal {
+    background: light-dark(white, #2d2d2d);
+    border-radius: 8px;
+    max-width: 90%;
+    max-height: 90%;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.screenshot-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid light-dark(#e5e5e5, #3d3d3d);
+}
+
+.screenshot-modal-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: light-dark(#333, #e0e0e0);
+}
+
+.screenshot-modal-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    color: light-dark(#666, #999);
+    transition: all 0.2s;
+}
+
+.screenshot-modal-close:hover {
+    background: light-dark(#f5f5f5, #3d3d3d);
+    color: light-dark(#333, #e0e0e0);
+}
+
+.screenshot-modal-close .material-icons {
+    font-size: 20px;
+}
+
+.screenshot-modal-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow: auto;
+}
+
+.screenshot-selector {
+    font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace;
+    font-size: 12px;
+    color: light-dark(#666, #999);
+    background: light-dark(#f5f5f5, #1a1a1a);
+    padding: 8px 12px;
+    border-radius: 4px;
+    word-break: break-all;
+}
+
+.screenshot-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    background: light-dark(#d0d0d0, #6b6b6b);
+    border: 1px solid light-dark(#e5e5e5, #3d3d3d);
+    border-radius: 4px;
+    padding: 60px;
+    min-height: 200px;
+    overflow: hidden;
+    perspective: 1000px;
+}
+
+.screenshot-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: 150%;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: blur(25px);
+    opacity: 0.5;
+    z-index: 0;
+}
+
+.screenshot-image {
+    width: 75%;
+    max-height: 60vh;
+    display: block;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15),
+                0 2px 4px rgba(0, 0, 0, 0.1);
+    cursor: move;
+    object-fit: contain;
+    animation: flipIn 0.5s ease-out forwards;
+    transform-style: preserve-3d;
+    position: relative;
+    z-index: 1;
+}
+
+@keyframes flipIn {
+    0% {
+        transform: rotateX(-15deg) translateY(-30px);
+        opacity: 0;
+    }
+    50% {
+        opacity: 0.8;
+    }
+    100% {
+        transform: rotateX(0deg) translateY(0);
+        opacity: 1;
+    }
+}
+
+.screenshot-instructions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-align: center;
+    font-size: 13px;
+    color: light-dark(#666, #999);
+    padding: 8px;
+    background: light-dark(#f0f7ff, #1a2332);
+    border-radius: 4px;
+}
+
+.screenshot-instructions .material-icons {
+    font-size: 18px;
+    color: light-dark(#0066ff, #4d9fff);
 }

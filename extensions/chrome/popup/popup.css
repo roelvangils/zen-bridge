@@ -36,6 +36,7 @@ header {
 
 .logo-icon {
     font-size: 24px;
+    color: white;
 }
 
 h1 {
@@ -113,6 +114,13 @@ h2 {
     font-size: 14px;
     font-weight: 600;
     margin-bottom: 12px;
+    color: #0066ff;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+h2 .material-icons {
     color: #0066ff;
 }
 
@@ -192,12 +200,20 @@ footer {
     font-size: 13px;
     font-weight: 500;
     transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
 }
 
 .link-button:hover {
     background: #0066ff;
     color: white;
     border-color: #0066ff;
+}
+
+.link-button:hover .material-icons {
+    color: white;
 }
 
 .copyright {
