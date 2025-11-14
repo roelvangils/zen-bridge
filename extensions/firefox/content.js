@@ -1,5 +1,5 @@
 /**
- * Zen Browser Bridge - Content Script (Firefox)
+ * Inspekt - Content Script (Firefox)
  *
  * This script runs on every page and handles:
  * - WebSocket connection to localhost:8766
@@ -32,7 +32,7 @@
     let reconnectTimer = null;
     const RECONNECT_DELAY = 3000;
 
-    console.log('%c[Zen Bridge Extension]%c Loaded (CSP bypass enabled)',
+    console.log('%c[Inspekt Extension]%c Loaded (CSP bypass enabled)',
         'color: #0066ff; font-weight: bold', 'color: inherit');
 
     function isFrontTab() {
@@ -45,13 +45,13 @@
             return;
         }
 
-        console.log('[Zen Bridge] Connecting to WebSocket server...');
+        console.log('[Inspekt] Connecting to WebSocket server...');
 
         try {
             ws = new WebSocket(WS_URL);
 
             ws.onopen = () => {
-                console.log('%c[Zen Bridge]%c Connected via WebSocket',
+                console.log('%c[Inspekt]%c Connected via WebSocket',
                     'color: #0066ff; font-weight: bold', 'color: inherit');
                 if (reconnectTimer) {
                     clearTimeout(reconnectTimer);
@@ -102,7 +102,7 @@
                             }));
                         } catch (err) {
                             // If background script fails, send error back
-                            console.error('[Zen Bridge] Background script error:', err);
+                            console.error('[Inspekt] Background script error:', err);
                             ws.send(JSON.stringify({
                                 type: 'result',
                                 request_id: requestId,
@@ -119,23 +119,23 @@
                     }
 
                 } catch (err) {
-                    console.error('[Zen Bridge] Error handling message:', err);
+                    console.error('[Inspekt] Error handling message:', err);
                 }
             };
 
             ws.onclose = (event) => {
-                console.log('[Zen Bridge] Disconnected (code:', event.code, '). Reconnecting...');
+                console.log('[Inspekt] Disconnected (code:', event.code, '). Reconnecting...');
                 ws = null;
                 window.__zen_ws__ = null;
                 scheduleReconnect();
             };
 
             ws.onerror = (error) => {
-                console.error('[Zen Bridge] WebSocket error:', error);
+                console.error('[Inspekt] WebSocket error:', error);
             };
 
         } catch (err) {
-            console.error('[Zen Bridge] Failed to connect:', err);
+            console.error('[Inspekt] Failed to connect:', err);
             scheduleReconnect();
         }
     }
@@ -169,7 +169,7 @@
         } else if (document.visibilityState === 'hidden') {
             // Tab became hidden - disconnect to save resources
             if (ws && ws.readyState === WebSocket.OPEN) {
-                console.log('[Zen Bridge] Tab hidden, closing connection');
+                console.log('[Inspekt] Tab hidden, closing connection');
                 ws.close();
                 ws = null;
                 window.__zen_ws__ = null;
@@ -190,23 +190,23 @@
                     const id = element.id ? '#' + element.id : '';
                     const cls = element.className && typeof element.className === 'string' ?
                         '.' + element.className.split(' ').filter(c => c).join('.') : '';
-                    console.log('%c[Zen Bridge]%c ✓ Element stored: <' + tag + id + cls + '>',
+                    console.log('%c[Inspekt]%c ✓ Element stored: <' + tag + id + cls + '>',
                         'color: #0066ff; font-weight: bold', 'color: #00aa00');
-                    console.log('[Zen Bridge] Run in terminal: zen inspected');
+                    console.log('[Inspekt] Run in terminal: zen inspected');
                     return 'Stored: <' + tag + id + cls + '>';
                 }
-                console.error('[Zen Bridge] ✗ Invalid element. Usage: zenStore($0)');
+                console.error('[Inspekt] ✗ Invalid element. Usage: zenStore($0)');
                 return 'ERROR: Please provide a valid element';
             };
 
-            console.log('%c[Zen Bridge]%c DevTools integration ready',
+            console.log('%c[Inspekt]%c DevTools integration ready',
                 'color: #0066ff; font-weight: bold', 'color: inherit');
-            console.log('[Zen Bridge] To capture inspected element:');
+            console.log('[Inspekt] To capture inspected element:');
             console.log('  1. Right-click element → Inspect');
             console.log('  2. In DevTools Console: zenStore($0)');
             console.log('  3. In terminal: zen inspected');
             console.log('');
-            console.log('%c[Zen Bridge]%c Extension mode: CSP restrictions bypassed! ✓',
+            console.log('%c[Inspekt]%c Extension mode: CSP restrictions bypassed! ✓',
                 'color: #0066ff; font-weight: bold', 'color: #00aa00; font-weight: bold');
         }
     `;
@@ -219,10 +219,10 @@
             // Check if domain is allowed (will show opt-in modal if not)
             const allowed = await ZenPermissions.checkAndRequest();
             if (allowed) {
-                console.log('[Zen Bridge] Domain authorized, connecting...');
+                console.log('[Inspekt] Domain authorized, connecting...');
                 connect();
             } else {
-                console.log('[Zen Bridge] Domain not authorized. Connection blocked.');
+                console.log('[Inspekt] Domain not authorized. Connection blocked.');
             }
         }
     }

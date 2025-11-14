@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "name": "Zen Browser Bridge",
+  "name": "Inspekt",
   "version": "4.0.0",
   "description": "Execute JavaScript in your browser from the command line. Works on all websites, bypasses CSP restrictions.",
 
@@ -38,13 +38,13 @@
       "16": "icons/icon-16.png",
       "48": "icons/icon-48.png"
     },
-    "default_title": "Zen Browser Bridge",
+    "default_title": "Inspekt",
     "default_popup": "popup/popup.html"
   },
 
   "browser_specific_settings": {
     "gecko": {
-      "id": "zen-bridge@roelvangils.github.io",
+      "id": "inspekt@roelvangils.github.io",
       "strict_min_version": "109.0"
     }
   }
