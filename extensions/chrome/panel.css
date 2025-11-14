@@ -979,10 +979,10 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    background: light-dark(#f9f9f9, #1a1a1a);
+    background: light-dark(#ffffff, #1a1a1a);
     border: 1px solid light-dark(#e5e5e5, #3d3d3d);
     border-radius: 4px;
-    padding: 12px;
+    padding: 20px;
     min-height: 200px;
 }
 
@@ -991,15 +991,25 @@ body {
     max-height: 70vh;
     display: block;
     border-radius: 4px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15),
+                0 2px 4px rgba(0, 0, 0, 0.1);
+    cursor: move;
 }
 
 .screenshot-instructions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     text-align: center;
     font-size: 13px;
     color: light-dark(#666, #999);
     padding: 8px;
     background: light-dark(#f0f7ff, #1a2332);
     border-radius: 4px;
-    border: 1px solid light-dark(#d0e7ff, #2a3f5f);
+}
+
+.screenshot-instructions .material-icons {
+    font-size: 18px;
+    color: light-dark(#0066ff, #4d9fff);
 }

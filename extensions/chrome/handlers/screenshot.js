@@ -68,8 +68,15 @@ export async function handleTakeNodeScreenshot(context) {
           reader.readAsDataURL(blob);
         });
 
-        // Show screenshot in modal
-        showScreenshotModal(dataUrl, currentElement.selector);
+        // Get image dimensions
+        const dimensions = await new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => resolve({ width: img.width, height: img.height });
+          img.src = dataUrl;
+        });
+
+        // Show screenshot in modal with dimensions and filesize
+        showScreenshotModal(dataUrl, currentElement.selector, dimensions.width, dimensions.height, blob.size);
 
         // Show success feedback
         if (label) {
@@ -113,7 +120,14 @@ export async function handleTakeNodeScreenshot(context) {
         reader.readAsDataURL(blob);
       });
 
-      showScreenshotModal(dataUrl, currentElement.selector);
+      // Get image dimensions
+      const dimensions = await new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve({ width: img.width, height: img.height });
+        img.src = dataUrl;
+      });
+
+      showScreenshotModal(dataUrl, currentElement.selector, dimensions.width, dimensions.height, blob.size);
       console.log("[Screenshot] Screenshot captured and displayed");
     }
   } catch (error) {

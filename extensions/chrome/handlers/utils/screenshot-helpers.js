@@ -152,9 +152,15 @@ async function cropImage(dataUrl, rect) {
  * Users can right-click to copy or download the image
  * @param {string} dataUrl - Screenshot data URL
  * @param {string} selector - Element selector for context
+ * @param {number} width - Image width in pixels
+ * @param {number} height - Image height in pixels
+ * @param {number} filesize - File size in bytes
  */
-export function showScreenshotModal(dataUrl, selector) {
+export function showScreenshotModal(dataUrl, selector, width, height, filesize) {
     console.log('[Screenshot] Showing screenshot modal');
+
+    // Format filesize
+    const filesizeKB = Math.round(filesize / 1024);
 
     // Create modal overlay
     const overlay = document.createElement('div');
@@ -162,7 +168,7 @@ export function showScreenshotModal(dataUrl, selector) {
     overlay.innerHTML = `
         <div class="screenshot-modal">
             <div class="screenshot-modal-header">
-                <h3>Element Screenshot</h3>
+                <h3>Element Screenshot (${width}×${height}, ${filesizeKB}KB)</h3>
                 <button class="screenshot-modal-close" title="Close (Esc)">
                     <span class="material-icons">close</span>
                 </button>
@@ -173,7 +179,8 @@ export function showScreenshotModal(dataUrl, selector) {
                     <img src="${dataUrl}" alt="Element screenshot" class="screenshot-image">
                 </div>
                 <div class="screenshot-instructions">
-                    Right-click the image to copy or save
+                    <span class="material-icons">info</span>
+                    <span>Right-click the image to copy or save it, or drag it to your desired location.</span>
                 </div>
             </div>
         </div>
