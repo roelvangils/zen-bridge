@@ -617,7 +617,52 @@ H e l l o [SPACE] W o r l d [ENTER]
 ### Cookie Management
 
 ```bash
-inspektcookies
+# List all cookies
+inspekt cookies list
+
+# Get specific cookie
+inspekt cookies get session_id
+
+# Set a cookie
+inspekt cookies set user_pref dark --max-age 3600
+
+# Delete a cookie
+inspekt cookies delete session_id
+
+# Clear all cookies
+inspekt cookies clear
+```
+
+### Browser Storage Management
+
+Manage localStorage and sessionStorage:
+
+```bash
+# List all storage (both localStorage and sessionStorage)
+inspekt storage list
+
+# List only localStorage
+inspekt storage list --type=local
+
+# List only sessionStorage
+inspekt storage list --type=session
+
+# Get a storage item
+inspekt storage get user_token
+inspekt storage get session_data --type=session
+
+# Set a storage item
+inspekt storage set user_token abc123
+inspekt storage set preferences '{"theme":"dark"}' --type=local
+inspekt storage set temp_data xyz --type=session
+
+# Delete a storage item
+inspekt storage delete user_token
+inspekt storage delete session_data --type=session
+
+# Clear all storage
+inspekt storage clear --type=all --force
+inspekt storage clear --type=local
 ```
 
 ## 🎯 Practical Examples
