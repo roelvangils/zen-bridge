@@ -1016,13 +1016,14 @@ body {
     transform-style: preserve-3d;
     position: relative;
     z-index: 1;
-    transition: transform 0.3s ease;
     --hover-rotation: 0deg;
 }
 
+/* Transition must be applied after animation completes */
 .screenshot-image.screenshot-hover {
     transform: rotateZ(var(--hover-rotation)) scale(1.05) !important;
     transition: transform 0.5s ease !important;
+    animation: none !important;
 }
 
 @keyframes flipIn {
