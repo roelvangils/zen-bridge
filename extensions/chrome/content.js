@@ -249,7 +249,9 @@
                         success: true,
                         bounds: {
                             ...bounds,
-                            devicePixelRatio: window.devicePixelRatio
+                            devicePixelRatio: window.devicePixelRatio,
+                            scrollX: window.scrollX,
+                            scrollY: window.scrollY
                         }
                     });
                 } else {

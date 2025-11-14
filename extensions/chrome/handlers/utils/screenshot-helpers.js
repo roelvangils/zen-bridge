@@ -3,6 +3,50 @@
  */
 
 /**
+ * Screenshot cache to avoid redundant captures
+ */
+const screenshotCache = {
+    selector: null,
+    bounds: null,
+    scrollX: null,
+    scrollY: null,
+    blob: null,
+    timestamp: null
+};
+
+/**
+ * Check if cached screenshot is still valid
+ * @param {string} selector - Element selector
+ * @param {Object} newBounds - Current element bounds
+ * @returns {boolean} True if cache is valid
+ */
+function isCacheValid(selector, newBounds) {
+    if (!screenshotCache.blob || screenshotCache.selector !== selector) {
+        return false;
+    }
+
+    const cached = screenshotCache.bounds;
+
+    // Compare bounds (must match exactly)
+    if (cached.x !== newBounds.x || cached.y !== newBounds.y ||
+        cached.width !== newBounds.width || cached.height !== newBounds.height) {
+        return false;
+    }
+
+    // Compare scroll position
+    if (cached.scrollX !== newBounds.scrollX || cached.scrollY !== newBounds.scrollY) {
+        return false;
+    }
+
+    // Compare device pixel ratio (in case window moved between displays)
+    if (cached.devicePixelRatio !== newBounds.devicePixelRatio) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
  * Capture a screenshot of a specific element
  * @param {Object} element - Element object with bounds information
  * @returns {Promise<Blob>} Screenshot image as blob
@@ -18,15 +62,37 @@ export async function captureElementScreenshot(element) {
         throw new Error('Could not get element bounds');
     }
 
+    // Check if cached screenshot is still valid
+    if (isCacheValid(element.selector, rect)) {
+        console.log('[Screenshot Helpers] Using cached screenshot (element unchanged)');
+        return screenshotCache.blob;
+    }
+
+    console.log('[Screenshot Helpers] Cache miss - capturing new screenshot');
+
     // Capture the visible tab
     console.log('[Screenshot Helpers] Capturing visible tab...');
     const dataUrl = await captureVisibleTab();
     console.log('[Screenshot Helpers] Tab captured, data URL length:', dataUrl.length);
 
-    // Crop to element bounds
+    // Crop to element bounds with 2x quality and padding
     console.log('[Screenshot Helpers] Cropping image to bounds...');
     const blob = await cropImage(dataUrl, rect);
     console.log('[Screenshot Helpers] Blob created, size:', blob.size);
+
+    // Update cache
+    screenshotCache.selector = element.selector;
+    screenshotCache.bounds = {
+        x: rect.x,
+        y: rect.y,
+        width: rect.width,
+        height: rect.height,
+        devicePixelRatio: rect.devicePixelRatio,
+        scrollX: rect.scrollX,
+        scrollY: rect.scrollY
+    };
+    screenshotCache.blob = blob;
+    screenshotCache.timestamp = Date.now();
 
     return blob;
 }
@@ -85,10 +151,10 @@ async function captureVisibleTab() {
 }
 
 /**
- * Crop an image to specific bounds
+ * Crop an image to specific bounds with 2x quality and smart padding
  * @param {string} dataUrl - Source image data URL
  * @param {DOMRect} rect - Bounds to crop to
- * @returns {Promise<Blob>} Cropped image as blob
+ * @returns {Promise<Blob>} Cropped image as blob with 2x resolution and padding
  */
 async function cropImage(dataUrl, rect) {
     return new Promise((resolve, reject) => {
@@ -117,15 +183,47 @@ async function cropImage(dataUrl, rect) {
 
             console.log('[Screenshot Helpers] Source crop:', sourceX, sourceY, sourceWidth, sourceHeight);
 
-            // Set canvas size to element size (at normal resolution)
-            canvas.width = rect.width;
-            canvas.height = rect.height;
+            // ENHANCEMENT: 2x quality and 20px padding
+            const scaleFactor = 2;  // Always output at 2x resolution
+            const paddingPx = 20;
+            const paddingScaled = paddingPx * scaleFactor;  // 40px at 2x
 
-            // Draw the cropped portion, scaling back down to normal resolution
+            // Set canvas size to 2x with padding
+            canvas.width = (rect.width * scaleFactor) + (paddingScaled * 2);
+            canvas.height = (rect.height * scaleFactor) + (paddingScaled * 2);
+
+            console.log('[Screenshot Helpers] Output canvas size (2x + padding):', canvas.width, 'x', canvas.height);
+
+            // Sample top-left pixel color for smart padding
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCanvas.width = 1;
+            tempCanvas.height = 1;
+
+            // Draw just the top-left pixel from the element
+            tempCtx.drawImage(img, sourceX, sourceY, 1, 1, 0, 0, 1, 1);
+            const pixelData = tempCtx.getImageData(0, 0, 1, 1).data;
+
+            // Handle transparent pixels - fallback to white
+            let bgColor;
+            if (pixelData[3] === 0) {
+                bgColor = 'rgb(255, 255, 255)';  // White for transparent
+                console.log('[Screenshot Helpers] Top-left pixel is transparent, using white padding');
+            } else {
+                bgColor = `rgb(${pixelData[0]}, ${pixelData[1]}, ${pixelData[2]})`;
+                console.log('[Screenshot Helpers] Sampled padding color:', bgColor);
+            }
+
+            // Fill entire canvas with sampled color
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw the element screenshot at 2x resolution, centered with padding
             ctx.drawImage(
                 img,
-                sourceX, sourceY, sourceWidth, sourceHeight, // Source rectangle (device pixels)
-                0, 0, rect.width, rect.height                // Destination rectangle (CSS pixels)
+                sourceX, sourceY, sourceWidth, sourceHeight,  // Source (device pixels)
+                paddingScaled, paddingScaled,                  // Destination offset (padding)
+                rect.width * scaleFactor, rect.height * scaleFactor  // Destination size (2x)
             );
 
             // Convert to blob
