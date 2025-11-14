@@ -274,6 +274,7 @@ export function showScreenshotModal(dataUrl, selector, width, height, filesize) 
             <div class="screenshot-modal-body">
                 <div class="screenshot-selector">${escapeHtml(selector)}</div>
                 <div class="screenshot-container">
+                    <div class="screenshot-background" style="background-image: url('${dataUrl}');"></div>
                     <img src="${dataUrl}" alt="Element screenshot" class="screenshot-image">
                 </div>
                 <div class="screenshot-instructions">
@@ -285,6 +286,21 @@ export function showScreenshotModal(dataUrl, selector, width, height, filesize) 
     `;
 
     document.body.appendChild(overlay);
+
+    // Add hover effect with random rotation
+    const screenshotImage = overlay.querySelector('.screenshot-image');
+    let currentRotation = 0;
+
+    screenshotImage.addEventListener('mouseenter', () => {
+        // Generate random rotation between -3 and +3 degrees
+        currentRotation = (Math.random() * 6) - 3;
+        screenshotImage.style.transform = `rotateZ(${currentRotation}deg) scale(1.05)`;
+    });
+
+    screenshotImage.addEventListener('mouseleave', () => {
+        // Reset to original state (animation state)
+        screenshotImage.style.transform = '';
+    });
 
     // Close handlers
     const closeModal = () => {
