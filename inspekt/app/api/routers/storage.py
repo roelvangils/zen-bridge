@@ -1,12 +1,17 @@
 """
-Storage API endpoints - Manage browser storage (localStorage and sessionStorage).
+Storage API endpoints - Manage unified browser storage (cookies, localStorage, sessionStorage).
 
-This module provides HTTP API endpoints for storage management:
-- GET /api/storage?type=local|session|all - List all storage items
-- GET /api/storage/{key}?type=local|session - Get a specific item by key
+This module provides HTTP API endpoints for unified storage management:
+- GET /api/storage?types=cookies,local,session - List all storage items
+- GET /api/storage/{key}?type=cookies|local|session - Get a specific item by key
 - POST /api/storage - Set a storage item
-- DELETE /api/storage/{key}?type=local|session - Delete a specific item
-- DELETE /api/storage?type=local|session|all - Clear all items
+- DELETE /api/storage/{key}?type=cookies|local|session - Delete a specific item
+- DELETE /api/storage?types=cookies,local,session - Clear all items
+
+Supports:
+  - cookies: Browser cookies (via chrome.cookies API or document.cookie fallback)
+  - local: localStorage
+  - session: sessionStorage
 """
 
 from __future__ import annotations
@@ -28,9 +33,17 @@ router = APIRouter()
 class SetStorageRequest(BaseModel):
     """Request model for setting storage items."""
 
-    key: str = Field(..., description="Storage key")
-    value: str = Field(..., description="Storage value")
-    type: Literal["local", "session"] = Field("local", description="Storage type (default: local)")
+    key: str = Field(..., description="Storage key / cookie name")
+    value: str = Field(..., description="Storage value / cookie value")
+    type: Literal["cookies", "local", "session"] = Field("local", description="Storage type (default: local)")
+
+    # Cookie-specific options (only used when type="cookies")
+    max_age: int | None = Field(None, description="Cookie max age in seconds (cookies only)")
+    expires: str | None = Field(None, description="Cookie expiration date (cookies only)")
+    path: str = Field("/", description="Cookie path (cookies only, default: /)")
+    domain: str | None = Field(None, description="Cookie domain (cookies only)")
+    secure: bool = Field(False, description="Secure flag - HTTPS only (cookies only)")
+    same_site: Literal["Strict", "Lax", "None"] | None = Field(None, description="SameSite attribute (cookies only)")
 
 
 # Response Models
@@ -50,30 +63,30 @@ class StorageGetResponse(BaseModel):
     error: str | None = Field(None, description="Error message if ok=False")
 
 
-# Helper Function
-def _execute_storage_action(
-    storage_type: str,
+# Helper Functions
+def _execute_unified_storage_action(
+    types: list[str],
     action: str,
     key: str = "",
     value: str = "",
+    options: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Helper function to execute storage actions."""
+    """Helper function to execute unified storage actions."""
     executor = get_executor()
     loader = ScriptLoader()
 
-    # Determine script name based on storage type
-    script_name = "localStorage.js" if storage_type == "local" else "sessionStorage.js"
-
-    # Load the storage script
+    # Load the unified storage script
     try:
-        script = loader.load_script_sync(script_name)
+        script = loader.load_script_sync("storage_unified.js")
     except FileNotFoundError as e:
         raise HTTPException(status_code=500, detail=f"Script not found: {str(e)}")
 
     # Replace placeholders
     code = script.replace("ACTION_PLACEHOLDER", action)
+    code = code.replace("TYPES_PLACEHOLDER", json.dumps(types))
     code = code.replace("KEY_PLACEHOLDER", key)
     code = code.replace("VALUE_PLACEHOLDER", value)
+    code = code.replace("OPTIONS_PLACEHOLDER", json.dumps(options if options else {}))
 
     result = executor.execute(code, timeout=60.0)
 
@@ -83,78 +96,98 @@ def _execute_storage_action(
     response = result.get("result", {})
 
     if not response.get("ok"):
-        raise HTTPException(status_code=400, detail=response.get("error"))
+        raise HTTPException(status_code=400, detail=response.get("error", "Unknown error"))
 
     return response
+
+
+def _parse_types_param(types_str: str | None, default: list[str] | None = None) -> list[str]:
+    """Parse comma-separated types string into list."""
+    if not types_str:
+        return default or ["cookies", "local", "session"]
+
+    if types_str == "all":
+        return ["cookies", "local", "session"]
+
+    # Split by comma and clean up
+    return [t.strip() for t in types_str.split(",") if t.strip() in ["cookies", "local", "session"]]
 
 
 # Endpoints
 @router.get("", response_model=StorageListResponse)
 @router.get("/", response_model=StorageListResponse)
 async def list_storage(
-    type: Literal["local", "session", "all"] = Query("all", description="Storage type to list")
+    types: str | None = Query(None, description="Comma-separated storage types: cookies,local,session or 'all' (default: all)"),
+    type: Literal["local", "session", "cookies", "all"] | None = Query(None, description="[DEPRECATED] Single storage type - use 'types' instead")
 ):
     """
-    List all storage items.
+    List all storage items across specified storage types.
 
     Mirrors 'inspekt storage list --json' CLI command.
 
     Query Parameters:
-        type: Storage type - "local", "session", or "all" (default: all)
+        types: Comma-separated list - "cookies,local,session" or "all" (default: all)
+        type: [DEPRECATED] Single type - "local", "session", "cookies", or "all" (use 'types' instead)
 
     Returns:
-        Dictionary of storage keys and values, plus total count.
+        Unified storage data with items grouped by storage type, plus metadata.
 
-    Example responses:
+    Example response (all types):
     ```json
-    // For type=local
     {
         "ok": true,
         "result": {
-            "items": {
-                "user_token": "abc123",
-                "preferences": "{\"theme\":\"dark\"}"
+            "origin": "https://example.com",
+            "hostname": "example.com",
+            "timestamp": "2025-11-15T10:30:00.000Z",
+            "storage": {
+                "cookies": {
+                    "ok": true,
+                    "count": 3,
+                    "items": [...],
+                    "apiUsed": "chrome.cookies"
+                },
+                "localStorage": {
+                    "ok": true,
+                    "count": 5,
+                    "items": {...}
+                },
+                "sessionStorage": {
+                    "ok": true,
+                    "count": 2,
+                    "items": {...}
+                }
             },
-            "count": 2,
-            "storageType": "localStorage"
-        }
-    }
-
-    // For type=all
-    {
-        "ok": true,
-        "result": {
-            "localStorage": {...},
-            "localStorageCount": 2,
-            "sessionStorage": {...},
-            "sessionStorageCount": 1
+            "totals": {
+                "totalItems": 10,
+                "totalSize": 2048,
+                "byType": {
+                    "cookies": 3,
+                    "localStorage": 5,
+                    "sessionStorage": 2
+                }
+            }
         }
     }
     ```
     """
     try:
-        if type == "all":
-            # List both types
-            local_result = _execute_storage_action("local", "list")
-            session_result = _execute_storage_action("session", "list")
-
-            return {
-                "ok": True,
-                "result": {
-                    "localStorage": local_result.get("items", {}),
-                    "localStorageCount": local_result.get("count", 0),
-                    "sessionStorage": session_result.get("items", {}),
-                    "sessionStorageCount": session_result.get("count", 0),
-                },
-                "error": None,
-            }
+        # Handle legacy 'type' parameter (backward compatibility)
+        if type and not types:
+            if type == "all":
+                types_list = ["cookies", "local", "session"]
+            else:
+                types_list = [type]
         else:
-            response = _execute_storage_action(type, "list")
-            return {
-                "ok": True,
-                "result": response,
-                "error": None,
-            }
+            types_list = _parse_types_param(types)
+
+        response = _execute_unified_storage_action(types_list, "list")
+
+        return {
+            "ok": True,
+            "result": response,
+            "error": None,
+        }
     except HTTPException:
         raise
     except Exception as e:
@@ -164,7 +197,7 @@ async def list_storage(
 @router.get("/{key}", response_model=StorageGetResponse)
 async def get_storage(
     key: str,
-    type: Literal["local", "session"] = Query("local", description="Storage type")
+    type: Literal["cookies", "local", "session"] = Query("local", description="Storage type")
 ):
     """
     Get the value of a specific storage item.
@@ -172,10 +205,10 @@ async def get_storage(
     Mirrors 'inspekt storage get <key> --json' CLI command.
 
     Path Parameters:
-        key: Storage key to retrieve
+        key: Storage key / cookie name to retrieve
 
     Query Parameters:
-        type: Storage type - "local" or "session" (default: local)
+        type: Storage type - "cookies", "local", or "session" (default: local)
 
     Returns:
         Storage key, value, and whether it exists.
@@ -185,20 +218,29 @@ async def get_storage(
     {
         "ok": true,
         "result": {
-            "key": "user_token",
-            "value": "abc123",
-            "exists": true,
-            "storageType": "localStorage"
+            "origin": "https://example.com",
+            "hostname": "example.com",
+            "storage": {
+                "localStorage": {
+                    "ok": true,
+                    "key": "user_token",
+                    "value": "abc123",
+                    "exists": true
+                }
+            }
         }
     }
     ```
     """
     try:
-        response = _execute_storage_action(type, "get", key=key)
+        response = _execute_unified_storage_action([type], "get", key=key)
 
-        # If item doesn't exist, return 404
-        if not response.get("exists"):
-            storage_name = "localStorage" if type == "local" else "sessionStorage"
+        # Check if item exists in the response
+        storage_key = "cookies" if type == "cookies" else "localStorage" if type == "local" else "sessionStorage"
+        storage_result = response.get("storage", {}).get(storage_key, {})
+
+        if not storage_result.get("exists"):
+            storage_name = "cookies" if type == "cookies" else ("localStorage" if type == "local" else "sessionStorage")
             raise HTTPException(status_code=404, detail=f"Key not found in {storage_name}: {key}")
 
         return {
@@ -216,19 +258,28 @@ async def get_storage(
 @router.post("/", response_model=CommandResponse)
 async def set_storage(request: SetStorageRequest):
     """
-    Set a storage item.
+    Set a storage item (localStorage, sessionStorage, or cookie).
 
     Mirrors 'inspekt storage set' CLI command.
 
     Request Body:
-        key: Storage key
-        value: Storage value
-        type: Storage type - "local" or "session" (default: local)
+        key: Storage key / cookie name
+        value: Storage value / cookie value
+        type: Storage type - "cookies", "local", or "session" (default: local)
+
+        Cookie-specific options (only used when type="cookies"):
+        - max_age: Cookie max age in seconds
+        - expires: Cookie expiration date
+        - path: Cookie path (default: "/")
+        - domain: Cookie domain
+        - secure: Secure flag (HTTPS only)
+        - same_site: SameSite attribute ("Strict", "Lax", or "None")
 
     Examples:
-        - Basic item: `{"key": "user_token", "value": "abc123"}`
-        - Session storage: `{"key": "temp_data", "value": "xyz", "type": "session"}`
-        - JSON value: `{"key": "preferences", "value": "{\"theme\":\"dark\"}", "type": "local"}`
+        - localStorage: `{"key": "user_token", "value": "abc123", "type": "local"}`
+        - sessionStorage: `{"key": "temp_data", "value": "xyz", "type": "session"}`
+        - Cookie (basic): `{"key": "session_id", "value": "abc123", "type": "cookies"}`
+        - Cookie (secure): `{"key": "auth_token", "value": "xyz", "type": "cookies", "secure": true, "max_age": 3600}`
 
     Returns:
         Confirmation of set operation.
@@ -238,16 +289,36 @@ async def set_storage(request: SetStorageRequest):
     {
         "ok": true,
         "result": {
-            "key": "user_token",
-            "value": "abc123",
-            "storageType": "localStorage"
+            "origin": "https://example.com",
+            "storage": {
+                "cookies": {
+                    "ok": true,
+                    "key": "session_id",
+                    "value": "abc123"
+                }
+            }
         }
     }
     ```
     """
     try:
-        response = _execute_storage_action(
-            request.type, "set", key=request.key, value=request.value
+        # Build options for cookies
+        options = {}
+        if request.type == "cookies":
+            options["path"] = request.path
+            if request.max_age is not None:
+                options["maxAge"] = request.max_age
+            if request.expires:
+                options["expires"] = request.expires
+            if request.domain:
+                options["domain"] = request.domain
+            if request.secure:
+                options["secure"] = True
+            if request.same_site:
+                options["sameSite"] = request.same_site
+
+        response = _execute_unified_storage_action(
+            [request.type], "set", key=request.key, value=request.value, options=options
         )
 
         return {
@@ -264,21 +335,22 @@ async def set_storage(request: SetStorageRequest):
 @router.delete("/{key}", response_model=CommandResponse)
 async def delete_storage(
     key: str,
-    type: Literal["local", "session"] = Query("local", description="Storage type")
+    type: Literal["cookies", "local", "session"] = Query("local", description="Storage type")
 ):
     """
-    Delete a specific storage item.
+    Delete a specific storage item or cookie.
 
     Mirrors 'inspekt storage delete <key>' CLI command.
 
     Path Parameters:
-        key: Storage key to delete
+        key: Storage key / cookie name to delete
 
     Query Parameters:
-        type: Storage type - "local" or "session" (default: local)
+        type: Storage type - "cookies", "local", or "session" (default: local)
 
-    Example:
-        DELETE /api/storage/user_token?type=local
+    Examples:
+        - DELETE /api/storage/user_token?type=local
+        - DELETE /api/storage/session_id?type=cookies
 
     Returns:
         Confirmation of deletion.
@@ -288,14 +360,19 @@ async def delete_storage(
     {
         "ok": true,
         "result": {
-            "key": "user_token",
-            "storageType": "localStorage"
+            "origin": "https://example.com",
+            "storage": {
+                "localStorage": {
+                    "ok": true,
+                    "key": "user_token"
+                }
+            }
         }
     }
     ```
     """
     try:
-        response = _execute_storage_action(type, "delete", key=key)
+        response = _execute_unified_storage_action([type], "delete", key=key)
 
         return {
             "ok": True,
@@ -311,67 +388,67 @@ async def delete_storage(
 @router.delete("", response_model=CommandResponse)
 @router.delete("/", response_model=CommandResponse)
 async def clear_storage(
-    type: Literal["local", "session", "all"] = Query("all", description="Storage type to clear")
+    types: str | None = Query(None, description="Comma-separated storage types: cookies,local,session or 'all' (default: all)"),
+    type: Literal["local", "session", "cookies", "all"] | None = Query(None, description="[DEPRECATED] Single storage type - use 'types' instead")
 ):
     """
-    Clear all storage items.
+    Clear all storage items across specified storage types.
 
     Mirrors 'inspekt storage clear' CLI command.
 
     Query Parameters:
-        type: Storage type - "local", "session", or "all" (default: all)
+        types: Comma-separated list - "cookies,local,session" or "all" (default: all)
+        type: [DEPRECATED] Single type - "local", "session", "cookies", or "all" (use 'types' instead)
 
     Examples:
-        - DELETE /api/storage?type=local
-        - DELETE /api/storage?type=session
-        - DELETE /api/storage?type=all
+        - DELETE /api/storage?types=local
+        - DELETE /api/storage?types=cookies,session
+        - DELETE /api/storage?types=all
 
     Returns:
-        Number of items deleted.
+        Number of items deleted per storage type.
 
-    Example responses:
+    Example response (all types):
     ```json
-    // For type=local
     {
         "ok": true,
         "result": {
-            "deleted": 5,
-            "storageType": "localStorage"
-        }
-    }
-
-    // For type=all
-    {
-        "ok": true,
-        "result": {
-            "localStorageDeleted": 5,
-            "sessionStorageDeleted": 2
+            "origin": "https://example.com",
+            "storage": {
+                "cookies": {
+                    "ok": true,
+                    "deleted": 3
+                },
+                "localStorage": {
+                    "ok": true,
+                    "deleted": 5
+                },
+                "sessionStorage": {
+                    "ok": true,
+                    "deleted": 2
+                }
+            }
         }
     }
     ```
     """
     try:
-        if type == "all":
-            # Clear both types
-            local_result = _execute_storage_action("local", "clear")
-            session_result = _execute_storage_action("session", "clear")
-
-            return {
-                "ok": True,
-                "result": {
-                    "localStorageDeleted": local_result.get("deleted", 0),
-                    "sessionStorageDeleted": session_result.get("deleted", 0),
-                },
-                "error": None,
-            }
+        # Handle legacy 'type' parameter (backward compatibility)
+        if type and not types:
+            if type == "all":
+                types_list = ["cookies", "local", "session"]
+            else:
+                types_list = [type]
         else:
-            response = _execute_storage_action(type, "clear")
+            types_list = _parse_types_param(types)
 
-            return {
-                "ok": True,
-                "result": response,
-                "error": None,
-            }
+        response = _execute_unified_storage_action(types_list, "clear")
+
+        return {
+            "ok": True,
+            "result": response,
+            "error": None,
+        }
     except HTTPException:
         raise
     except Exception as e:

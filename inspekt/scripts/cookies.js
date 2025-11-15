@@ -1,11 +1,69 @@
 // Get, set, or delete cookies
-(function() {
+(async function() {
     const action = 'ACTION_PLACEHOLDER'; // 'list', 'get', 'set', 'delete', 'clear'
     const cookieName = 'NAME_PLACEHOLDER';
     const cookieValue = 'VALUE_PLACEHOLDER';
     const options = OPTIONS_PLACEHOLDER;
 
-    // Parse all cookies into an object
+    // Try to get enhanced cookie data via chrome.cookies API
+    // Uses window message bridge to communicate with extension
+    async function getCookiesEnhanced() {
+        // Check if we're in a browser context with window.postMessage
+        if (typeof window === 'undefined' || typeof window.postMessage !== 'function') {
+            return null;
+        }
+
+        try {
+            // Generate unique request ID
+            const requestId = 'cookie-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+
+            // Create promise that waits for response via window message
+            const response = await new Promise((resolve, reject) => {
+                // Timeout after 1 second
+                const timeout = setTimeout(() => {
+                    window.removeEventListener('message', messageHandler);
+                    resolve(null); // Fallback to document.cookie
+                }, 1000);
+
+                // Listen for response from extension
+                const messageHandler = (event) => {
+                    // Only accept messages from same origin
+                    if (event.source !== window) return;
+
+                    const message = event.data;
+                    if (message &&
+                        message.type === 'INSPEKT_COOKIES_RESPONSE' &&
+                        message.source === 'inspekt-extension' &&
+                        message.requestId === requestId) {
+
+                        clearTimeout(timeout);
+                        window.removeEventListener('message', messageHandler);
+                        resolve(message.response);
+                    }
+                };
+
+                window.addEventListener('message', messageHandler);
+
+                // Send request to extension via window.postMessage
+                window.postMessage({
+                    type: 'INSPEKT_GET_COOKIES_ENHANCED',
+                    source: 'inspekt-page',
+                    requestId: requestId
+                }, '*');
+            });
+
+            if (response && response.ok) {
+                return response;
+            }
+        } catch (e) {
+            console.log('[Inspekt] Enhanced cookie API not available, falling back to document.cookie');
+        }
+
+        // Fallback: use document.cookie (limited data)
+        return null;
+    }
+
+    // Parse all cookies into an object (fallback method)
     function getAllCookies() {
         const cookies = {};
         if (!document.cookie) return cookies;
@@ -77,12 +135,22 @@
     // Execute action
     switch (action) {
         case 'list':
+            // Try enhanced API first
+            const enhanced = await getCookiesEnhanced();
+            if (enhanced) {
+                return enhanced;
+            }
+
+            // Fallback to document.cookie
             const allCookies = getAllCookies();
             return {
                 ok: true,
                 action: 'list',
                 count: Object.keys(allCookies).length,
-                cookies: allCookies
+                cookies: allCookies,
+                apiUsed: 'document.cookie',
+                origin: window.location.origin,
+                hostname: window.location.hostname
             };
 
         case 'get':

@@ -1,6 +1,16 @@
 """
 Cookies API endpoints - Manage browser cookies.
 
+⚠ DEPRECATED: This API endpoint group is deprecated and will be removed in v2.0.0
+   Use '/api/storage' with type parameter instead.
+
+Migration guide:
+  GET  /api/cookies              → GET  /api/storage?types=cookies
+  GET  /api/cookies/{name}       → GET  /api/storage/{name}?type=cookies
+  POST /api/cookies              → POST /api/storage (with type: "cookies")
+  DELETE /api/cookies/{name}     → DELETE /api/storage/{name}?type=cookies
+  DELETE /api/cookies            → DELETE /api/storage?types=cookies
+
 This module provides HTTP API endpoints for cookie management:
 - GET /api/cookies - List all cookies for the current page
 - GET /api/cookies/{name} - Get a specific cookie by name
@@ -14,7 +24,7 @@ from __future__ import annotations
 import json
 from typing import Any, Literal
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response
 from pydantic import BaseModel, Field
 
 from inspekt.app.api.dependencies import get_bridge_client
@@ -23,6 +33,14 @@ from inspekt.services.bridge_executor import get_executor
 from inspekt.services.script_loader import ScriptLoader
 
 router = APIRouter()
+
+
+def _add_deprecation_headers(response: Response):
+    """Add deprecation warning headers to API responses."""
+    response.headers["Deprecation"] = "true"
+    response.headers["Sunset"] = "Wed, 01 Jan 2026 00:00:00 GMT"
+    response.headers["Link"] = '</api/storage>; rel="alternate"'
+    response.headers["Warning"] = '299 - "This API endpoint is deprecated. Use /api/storage instead."'
 
 
 # Request Models
@@ -42,11 +60,43 @@ class SetCookieRequest(BaseModel):
 
 
 # Response Models
+class CookieDetail(BaseModel):
+    """Detailed cookie information from chrome.cookies API."""
+
+    name: str = Field(..., description="Cookie name")
+    value: str = Field(..., description="Cookie value")
+    domain: str = Field(..., description="Cookie domain")
+    path: str = Field(..., description="Cookie path")
+    expires: str | None = Field(None, description="Expiration date in ISO format")
+    size: int = Field(..., description="Cookie size in bytes (name + value length)")
+    type: str = Field(..., description="Cookie type: 'session' or 'persistent'")
+    party: str = Field(..., description="Cookie party: 'first-party' or 'third-party'")
+    secure: bool = Field(False, description="Secure flag (HTTPS only)")
+    httpOnly: bool = Field(False, description="HttpOnly flag (not accessible via JavaScript)")
+    sameSite: str | None = Field(None, description="SameSite attribute")
+    session: bool = Field(..., description="Whether this is a session cookie")
+    hostOnly: bool | None = Field(None, description="Whether cookie is host-only")
+    storeId: str | None = Field(None, description="Cookie store ID")
+
+
+class CookieListResult(BaseModel):
+    """Result data for cookie list operation."""
+
+    action: str = Field(..., description="Action performed ('list')")
+    count: int = Field(..., description="Number of cookies")
+    cookies: list[CookieDetail] | dict[str, str] = Field(
+        ..., description="Cookie data - enhanced (array) or legacy (dict)"
+    )
+    apiUsed: str = Field(..., description="API used: 'chrome.cookies' or 'document.cookie'")
+    origin: str = Field(..., description="Page origin")
+    hostname: str = Field(..., description="Page hostname")
+
+
 class CookiesListResponse(BaseModel):
     """Response model for listing cookies."""
 
     ok: bool = Field(..., description="Whether the command executed successfully")
-    result: dict[str, Any] | None = Field(None, description="Cookies data")
+    result: CookieListResult | None = Field(None, description="Cookies data")
     error: str | None = Field(None, description="Error message if ok=False")
 
 
@@ -98,34 +148,71 @@ def _execute_cookie_action(
 # Endpoints
 @router.get("", response_model=CookiesListResponse)
 @router.get("/", response_model=CookiesListResponse)
-async def list_cookies():
+async def list_cookies(response: Response):
     """
     List all cookies for the current page.
 
     Mirrors 'zen cookies list --json' CLI command.
 
     Returns:
-        Dictionary of cookie names and values, plus total count.
+        Cookie data with comprehensive metadata (when extension is active)
+        or basic name/value pairs (fallback mode).
 
-    Example response:
+    Example response (enhanced mode via chrome.cookies API):
     ```json
     {
         "ok": true,
         "result": {
+            "action": "list",
+            "count": 2,
+            "cookies": [
+                {
+                    "name": "session_id",
+                    "value": "abc123",
+                    "domain": "example.com",
+                    "path": "/",
+                    "expires": "2025-10-21T07:28:00.000Z",
+                    "size": 16,
+                    "type": "persistent",
+                    "party": "first-party",
+                    "secure": true,
+                    "httpOnly": true,
+                    "sameSite": "Lax",
+                    "session": false,
+                    "hostOnly": true
+                }
+            ],
+            "apiUsed": "chrome.cookies",
+            "origin": "https://example.com",
+            "hostname": "example.com"
+        }
+    }
+    ```
+
+    Example response (fallback mode via document.cookie):
+    ```json
+    {
+        "ok": true,
+        "result": {
+            "action": "list",
+            "count": 2,
             "cookies": {
                 "session_id": "abc123",
                 "user_pref": "dark"
             },
-            "count": 2
+            "apiUsed": "document.cookie",
+            "origin": "https://example.com",
+            "hostname": "example.com"
         }
     }
     ```
     """
+    _add_deprecation_headers(response)
     try:
-        response = _execute_cookie_action("list")
+        result = _execute_cookie_action("list")
         return {
             "ok": True,
-            "result": response,
+            "result": result,
             "error": None,
         }
     except HTTPException:
@@ -135,7 +222,7 @@ async def list_cookies():
 
 
 @router.get("/{name}", response_model=CookieGetResponse)
-async def get_cookie(name: str):
+async def get_cookie(name: str, response: Response):
     """
     Get the value of a specific cookie.
 
@@ -159,16 +246,17 @@ async def get_cookie(name: str):
     }
     ```
     """
+    _add_deprecation_headers(response)
     try:
-        response = _execute_cookie_action("get", cookie_name=name)
+        result = _execute_cookie_action("get", cookie_name=name)
 
         # If cookie doesn't exist, return 404
-        if not response.get("exists"):
+        if not result.get("exists"):
             raise HTTPException(status_code=404, detail=f"Cookie not found: {name}")
 
         return {
             "ok": True,
-            "result": response,
+            "result": result,
             "error": None,
         }
     except HTTPException:
@@ -179,7 +267,7 @@ async def get_cookie(name: str):
 
 @router.post("", response_model=CommandResponse)
 @router.post("/", response_model=CommandResponse)
-async def set_cookie(request: SetCookieRequest):
+async def set_cookie(request: SetCookieRequest, response: Response):
     """
     Set a cookie with various options.
 
@@ -199,6 +287,7 @@ async def set_cookie(request: SetCookieRequest):
         - secure: HTTPS only
         - same_site: "Strict", "Lax", or "None"
     """
+    _add_deprecation_headers(response)
     try:
         options: dict[str, Any] = {"path": request.path}
 
@@ -213,13 +302,13 @@ async def set_cookie(request: SetCookieRequest):
         if request.same_site:
             options["sameSite"] = request.same_site
 
-        response = _execute_cookie_action(
+        result = _execute_cookie_action(
             "set", cookie_name=request.name, cookie_value=request.value, options=options
         )
 
         return {
             "ok": True,
-            "result": response,
+            "result": result,
             "error": None,
         }
     except HTTPException:
@@ -229,7 +318,7 @@ async def set_cookie(request: SetCookieRequest):
 
 
 @router.delete("/{name}", response_model=CommandResponse)
-async def delete_cookie(name: str):
+async def delete_cookie(name: str, response: Response):
     """
     Delete a specific cookie.
 
@@ -244,12 +333,13 @@ async def delete_cookie(name: str):
     Returns:
         Confirmation of deletion.
     """
+    _add_deprecation_headers(response)
     try:
-        response = _execute_cookie_action("delete", cookie_name=name)
+        result = _execute_cookie_action("delete", cookie_name=name)
 
         return {
             "ok": True,
-            "result": response,
+            "result": result,
             "error": None,
         }
     except HTTPException:
@@ -260,7 +350,7 @@ async def delete_cookie(name: str):
 
 @router.delete("", response_model=CommandResponse)
 @router.delete("/", response_model=CommandResponse)
-async def clear_cookies():
+async def clear_cookies(response: Response):
     """
     Clear all cookies for the current page.
 
@@ -281,12 +371,13 @@ async def clear_cookies():
     }
     ```
     """
+    _add_deprecation_headers(response)
     try:
-        response = _execute_cookie_action("clear")
+        result = _execute_cookie_action("clear")
 
         return {
             "ok": True,
-            "result": response,
+            "result": result,
             "error": None,
         }
     except HTTPException:

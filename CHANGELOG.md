@@ -5,6 +5,49 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Unified Storage Command**: Consolidated cookies, localStorage, and sessionStorage into a single `storage` command
+  - Flag-based filtering with `--cookies`, `--local`, `--session`, and `--all` flags
+  - Support for multiple storage types in a single command (e.g., `inspekt storage list --cookies --local`)
+  - Cookie-specific options: `--secure`, `--max-age`, `--expires`, `--same-site`, `--path`, `--domain`
+  - Enhanced JSON output with aggregated totals across all storage types
+  - Parallel retrieval of multiple storage types for better performance
+  - Comprehensive test suite with 32 integration tests (77% code coverage)
+- **Enhanced Cookie Features**:
+  - Automatic JSON parsing for cookie values
+  - 15 derived properties (time-based, security scores, size metrics)
+  - Window message bridge for chrome.cookies API access with fallback to document.cookie
+  - Enhanced cookie display with metadata (domain, path, security flags, expiration)
+- **Storage API Enhancements**:
+  - Unified `/api/storage` endpoint supporting all storage types
+  - Cookie support in storage API with full options
+  - Backward compatible `type` parameter (marked as deprecated)
+  - New `types` parameter for multiple storage types: `GET /api/storage?types=cookies,local,session`
+
+### Deprecated
+- **Cookie Commands**: `inspekt cookies` command group deprecated in favor of `inspekt storage --cookies`
+  - All cookie commands show deprecation warnings with migration instructions
+  - Legacy commands will be removed in v2.0.0
+  - Migration guide:
+    - `inspekt cookies list` → `inspekt storage list --cookies`
+    - `inspekt cookies get <name>` → `inspekt storage get <name> --cookies`
+    - `inspekt cookies set <name> <value>` → `inspekt storage set <name> <value> --cookies`
+    - `inspekt cookies delete <name>` → `inspekt storage delete <name> --cookies`
+    - `inspekt cookies clear` → `inspekt storage clear --cookies`
+- **Cookie API Endpoints**: `/api/cookies/*` endpoints deprecated in favor of `/api/storage`
+  - HTTP deprecation headers added to all cookie endpoints
+  - Sunset date: Wed, 01 Jan 2026 00:00:00 GMT
+  - Endpoints remain functional during deprecation period
+
+### Changed
+- **Storage Command**: Complete rewrite with unified architecture
+  - Uses new `storage_unified.js` script (557 lines) for all storage operations
+  - CLI module expanded from 276 to 565 lines with enhanced functionality
+  - Improved error handling and user feedback
+  - Confirmation prompts for destructive operations (clear)
+
 ## [5.0.0] - 2025-01-14
 
 ### Changed - BREAKING CHANGES ⚠️

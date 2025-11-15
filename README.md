@@ -614,55 +614,68 @@ Watching keyboard input... (Press Ctrl+C to stop)
 H e l l o [SPACE] W o r l d [ENTER]
 ```
 
-### Cookie Management
+### Unified Storage Management
+
+Manage cookies, localStorage, and sessionStorage with a single unified command:
 
 ```bash
-# List all cookies
-inspekt cookies list
-
-# Get specific cookie
-inspekt cookies get session_id
-
-# Set a cookie
-inspekt cookies set user_pref dark --max-age 3600
-
-# Delete a cookie
-inspekt cookies delete session_id
-
-# Clear all cookies
-inspekt cookies clear
-```
-
-### Browser Storage Management
-
-Manage localStorage and sessionStorage:
-
-```bash
-# List all storage (both localStorage and sessionStorage)
+# List all storage types (cookies, localStorage, sessionStorage)
 inspekt storage list
+inspekt storage list --all
 
-# List only localStorage
-inspekt storage list --type=local
+# List specific storage types
+inspekt storage list --cookies
+inspekt storage list --local
+inspekt storage list --session
+inspekt storage list --cookies --local  # Multiple types
 
-# List only sessionStorage
-inspekt storage list --type=session
-
-# Get a storage item
-inspekt storage get user_token
-inspekt storage get session_data --type=session
+# Get a storage item or cookie
+inspekt storage get user_token --local
+inspekt storage get session_id --cookies
+inspekt storage get temp_data --session
 
 # Set a storage item
-inspekt storage set user_token abc123
-inspekt storage set preferences '{"theme":"dark"}' --type=local
-inspekt storage set temp_data xyz --type=session
+inspekt storage set user_token abc123 --local
+inspekt storage set preferences '{"theme":"dark"}' --session
 
-# Delete a storage item
-inspekt storage delete user_token
-inspekt storage delete session_data --type=session
+# Set a cookie with options
+inspekt storage set session_id xyz789 --cookies
+inspekt storage set auth_token abc --cookies --secure --max-age 3600
+inspekt storage set tracking abc --cookies --same-site Strict --path /
 
-# Clear all storage
-inspekt storage clear --type=all --force
-inspekt storage clear --type=local
+# Delete a storage item or cookie
+inspekt storage delete user_token --local
+inspekt storage delete session_id --cookies
+
+# Clear storage (with confirmation prompt)
+inspekt storage clear --all
+inspekt storage clear --cookies
+inspekt storage clear --local --session
+
+# JSON output for programmatic use
+inspekt storage list --json
+inspekt storage get user_token --local --json
+```
+
+**Cookie-specific options:**
+- `--max-age <seconds>` - Cookie lifetime
+- `--expires <date>` - Expiration date
+- `--path <path>` - Cookie path (default: /)
+- `--domain <domain>` - Cookie domain
+- `--secure` - HTTPS only
+- `--same-site <Strict|Lax|None>` - SameSite attribute
+
+**Legacy Cookie Commands (Deprecated):**
+
+The `inspekt cookies` command is deprecated and will be removed in v2.0.0. Use `inspekt storage --cookies` instead:
+
+```bash
+# Old (deprecated)          # New (recommended)
+inspekt cookies list        → inspekt storage list --cookies
+inspekt cookies get name    → inspekt storage get name --cookies
+inspekt cookies set n v     → inspekt storage set n v --cookies
+inspekt cookies delete name → inspekt storage delete name --cookies
+inspekt cookies clear       → inspekt storage clear --cookies
 ```
 
 ### Robots.txt Inspection

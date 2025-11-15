@@ -1,12 +1,14 @@
 """
-Storage command group - Manage browser storage (localStorage and sessionStorage).
+Storage command group - Manage browser storage (cookies, localStorage, sessionStorage).
 
-This module provides commands for storage management:
-- list: List all storage items
+This module provides unified commands for storage management across all storage types:
+- list: List storage items
 - get: Get a specific item by key
 - set: Set an item with key-value
 - delete: Delete a specific item
 - clear: Clear all items
+
+Supports cookies, localStorage, and sessionStorage with flexible filtering.
 """
 
 from __future__ import annotations
@@ -22,202 +24,417 @@ from inspekt.services.script_loader import ScriptLoader
 
 @click.group()
 def storage():
-    """Manage browser storage (localStorage and sessionStorage)."""
+    """Manage browser storage (cookies, localStorage, sessionStorage)."""
     pass
 
 
 @storage.command(name="list")
+# New flag-based filtering
+@click.option("--cookies", "-c", is_flag=True, help="Include cookies")
+@click.option("--local", "-l", is_flag=True, help="Include localStorage")
+@click.option("--session", "-s", is_flag=True, help="Include sessionStorage")
+@click.option("--all", "-a", is_flag=True, help="Include all storage types (default)")
+# Backward compatibility
 @click.option(
     "--type",
     "storage_type",
-    type=click.Choice(["local", "session", "all"], case_sensitive=False),
-    default="all",
-    help="Storage type to list (default: all)"
+    type=click.Choice(["local", "session", "all", "cookies"], case_sensitive=False),
+    help="[DEPRECATED] Use --cookies, --local, --session, or --all instead"
 )
-@click.option("--json", "output_json", is_flag=True, help="Output as JSON")
-def storage_list(storage_type, output_json):
+# Output format
+@click.option("--json", "-j", "output_json", is_flag=True, help="Output as JSON")
+def storage_list(cookies, local, session, all, storage_type, output_json):
     """
     List all storage items.
 
-    Examples:
-        inspekt storage list
-        inspekt storage list --type=local
-        inspekt storage list --type=session --json
-    """
-    if storage_type == "all":
-        # List both types
-        local_result = _execute_storage_action("local", "list", output_json=False)
-        session_result = _execute_storage_action("session", "list", output_json=False)
+    By default, lists all storage types. Use flags to filter specific types.
 
-        if output_json:
-            output_data = {
-                "localStorage": local_result.get("items", {}),
-                "localStorageCount": local_result.get("count", 0),
-                "sessionStorage": session_result.get("items", {}),
-                "sessionStorageCount": session_result.get("count", 0)
-            }
-            click.echo(json.dumps(output_data, indent=2))
-        else:
-            _display_list_result(local_result, "localStorage")
-            click.echo()  # Blank line separator
-            _display_list_result(session_result, "sessionStorage")
+    Examples:
+        inspekt storage list                    # All types
+        inspekt storage list --cookies          # Just cookies
+        inspekt storage list --local --session  # localStorage + sessionStorage
+        inspekt storage list --all --json       # All types as JSON
+
+    Legacy examples (deprecated --type flag):
+        inspekt storage list --type=local
+        inspekt storage list --type=all --json
+    """
+    # Determine which storage types to include
+    types = _determine_storage_types(cookies, local, session, all, storage_type)
+
+    # Show deprecation warning if old --type flag is used
+    if storage_type:
+        _show_deprecation_warning("--type", f"--{storage_type}" if storage_type != "all" else "--all")
+
+    # Execute unified storage action
+    result = _execute_unified_storage_action("list", types)
+
+    # Display results
+    if output_json:
+        click.echo(json.dumps(result, indent=2))
     else:
-        result = _execute_storage_action(storage_type, "list", output_json=output_json)
-        if output_json:
-            click.echo(json.dumps(result, indent=2))
-        else:
-            storage_name = "localStorage" if storage_type == "local" else "sessionStorage"
-            _display_list_result(result, storage_name)
+        _display_unified_list_result(result)
 
 
 @storage.command(name="get")
 @click.argument("key")
+# Storage type selection
+@click.option("--cookies", "-c", is_flag=True, help="Get from cookies")
+@click.option("--local", "-l", is_flag=True, help="Get from localStorage")
+@click.option("--session", "-s", is_flag=True, help="Get from sessionStorage")
+# Backward compatibility
 @click.option(
     "--type",
     "storage_type",
-    type=click.Choice(["local", "session"], case_sensitive=False),
-    default="local",
-    help="Storage type (default: local)"
+    type=click.Choice(["local", "session", "cookies"], case_sensitive=False),
+    help="[DEPRECATED] Use --cookies, --local, or --session instead"
 )
-@click.option("--json", "output_json", is_flag=True, help="Output as JSON")
-def storage_get(key, storage_type, output_json):
+# Output format
+@click.option("--json", "-j", "output_json", is_flag=True, help="Output as JSON")
+def storage_get(key, cookies, local, session, storage_type, output_json):
     """
     Get the value of a specific storage item.
 
+    Searches in the specified storage type. Defaults to localStorage if no type specified.
+
     Examples:
-        inspekt storage get user_token
-        inspekt storage get session_data --type=session
-        inspekt storage get preferences --type=local --json
+        inspekt storage get user_token                # localStorage (default)
+        inspekt storage get session_id --cookies      # Cookie
+        inspekt storage get temp_data --session       # sessionStorage
+        inspekt storage get preferences --local --json
     """
-    result = _execute_storage_action(storage_type, "get", key=key, output_json=output_json)
+    # Determine storage type (for get, only one type is allowed)
+    types = _determine_storage_types(cookies, local, session, False, storage_type, default_local=True)
+
+    # Show deprecation warning if old --type flag is used
+    if storage_type:
+        _show_deprecation_warning("--type", f"--{storage_type}")
+
+    # Get only allows one type
+    if len(types) > 1:
+        click.echo("Error: Please specify only one storage type for 'get' command", err=True)
+        sys.exit(1)
+
+    storage_type_name = types[0]
+
+    # Execute action
+    result = _execute_unified_storage_action("get", types, key=key)
+
+    # Extract result for the specific storage type
+    storage_key = _get_storage_key(storage_type_name)
+    storage_result = result.get("storage", {}).get(storage_key, {})
 
     if output_json:
-        click.echo(json.dumps(result, indent=2))
-        if not result.get("exists"):
+        click.echo(json.dumps(storage_result, indent=2))
+        if not storage_result.get("exists"):
             sys.exit(1)
-    elif result.get("exists"):
-        value = result.get("value")
-        # Try to pretty-print JSON values
-        try:
-            parsed = json.loads(value)
-            click.echo(json.dumps(parsed, indent=2))
-        except (json.JSONDecodeError, TypeError):
-            click.echo(value)
+    elif storage_result.get("exists"):
+        value = storage_result.get("value")
+        _display_value(value)
     else:
-        storage_name = "localStorage" if storage_type == "local" else "sessionStorage"
-        click.echo(f"Key not found in {storage_name}: {key}", err=True)
+        click.echo(f"Key not found: {key}", err=True)
         sys.exit(1)
 
 
 @storage.command(name="set")
 @click.argument("key")
 @click.argument("value")
+# Storage type selection
+@click.option("--cookies", "-c", is_flag=True, help="Set as cookie")
+@click.option("--local", "-l", is_flag=True, help="Set in localStorage")
+@click.option("--session", "-s", is_flag=True, help="Set in sessionStorage")
+# Backward compatibility
 @click.option(
     "--type",
     "storage_type",
-    type=click.Choice(["local", "session"], case_sensitive=False),
-    default="local",
-    help="Storage type (default: local)"
+    type=click.Choice(["local", "session", "cookies"], case_sensitive=False),
+    help="[DEPRECATED] Use --cookies, --local, or --session instead"
 )
-def storage_set(key, value, storage_type):
+# Cookie-specific options
+@click.option("--max-age", type=int, help="Cookie max age in seconds")
+@click.option("--expires", type=str, help="Cookie expiration date")
+@click.option("--path", type=str, default="/", help="Cookie path (default: /)")
+@click.option("--domain", type=str, help="Cookie domain")
+@click.option("--secure", is_flag=True, help="Secure flag (HTTPS only)")
+@click.option(
+    "--same-site",
+    type=click.Choice(["Strict", "Lax", "None"], case_sensitive=False),
+    help="SameSite attribute"
+)
+def storage_set(key, value, cookies, local, session, storage_type, max_age, expires, path, domain, secure, same_site):
     """
     Set a storage item.
 
+    Stores in the specified storage type. Defaults to localStorage if no type specified.
+
     Examples:
-        inspekt storage set user_token abc123
-        inspekt storage set session_data '{"user":"john"}' --type=session
-        inspekt storage set preferences '{"theme":"dark"}' --type=local
+        inspekt storage set user_token abc123                    # localStorage
+        inspekt storage set session_id xyz --cookies             # Cookie
+        inspekt storage set temp '{"data":"value"}' --session    # sessionStorage
+
+    Cookie-specific examples:
+        inspekt storage set session_id abc --cookies --max-age 3600 --secure
+        inspekt storage set auth_token xyz --cookies --path / --same-site Strict
     """
-    result = _execute_storage_action(storage_type, "set", key=key, value=value)
-    storage_name = "localStorage" if storage_type == "local" else "sessionStorage"
-    click.echo(f"✓ Item set in {storage_name}: {result.get('key')}")
+    # Determine storage type
+    types = _determine_storage_types(cookies, local, session, False, storage_type, default_local=True)
+
+    # Show deprecation warning if old --type flag is used
+    if storage_type:
+        _show_deprecation_warning("--type", f"--{storage_type}")
+
+    # Set only allows one type
+    if len(types) > 1:
+        click.echo("Error: Please specify only one storage type for 'set' command", err=True)
+        sys.exit(1)
+
+    storage_type_name = types[0]
+
+    # Build options for cookies
+    options = {}
+    if storage_type_name == "cookies":
+        if max_age is not None:
+            options["maxAge"] = max_age
+        if expires:
+            options["expires"] = expires
+        if path:
+            options["path"] = path
+        if domain:
+            options["domain"] = domain
+        if secure:
+            options["secure"] = True
+        if same_site:
+            options["sameSite"] = same_site
+
+    # Execute action
+    result = _execute_unified_storage_action("set", types, key=key, value=value, options=options)
+
+    # Display success message
+    storage_display = {
+        "cookies": "cookie",
+        "local": "localStorage",
+        "session": "sessionStorage"
+    }[storage_type_name]
+
+    click.echo(f"✓ Item set in {storage_display}: {key}")
 
 
 @storage.command(name="delete")
 @click.argument("key")
+# Storage type selection
+@click.option("--cookies", "-c", is_flag=True, help="Delete from cookies")
+@click.option("--local", "-l", is_flag=True, help="Delete from localStorage")
+@click.option("--session", "-s", is_flag=True, help="Delete from sessionStorage")
+# Backward compatibility
 @click.option(
     "--type",
     "storage_type",
-    type=click.Choice(["local", "session"], case_sensitive=False),
-    default="local",
-    help="Storage type (default: local)"
+    type=click.Choice(["local", "session", "cookies"], case_sensitive=False),
+    help="[DEPRECATED] Use --cookies, --local, or --session instead"
 )
-def storage_delete(key, storage_type):
+def storage_delete(key, cookies, local, session, storage_type):
     """
     Delete a specific storage item.
 
+    Deletes from the specified storage type. Defaults to localStorage if no type specified.
+
     Examples:
-        inspekt storage delete user_token
-        inspekt storage delete session_data --type=session
+        inspekt storage delete user_token                  # localStorage
+        inspekt storage delete session_id --cookies        # Cookie
+        inspekt storage delete temp_data --session         # sessionStorage
     """
-    result = _execute_storage_action(storage_type, "delete", key=key)
-    storage_name = "localStorage" if storage_type == "local" else "sessionStorage"
-    click.echo(f"✓ Item deleted from {storage_name}: {result.get('key')}")
+    # Determine storage type
+    types = _determine_storage_types(cookies, local, session, False, storage_type, default_local=True)
+
+    # Show deprecation warning if old --type flag is used
+    if storage_type:
+        _show_deprecation_warning("--type", f"--{storage_type}")
+
+    # Delete only allows one type
+    if len(types) > 1:
+        click.echo("Error: Please specify only one storage type for 'delete' command", err=True)
+        sys.exit(1)
+
+    storage_type_name = types[0]
+
+    # Execute action
+    result = _execute_unified_storage_action("delete", types, key=key)
+
+    # Display success message
+    storage_display = {
+        "cookies": "cookies",
+        "local": "localStorage",
+        "session": "sessionStorage"
+    }[storage_type_name]
+
+    click.echo(f"✓ Item deleted from {storage_display}: {key}")
 
 
 @storage.command(name="clear")
+# Storage type selection
+@click.option("--cookies", "-c", is_flag=True, help="Clear cookies")
+@click.option("--local", "-l", is_flag=True, help="Clear localStorage")
+@click.option("--session", "-s", is_flag=True, help="Clear sessionStorage")
+@click.option("--all", "-a", is_flag=True, help="Clear all storage types (default)")
+# Backward compatibility
 @click.option(
     "--type",
     "storage_type",
-    type=click.Choice(["local", "session", "all"], case_sensitive=False),
-    default="all",
-    help="Storage type to clear (default: all)"
+    type=click.Choice(["local", "session", "all", "cookies"], case_sensitive=False),
+    help="[DEPRECATED] Use --cookies, --local, --session, or --all instead"
 )
 @click.option("--force", is_flag=True, help="Skip confirmation prompt")
-def storage_clear(storage_type, force):
+def storage_clear(cookies, local, session, all, storage_type, force):
     """
     Clear all storage items.
 
-    Examples:
-        inspekt storage clear --type=local
-        inspekt storage clear --type=session --force
-        inspekt storage clear --force  # Clear both
-    """
-    if not force:
-        storage_name = {
-            "local": "localStorage",
-            "session": "sessionStorage",
-            "all": "localStorage and sessionStorage"
-        }[storage_type]
+    By default, clears all storage types. Use flags to filter specific types.
 
-        if not click.confirm(f"Are you sure you want to clear all items from {storage_name}?"):
+    Examples:
+        inspekt storage clear --force              # Clear all types
+        inspekt storage clear --cookies            # Just cookies
+        inspekt storage clear --local --session    # localStorage + sessionStorage
+    """
+    # Determine which storage types to clear
+    types = _determine_storage_types(cookies, local, session, all, storage_type)
+
+    # Show deprecation warning if old --type flag is used
+    if storage_type:
+        _show_deprecation_warning("--type", f"--{storage_type}" if storage_type != "all" else "--all")
+
+    # Build confirmation message
+    if not force:
+        type_names = [_get_storage_display_name(t) for t in types]
+        storage_description = " and ".join(type_names) if len(type_names) <= 2 else ", ".join(type_names[:-1]) + f", and {type_names[-1]}"
+
+        if not click.confirm(f"Are you sure you want to clear all items from {storage_description}?"):
             click.echo("Cancelled")
             return
 
-    if storage_type == "all":
-        local_result = _execute_storage_action("local", "clear")
-        session_result = _execute_storage_action("session", "clear")
-        local_count = local_result.get("deleted", 0)
-        session_count = session_result.get("deleted", 0)
-        click.echo(f"✓ Cleared {local_count} item(s) from localStorage")
-        click.echo(f"✓ Cleared {session_count} item(s) from sessionStorage")
-    else:
-        result = _execute_storage_action(storage_type, "clear")
-        deleted = result.get("deleted", 0)
-        storage_name = "localStorage" if storage_type == "local" else "sessionStorage"
-        click.echo(f"✓ Cleared {deleted} item(s) from {storage_name}")
+    # Execute clear action
+    result = _execute_unified_storage_action("clear", types)
+
+    # Display results for each type
+    for storage_type in types:
+        storage_key = _get_storage_key(storage_type)
+        storage_result = result.get("storage", {}).get(storage_key, {})
+        deleted = storage_result.get("deleted", 0)
+        display_name = _get_storage_display_name(storage_type)
+        click.echo(f"✓ Cleared {deleted} item(s) from {display_name}")
 
 
-def _execute_storage_action(storage_type, action, key="", value="", output_json=False):
-    """Helper function to execute storage actions."""
+# ============================================================================
+# Helper Functions
+# ============================================================================
+
+def _determine_storage_types(cookies, local, session, all_flag, legacy_type, default_local=False):
+    """
+    Determine which storage types to include based on flags.
+
+    Args:
+        cookies: --cookies flag
+        local: --local flag
+        session: --session flag
+        all_flag: --all flag
+        legacy_type: --type flag value (deprecated)
+        default_local: If True and no flags set, default to ['local']
+
+    Returns:
+        List of storage type strings: ['cookies', 'local', 'session']
+    """
+    types = []
+
+    # Priority 1: New flags
+    if cookies:
+        types.append("cookies")
+    if local:
+        types.append("local")
+    if session:
+        types.append("session")
+    if all_flag:
+        types = ["cookies", "local", "session"]
+
+    # Priority 2: Legacy --type flag (for backward compatibility)
+    if not types and legacy_type:
+        if legacy_type == "all":
+            types = ["cookies", "local", "session"]
+        elif legacy_type == "cookies":
+            types = ["cookies"]
+        elif legacy_type == "local":
+            types = ["local"]
+        elif legacy_type == "session":
+            types = ["session"]
+
+    # Priority 3: Default behavior
+    if not types:
+        if default_local:
+            types = ["local"]
+        else:
+            # Default for list/clear is all types
+            types = ["cookies", "local", "session"]
+
+    return types
+
+
+def _get_storage_key(storage_type):
+    """Map storage type to output key name."""
+    return {
+        "cookies": "cookies",
+        "local": "localStorage",
+        "session": "sessionStorage"
+    }[storage_type]
+
+
+def _get_storage_display_name(storage_type):
+    """Map storage type to human-readable display name."""
+    return {
+        "cookies": "cookies",
+        "local": "localStorage",
+        "session": "sessionStorage"
+    }[storage_type]
+
+
+def _show_deprecation_warning(old_flag, new_flag):
+    """Show deprecation warning for legacy flags."""
+    click.echo(
+        f"⚠ Warning: '{old_flag}' flag is deprecated and will be removed in v2.0.0\n"
+        f"   Use '{new_flag}' instead\n",
+        err=True
+    )
+
+
+def _execute_unified_storage_action(action, types, key="", value="", options=None):
+    """
+    Execute unified storage action using storage_unified.js script.
+
+    Args:
+        action: Action to perform ('list', 'get', 'set', 'delete', 'clear')
+        types: List of storage types to include (['cookies', 'local', 'session'])
+        key: Key name for get/set/delete operations
+        value: Value for set operation
+        options: Additional options (e.g., cookie options)
+
+    Returns:
+        Unified response object
+    """
     executor = get_executor()
     loader = ScriptLoader()
 
-    # Determine script name based on storage type
-    script_name = "localStorage.js" if storage_type == "local" else "sessionStorage.js"
-
-    # Load the storage script
+    # Load the unified storage script
     try:
-        script = loader.load_script_sync(script_name)
+        script = loader.load_script_sync("storage_unified.js")
     except FileNotFoundError as e:
         click.echo(f"Error: {e}", err=True)
         sys.exit(1)
 
     # Replace placeholders
     code = script.replace("ACTION_PLACEHOLDER", action)
+    code = code.replace("TYPES_PLACEHOLDER", json.dumps(types))
     code = code.replace("KEY_PLACEHOLDER", key)
     code = code.replace("VALUE_PLACEHOLDER", value)
+    code = code.replace("OPTIONS_PLACEHOLDER", json.dumps(options if options else {}))
 
+    # Execute
     result = executor.execute(code, timeout=60.0)
 
     if not result.get("ok"):
@@ -233,16 +450,115 @@ def _execute_storage_action(storage_type, action, key="", value="", output_json=
     return response
 
 
-def _display_list_result(result, storage_name):
-    """Display list results in human-readable format."""
-    items = result.get("items", {})
-    count = result.get("count", 0)
+def _display_unified_list_result(result):
+    """Display unified list results in human-readable format."""
+    storage_data = result.get("storage", {})
+    hostname = result.get("hostname", "")
+    totals = result.get("totals", {})
 
-    if count == 0:
-        click.echo(f"{storage_name}: No items found")
+    # Display header
+    origin_display = f" on {hostname}" if hostname else ""
+    total_items = totals.get("totalItems", 0)
+
+    if total_items == 0:
+        click.echo(f"No storage items found{origin_display}")
+        return
+
+    click.echo(f"Storage{origin_display} ({total_items} items total):\n")
+
+    # Display each storage type
+    for storage_key in ["cookies", "localStorage", "sessionStorage"]:
+        if storage_key not in storage_data:
+            continue
+
+        storage_info = storage_data[storage_key]
+
+        # Check if there was an error for this storage type
+        if not storage_info.get("ok", True):
+            click.echo(f"  {storage_key}: {storage_info.get('error', 'Unknown error')}")
+            continue
+
+        count = storage_info.get("count", 0)
+        if count == 0:
+            continue
+
+        click.echo(f"  {storage_key} ({count} items):")
+
+        # Display items based on format
+        items = storage_info.get("items")
+
+        if storage_key == "cookies" and isinstance(items, list):
+            # Enhanced cookies format (array)
+            _display_cookie_list(items)
+        elif isinstance(items, dict):
+            # Standard key-value format (localStorage, sessionStorage, or legacy cookies)
+            _display_key_value_items(items, indent="    ")
+
+        click.echo()  # Blank line between storage types
+
+
+def _display_cookie_list(cookies):
+    """Display enhanced cookie list."""
+    for cookie in cookies:
+        name = cookie.get("name", "")
+        value = cookie.get("value", "")
+
+        # Try to parse JSON value
+        value_parsed = cookie.get("valueParsed")
+        if value_parsed and value_parsed != value:
+            # Value was successfully parsed
+            click.echo(f"    {name}:")
+            click.echo(f"      Value: {value[:50]}..." if len(value) > 50 else f"      Value: {value}")
+            if isinstance(value_parsed, (dict, list)):
+                parsed_str = json.dumps(value_parsed, indent=2)
+                for line in parsed_str.split("\n"):
+                    click.echo(f"      {line}")
+        else:
+            # Plain value
+            display_value = value if len(value) <= 50 else value[:50] + "..."
+            click.echo(f"    {name} = {display_value}")
+
+        # Show key metadata
+        if cookie.get("domain"):
+            click.echo(f"      Domain: {cookie['domain']}")
+        if cookie.get("expires"):
+            click.echo(f"      Expires: {cookie['expires']}")
+        if cookie.get("expiresInDays") is not None:
+            days = cookie["expiresInDays"]
+            if days > 0:
+                click.echo(f"      Expires in: {days} days")
+
+        # Security info
+        security_flags = cookie.get("securityFlags", [])
+        if security_flags:
+            click.echo(f"      Security: {', '.join(security_flags)}")
+
+
+def _display_key_value_items(items, indent="  "):
+    """Display key-value storage items."""
+    for key, value in items.items():
+        if isinstance(value, dict):
+            # JSON object
+            json_str = json.dumps(value, indent=2)
+            indented = ("\n" + indent + "  ").join(json_str.split("\n"))
+            click.echo(f"{indent}{key} = {indented}")
+        elif isinstance(value, list):
+            # Array
+            click.echo(f"{indent}{key} =")
+            for item in value:
+                click.echo(f"{indent}  - {item}")
+        else:
+            # Plain value
+            display_value = str(value) if len(str(value)) <= 60 else str(value)[:60] + "..."
+            click.echo(f"{indent}{key} = {display_value}")
+
+
+def _display_value(value):
+    """Display a single value."""
+    if isinstance(value, dict):
+        click.echo(json.dumps(value, indent=2))
+    elif isinstance(value, list):
+        for item in value:
+            click.echo(f"  - {item}")
     else:
-        click.echo(f"{storage_name} ({count} items):\n")
-        for key, value in items.items():
-            # Truncate long values
-            display_value = value if len(str(value)) <= 60 else str(value)[:60] + "..."
-            click.echo(f"  {key} = {display_value}")
+        click.echo(value)

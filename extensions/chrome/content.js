@@ -25,6 +25,45 @@
         // Background script might not be ready yet, that's okay
     });
 
+    // Window Message Bridge
+    // Allows MAIN world scripts to communicate with extension APIs
+    // MAIN world → window.postMessage → content script → chrome.runtime → background script
+    window.addEventListener('message', async (event) => {
+        // Only accept messages from same origin (security)
+        if (event.source !== window) return;
+
+        const message = event.data;
+
+        // Handle GET_COOKIES_ENHANCED requests from MAIN world
+        if (message && message.type === 'INSPEKT_GET_COOKIES_ENHANCED' && message.source === 'inspekt-page') {
+            try {
+                // Forward to background script
+                const response = await chrome.runtime.sendMessage({
+                    type: 'GET_COOKIES_ENHANCED'
+                });
+
+                // Send response back to MAIN world
+                window.postMessage({
+                    type: 'INSPEKT_COOKIES_RESPONSE',
+                    source: 'inspekt-extension',
+                    requestId: message.requestId,
+                    response: response
+                }, '*');
+            } catch (error) {
+                // Send error back to MAIN world
+                window.postMessage({
+                    type: 'INSPEKT_COOKIES_RESPONSE',
+                    source: 'inspekt-extension',
+                    requestId: message.requestId,
+                    response: {
+                        ok: false,
+                        error: String(error)
+                    }
+                }, '*');
+            }
+        }
+    });
+
     const WS_URL = 'ws://127.0.0.1:8766/ws';
     let ws = null;
     let reconnectTimer = null;
